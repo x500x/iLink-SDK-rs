@@ -5,6 +5,7 @@ edition = "2021"
 rust-version = "1.82"
 description = "Rust SDK for the Tencent Weixin (iLink) backend protocol: QR-code login, long-poll messaging, CDN media upload/download."
 readme = "README.md"
+authors = ["Tencent"]
 license = "MIT"
 repository = "https://github.com/Tencent/openclaw-weixin"
 keywords = ["weixin", "ilink", "im", "sdk", "bot"]

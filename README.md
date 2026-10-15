@@ -229,4 +229,8 @@ Rust — a service, a CLI, a bot, a test harness — use this.
 
 ## License
 
-MIT, matching the upstream project.
+MIT, matching the upstream
+[openclaw-weixin](https://github.com/Tencent/openclaw-weixin) project.
+See [LICENSE](./LICENSE) for the full text.
+
+Copyright (C) 2026 Tencent. All rights reserved.
