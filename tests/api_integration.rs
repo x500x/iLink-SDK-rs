@@ -322,9 +322,22 @@ async fn connection_refused_is_a_transport_error() {
     // A refusal is not a cancellation, so the monitor loop keeps retrying
     // rather than treating it as a clean stop.
     assert!(!err.is_abort(), "a refusal is not a cancellation");
+}
 
-    // The client-side timeout path is separate: with a 1ms budget the request
-    // must be aborted and turned into an empty result carrying the cursor.
+/// The client-side timeout path is separate from a refusal: with a server that
+/// completes the TCP handshake but never answers, the request must be aborted
+/// and turned into an empty result carrying the cursor.
+///
+/// This uses a *listening* (never-accepting) socket on purpose. A closed port
+/// is refused immediately on Linux/macOS, which is a `Tcp` error rather than an
+/// abort, so the 1ms budget would never be reached there.
+#[tokio::test]
+async fn client_timeout_returns_empty_response() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+
+    let client =
+        WeixinApiClient::new(WeixinApiOptions::new(format!("http://127.0.0.1:{port}"))).unwrap();
     let resp = client
         .get_updates(
             &GetUpdatesReq {
@@ -338,6 +351,8 @@ async fn connection_refused_is_a_transport_error() {
         .expect("timeout returns an empty response, not an error");
     assert_eq!(resp.get_updates_buf.as_deref(), Some("keep"));
     assert_eq!(resp.ret, Some(0));
+
+    drop(listener);
 }
 
 #[tokio::test]
