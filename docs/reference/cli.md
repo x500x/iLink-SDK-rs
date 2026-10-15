@@ -75,6 +75,16 @@ variable):
 | `cdn download-url --param <p>` | Build a CDN download URL. |
 | `cdn upload-url --param <p> --filekey <k>` | Build a CDN upload URL. |
 
+### Session guard
+
+The SDK's session guard is in-process. Because every CLI invocation is a new
+process, the CLI also **persists** the pause to
+`<accounts_dir>/<account-id>.session-pause.json`, so `session pause` survives
+across commands: while an account is paused, every account command (`send`,
+`send-file`, `listen`, `config`, `typing`, `notify`, `upload`, `status`, …)
+refuses to run until `session resume`. `login` is never blocked, so you can
+always re-authenticate.
+
 ## State & config
 
 The CLI uses the same resolution rules as the library:

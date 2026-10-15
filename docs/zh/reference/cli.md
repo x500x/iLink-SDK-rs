@@ -73,6 +73,14 @@ cargo run -- logout <account-id>
 | `cdn download-url --param <p>` | 构造 CDN 下载 URL。 |
 | `cdn upload-url --param <p> --filekey <k>` | 构造 CDN 上传 URL。 |
 
+### 会话守卫
+
+SDK 的会话守卫是进程内的。由于 CLI 每次调用都是新进程，CLI 还会把暂停状态
+**持久化**到 `<accounts_dir>/<account-id>.session-pause.json`，因此 `session pause`
+会跨命令生效：账户处于暂停状态时，所有账户类命令（`send`、`send-file`、`listen`、
+`config`、`typing`、`notify`、`upload`、`status` 等）都会拒绝执行，直到
+`session resume`。`login` 永不被阻塞，因此你总能重新登录。
+
 ## 状态与配置
 
 CLI 使用与库相同的解析规则：

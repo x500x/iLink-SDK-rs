@@ -2,6 +2,17 @@
 *.pdb
 *.log
 openclaw.json
+# Local SDK state: credentials, cursors, context tokens, quote cache.
+# These must never be committed (they contain account ids and bot tokens).
+/openclaw-weixin/
+accounts.json
+*.sync.json
+*.context-tokens.json
+*.session-pause.json
+ref-messages.sqlite
+ref-messages.sqlite-*
+debug-mode.json
+/media/
 .idea/
 .vscode/
 .DS_Store

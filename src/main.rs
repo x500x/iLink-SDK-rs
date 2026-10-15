@@ -10,7 +10,7 @@
 
 use std::io::Write;
 use std::path::PathBuf;
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use clap::{Parser, Subcommand, ValueEnum};
 use ilink_sdk::api::session_guard::{self, STALE_TOKEN_ERRCODE};
@@ -420,6 +420,8 @@ fn run(cli: &Cli) -> Result<()> {
 
         Command::Logout { id } => {
             let normalized = accounts::normalize_account_id(id);
+            session_guard::resume_session(&normalized);
+            clear_persisted_pause(&normalized);
             let mut ctx = ContextTokenStore::new();
             ctx.clear_account(&normalized);
             sync_buf::clear_for_account(&normalized);
@@ -631,7 +633,15 @@ fn account_json(a: &accounts::StoredAccount) -> serde_json::Value {
 }
 
 /// Build a client for API-only work, tolerating a missing token.
-fn api_only_client_cli(cli: &Cli) -> Result<ilink_sdk::api::WeixinApiClient> {
+///
+/// When `enforce_pause` is set, a persisted/CLI session pause for the resolved
+/// account aborts the call (login passes `false` so re-login always works).
+fn api_only_client_cli(cli: &Cli, enforce_pause: bool) -> Result<ilink_sdk::api::WeixinApiClient> {
+    if enforce_pause {
+        if let Some(id) = effective_account_id(cli) {
+            assert_not_paused(&id)?;
+        }
+    }
     let base = cli
         .base_url
         .clone()
@@ -675,6 +685,9 @@ fn runtime() -> Result<tokio::runtime::Runtime> {
 }
 
 async fn build_client(cli: &Cli) -> Result<WeixinClient> {
+    if let Some(id) = effective_account_id(cli) {
+        assert_not_paused(&id)?;
+    }
     let mut builder = WeixinClientBuilder::new()
         .account_id_opt(cli.account.clone())
         .base_url_opt(cli.base_url.clone())
@@ -717,6 +730,83 @@ fn open_quote_store() -> Result<QuoteStore> {
 }
 
 // ---------------------------------------------------------------------------
+// Session-guard persistence
+//
+// The SDK's session guard is deliberately in-process (it mirrors the upstream
+// plugin). A CLI command, however, is a fresh process every time, so the CLI
+// additionally persists the pause to the state directory; `build_client` and
+// the API-only helpers refuse to run while it is active.
+// ---------------------------------------------------------------------------
+
+fn now_ms_u128() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis())
+        .unwrap_or(0)
+}
+
+fn pause_state_path(account_id: &str) -> PathBuf {
+    state_dir::accounts_dir().join(format!("{account_id}.session-pause.json"))
+}
+
+/// Remaining persisted pause in ms (0 when absent/expired). Expired files are
+/// removed on read.
+fn persisted_pause_ms(account_id: &str) -> u128 {
+    let path = pause_state_path(account_id);
+    let Ok(raw) = std::fs::read_to_string(&path) else {
+        return 0;
+    };
+    let until = serde_json::from_str::<serde_json::Value>(&raw)
+        .ok()
+        .and_then(|v| v.get("until_ms").and_then(|x| x.as_u64()))
+        .unwrap_or(0) as u128;
+    let now = now_ms_u128();
+    if until <= now {
+        let _ = std::fs::remove_file(&path);
+        0
+    } else {
+        until - now
+    }
+}
+
+fn persist_pause(account_id: &str, remaining_ms: u128) {
+    let dir = state_dir::accounts_dir();
+    let _ = std::fs::create_dir_all(&dir);
+    let until = now_ms_u128() + remaining_ms;
+    let body = json!({ "account_id": account_id, "until_ms": until }).to_string();
+    let _ = std::fs::write(pause_state_path(account_id), body);
+}
+
+fn clear_persisted_pause(account_id: &str) {
+    let _ = std::fs::remove_file(pause_state_path(account_id));
+}
+
+/// Remaining pause, taking the max of the persisted and in-process guards.
+fn pause_remaining_ms(account_id: &str) -> u128 {
+    persisted_pause_ms(account_id).max(session_guard::get_remaining_pause_ms(account_id))
+}
+
+fn assert_not_paused(account_id: &str) -> Result<()> {
+    let remaining = pause_remaining_ms(account_id);
+    if remaining > 0 {
+        let minutes = remaining.div_ceil(60_000);
+        return Err(Error::unknown(format!(
+            "session paused for accountId={account_id}, {minutes} min remaining \
+             (errcode {STALE_TOKEN_ERRCODE}); run `weixin session resume` to clear"
+        )));
+    }
+    Ok(())
+}
+
+/// Normalized id of the account a command will operate on.
+fn effective_account_id(cli: &Cli) -> Option<String> {
+    cli.account
+        .clone()
+        .or_else(|| accounts::list_indexed_account_ids().into_iter().next())
+        .map(|id| accounts::normalize_account_id(&id))
+}
+
+// ---------------------------------------------------------------------------
 // async commands
 // ---------------------------------------------------------------------------
 
@@ -724,12 +814,13 @@ async fn show_status(cli: &Cli) -> Result<()> {
     let client = build_client(cli).await?;
     let a = client.account();
     let account_id = a.account_id.clone();
-    let paused = session_guard::is_session_paused(&account_id);
+    let remaining = pause_remaining_ms(&account_id);
+    let paused = remaining > 0;
     if cli.json {
         let mut value = account_json(a);
         value["token"] = json!(client.token().map(|_| "present").unwrap_or("missing"));
         value["session_paused"] = json!(paused);
-        value["session_remaining_ms"] = json!(session_guard::get_remaining_pause_ms(&account_id));
+        value["session_remaining_ms"] = json!(remaining);
         value["config_path"] = json!(config::resolve_config_path().to_string_lossy());
         value["state_dir"] = json!(state_dir::resolve_state_dir().to_string_lossy());
         emit_json(&value);
@@ -828,7 +919,7 @@ async fn send_item_cmd(
 async fn config_cmd(cli: &Cli, user: Option<&str>, context_token: Option<&str>) -> Result<()> {
     match user {
         Some(user) => {
-            let api = api_only_client_cli(cli)?;
+            let api = api_only_client_cli(cli, true)?;
             let resp = api.get_config(user, context_token).await?;
             if cli.json {
                 emit_json(&serde_json::to_value(&resp)?);
@@ -875,7 +966,7 @@ async fn typing_cmd(
     action: TypingAction,
     context_token: Option<&str>,
 ) -> Result<()> {
-    let api = api_only_client_cli(cli)?;
+    let api = api_only_client_cli(cli, true)?;
     let config = api.get_config(user, context_token).await?;
     let ticket = config.typing_ticket.clone().unwrap_or_default();
     let status = match action {
@@ -907,7 +998,7 @@ async fn typing_cmd(
 }
 
 async fn notify_cmd(cli: &Cli, action: NotifyAction) -> Result<()> {
-    let api = api_only_client_cli(cli)?;
+    let api = api_only_client_cli(cli, true)?;
     match action {
         NotifyAction::Start => {
             api.notify_start().await?;
@@ -981,7 +1072,7 @@ async fn download_cmd(
 }
 
 async fn upload_cmd(cli: &Cli, to: &str, path: &std::path::Path, media_type: &str) -> Result<()> {
-    let api = api_only_client_cli(cli)?;
+    let api = api_only_client_cli(cli, true)?;
     let cdn = cli
         .cdn_base_url
         .clone()
@@ -1038,7 +1129,7 @@ async fn login(
     no_save: bool,
 ) -> Result<()> {
     // Login works without a stored account: the QR flow issues the token.
-    let api = api_only_client_cli(cli)?;
+    let api = api_only_client_cli(cli, false)?;
     let mut qr = ilink_sdk::messaging::QrLogin::new(&api);
     if let Some(bot_type) = bot_type {
         qr = qr.with_bot_type(bot_type);
@@ -1107,6 +1198,7 @@ async fn login(
                 )?;
                 accounts::register_account_id(&id)?;
                 session_guard::resume_session(&id);
+                clear_persisted_pause(&id);
                 let mut ctx = ContextTokenStore::new();
                 accounts::clear_stale_accounts_for_user_id(&id, &session.user_id, |stale| {
                     ctx.clear_account(stale)
@@ -1211,6 +1303,10 @@ async fn listen(
         if resp.is_api_error() {
             if resp.is_stale_token(STALE_TOKEN_ERRCODE) {
                 session_guard::pause_session(&account_id);
+                persist_pause(
+                    &account_id,
+                    session_guard::SESSION_PAUSE_DURATION.as_millis(),
+                );
                 eprintln!(
                     "stale bot token (errcode {STALE_TOKEN_ERRCODE}); session paused. Re-run `weixin login`."
                 );
@@ -1347,11 +1443,7 @@ fn merge_media(target: &mut InboundMedia, other: InboundMedia) {
 // ---------------------------------------------------------------------------
 
 fn quote_cmd(cli: &Cli, command: &QuoteCommand) -> Result<()> {
-    let account_id = cli
-        .account
-        .clone()
-        .or_else(|| accounts::list_indexed_account_ids().into_iter().next())
-        .unwrap_or_else(|| "default".to_string());
+    let account_id = effective_account_id(cli).unwrap_or_else(|| "default".to_string());
     match command {
         QuoteCommand::Policy => {
             let p = quote_policy();
@@ -1473,11 +1565,7 @@ fn quote_cmd(cli: &Cli, command: &QuoteCommand) -> Result<()> {
 }
 
 fn context_cmd(cli: &Cli, command: &ContextCommand) -> Result<()> {
-    let account_id = cli
-        .account
-        .clone()
-        .or_else(|| accounts::list_indexed_account_ids().into_iter().next())
-        .unwrap_or_else(|| "default".to_string());
+    let account_id = effective_account_id(cli).unwrap_or_else(|| "default".to_string());
     let mut store = ContextTokenStore::new();
     store.restore(&account_id);
     match command {
@@ -1526,11 +1614,7 @@ fn context_cmd(cli: &Cli, command: &ContextCommand) -> Result<()> {
 }
 
 fn sync_cmd(cli: &Cli, command: &SyncCommand) -> Result<()> {
-    let account_id = cli
-        .account
-        .clone()
-        .or_else(|| accounts::list_indexed_account_ids().into_iter().next())
-        .unwrap_or_else(|| "default".to_string());
+    let account_id = effective_account_id(cli).unwrap_or_else(|| "default".to_string());
     match command {
         SyncCommand::Show => {
             let buf = sync_buf::load_for_account(&account_id);
@@ -1561,15 +1645,11 @@ fn sync_cmd(cli: &Cli, command: &SyncCommand) -> Result<()> {
 }
 
 fn session_cmd(cli: &Cli, command: &SessionCommand) -> Result<()> {
-    let account_id = cli
-        .account
-        .clone()
-        .or_else(|| accounts::list_indexed_account_ids().into_iter().next())
-        .unwrap_or_else(|| "default".to_string());
+    let account_id = effective_account_id(cli).unwrap_or_else(|| "default".to_string());
     match command {
         SessionCommand::Status => {
-            let paused = session_guard::is_session_paused(&account_id);
-            let remaining = session_guard::get_remaining_pause_ms(&account_id);
+            let remaining = pause_remaining_ms(&account_id);
+            let paused = remaining > 0;
             if cli.json {
                 emit_json(
                     &json!({ "account_id": account_id, "paused": paused, "remaining_ms": remaining }),
@@ -1582,6 +1662,10 @@ fn session_cmd(cli: &Cli, command: &SessionCommand) -> Result<()> {
         }
         SessionCommand::Pause => {
             session_guard::pause_session(&account_id);
+            persist_pause(
+                &account_id,
+                session_guard::SESSION_PAUSE_DURATION.as_millis(),
+            );
             if cli.json {
                 emit_json(&json!({ "paused": true }));
             } else {
@@ -1590,6 +1674,7 @@ fn session_cmd(cli: &Cli, command: &SessionCommand) -> Result<()> {
         }
         SessionCommand::Resume => {
             session_guard::resume_session(&account_id);
+            clear_persisted_pause(&account_id);
             if cli.json {
                 emit_json(&json!({ "resumed": true }));
             } else {
@@ -1597,6 +1682,7 @@ fn session_cmd(cli: &Cli, command: &SessionCommand) -> Result<()> {
             }
         }
         SessionCommand::Assert => {
+            assert_not_paused(&account_id)?;
             session_guard::assert_session_active(&account_id)?;
             if cli.json {
                 emit_json(&json!({ "active": true }));
