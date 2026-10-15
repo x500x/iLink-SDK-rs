@@ -95,19 +95,53 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: linux-x86_64
+            target: x86_64-unknown-linux-gnu
+            cross: false
+          - os: ubuntu-latest
+            artifact: linux-aarch64
+            target: aarch64-unknown-linux-gnu
+            cross: true
           - os: macos-latest
             artifact: macos-aarch64
+            target: aarch64-apple-darwin
+            cross: false
+          - os: macos-latest
+            artifact: macos-x86_64
+            target: x86_64-apple-darwin
+            cross: false
           - os: windows-latest
             artifact: windows-x86_64
+            target: x86_64-pc-windows-msvc
+            cross: false
+          - os: windows-latest
+            artifact: windows-aarch64
+            target: aarch64-pc-windows-msvc
+            cross: false
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      # `cross` (Docker) is used for the non-native Linux target; the macOS and
+      # Windows targets are built natively with the runner toolchains.
+      - uses: taiki-e/install-action@cross
+        if: matrix.cross
 
       - name: Build release libraries
-        run: cargo build --release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
 
       - name: Stage artifacts (unix)
         if: runner.os != 'Windows'
@@ -115,15 +149,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
+          libdir="target/${{ matrix.target }}/release"
           if [ "${{ runner.os }}" = "macOS" ]; then
             # Make the dylib relocatable so it can be bundled into an app.
             install_name_tool -id "@rpath/libilink_sdk.dylib" \
-              target/release/libilink_sdk.dylib
-            cp target/release/libilink_sdk.dylib dist/
-            cp target/release/libilink_sdk.a dist/
+              "$libdir/libilink_sdk.dylib"
+            cp "$libdir/libilink_sdk.dylib" dist/
+            cp "$libdir/libilink_sdk.a" dist/
           else
-            cp target/release/libilink_sdk.so dist/
-            cp target/release/libilink_sdk.a dist/
+            cp "$libdir/libilink_sdk.so" dist/
+            cp "$libdir/libilink_sdk.a" dist/
           fi
           cp include/ilink_sdk.h dist/
 
@@ -132,9 +167,10 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force dist | Out-Null
-          Copy-Item target/release/ilink_sdk.dll dist/
-          Copy-Item target/release/ilink_sdk.dll.lib dist/
-          Copy-Item target/release/ilink_sdk.lib dist/
+          $lib = "target/${{ matrix.target }}/release"
+          Copy-Item "$lib/ilink_sdk.dll" dist/
+          Copy-Item "$lib/ilink_sdk.dll.lib" dist/
+          Copy-Item "$lib/ilink_sdk.lib" dist/
           Copy-Item include/ilink_sdk.h dist/
 
       - uses: actions/upload-artifact@v4

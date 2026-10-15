@@ -9,6 +9,17 @@
  * Link against the shared library (dll/so/dylib) or the static library
  * (lib/.a). The Rust rlib is also produced for pure-Rust consumers.
  *
+ * Linking:
+ *   - Shared library (recommended): link `ilink_sdk.dll.lib` (MSVC) or the
+ *     `.so`/`.dylib` directly, and ship the runtime library next to your
+ *     program. Nothing extra needs to be defined.
+ *   - Static library: define `ILINK_SDK_STATIC` before including this header,
+ *     otherwise the declarations are marked `dllimport` and the linker looks
+ *     for `__imp_ilink_call` instead of `ilink_call`. On Windows the static
+ *     library is built with the MSVC toolchain and can only be linked by
+ *     MSVC (it needs `__chkstk` and the MSVC C++ type-info runtime); use the
+ *     shared library from MinGW/Go cgo instead.
+ *
  * Everything is reached through a single JSON-in / JSON-out call:
  *
  *     char *out = ilink_call("send.text", "{\"to\":\"u@im.wechat\",\"text\":\"hi\"}");
@@ -101,9 +112,14 @@ extern "C" {
 #endif
 
 #if defined(_WIN32)
-#  ifdef ILINK_SDK_BUILD
+#  if defined(ILINK_SDK_STATIC)
+     /* Static library: the symbols live in the consumer's binary. */
+#    define ILINK_API
+#  elif defined(ILINK_SDK_BUILD)
+     /* Building the DLL itself. */
 #    define ILINK_API __declspec(dllexport)
 #  else
+     /* Default: linking the import library / the DLL. */
 #    define ILINK_API __declspec(dllimport)
 #  endif
 #else

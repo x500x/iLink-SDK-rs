@@ -204,7 +204,14 @@ A runnable example lives in
 [`examples/c/ilink_demo.c`](examples/c/ilink_demo.c); the operation catalogue is
 in [docs/reference/ffi.md](docs/reference/ffi.md).
 
-CI builds and tests on Linux, macOS and Windows, and publishes the libraries as
+**Link the shared library by default.** Windows binaries are built with
+`+crt-static`, so they do not require the Visual C++ Redistributable. The
+Windows *static* library is MSVC-only and needs `-DILINK_SDK_STATIC` when
+included; from MinGW or Go's cgo use the DLL instead. See
+[docs/reference/ffi.md](docs/reference/ffi.md#linking) for the exact flags.
+
+CI builds and tests on Linux, macOS and Windows (x86_64 and aarch64), and
+publishes the libraries as
 release artifacts (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
 and [`.github/workflows/release.yml`](.github/workflows/release.yml)). On macOS
 the dylib's install name is rewritten to `@rpath/libilink_sdk.dylib` so it can

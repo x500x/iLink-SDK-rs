@@ -16,6 +16,44 @@ ls target/release/ilink_sdk.dll        # Windows
 ls target/release/libilink_sdk.so      # Linux
 ```
 
+### Linking
+
+**Shared library (recommended).** Link the import library on Windows
+(`ilink_sdk.dll.lib` for MSVC, or the `.dll` directly for MinGW) or the
+`.so`/`.dylib` elsewhere, and ship the runtime library next to your program:
+
+```bash
+# Linux / macOS
+cc -I include app.c -L target/release -lilink_sdk -o app
+
+# Windows (MinGW): link the DLL directly
+gcc -I include app.c target/release/ilink_sdk.dll -o app.exe
+
+# Windows (MSVC)
+cl /I include app.c target/release/ilink_sdk.dll.lib
+```
+
+No macros need to be defined for the shared library.
+
+**Static library.** Define `ILINK_SDK_STATIC` before including the header,
+otherwise the declarations are marked `dllimport` and the linker looks for
+`__imp_ilink_call` instead of `ilink_call`:
+
+```bash
+cc -DILINK_SDK_STATIC -I include app.c target/release/libilink_sdk.a -o app
+```
+
+On Windows the static library is produced by the MSVC toolchain and can only
+be linked by MSVC (it references `__chkstk` and the MSVC C++ type-info
+runtime). MinGW/gcc and Go's cgo on Windows must use the shared library.
+
+**Windows runtime dependency.** The Windows binaries are built with
+`+crt-static` (see [`.cargo/config.toml`](../../.cargo/config.toml)), so they
+statically link the MSVC C runtime and do **not** require the Visual C++
+Redistributable to be installed. If you build with a custom toolchain that
+does not pick up that config, add
+`RUSTFLAGS="-C target-feature=+crt-static"` to get the same result.
+
 CI builds these on Linux, macOS and Windows and attaches them to each GitHub
 release (see [`.github/workflows/release.yml`](../../.github/workflows/release.yml)).
 On macOS the dylib's install name is rewritten to

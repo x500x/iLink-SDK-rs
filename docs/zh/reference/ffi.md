@@ -16,6 +16,39 @@ ls target/release/ilink_sdk.dll        # Windows
 ls target/release/libilink_sdk.so      # Linux
 ```
 
+### 链接方式
+
+**共享库（推荐）。** Windows 上链接导入库（MSVC 用 `ilink_sdk.dll.lib`，MinGW 可直接
+链接 `.dll`），其他平台链接 `.so`/`.dylib`，并把运行库放到程序旁边：
+
+```bash
+# Linux / macOS
+cc -I include app.c -L target/release -lilink_sdk -o app
+
+# Windows（MinGW）：直接链接 DLL
+gcc -I include app.c target/release/ilink_sdk.dll -o app.exe
+
+# Windows（MSVC）
+cl /I include app.c target/release/ilink_sdk.dll.lib
+```
+
+链接共享库不需要定义任何宏。
+
+**静态库。** 必须在包含头文件前定义 `ILINK_SDK_STATIC`，否则声明会被标记为
+`dllimport`，链接器会去找 `__imp_ilink_call` 而不是 `ilink_call`：
+
+```bash
+cc -DILINK_SDK_STATIC -I include app.c target/release/libilink_sdk.a -o app
+```
+
+Windows 上的静态库由 MSVC 工具链产出，只能由 MSVC 链接（会引用 `__chkstk` 以及
+MSVC 的 C++ type-info 运行时）。MinGW/gcc 和 Windows 上的 Go cgo 请改用共享库。
+
+**Windows 运行库依赖。** Windows 产物使用 `+crt-static` 构建（见
+[`.cargo/config.toml`](../../.cargo/config.toml)），静态链接 MSVC C 运行库，**不需要**
+安装 Visual C++ Redistributable。如果使用未读取该配置的自定义工具链，加上
+`RUSTFLAGS="-C target-feature=+crt-static"` 可获得同样效果。
+
 公开头文件为 [`include/ilink_sdk.h`](../../include/ilink_sdk.h)。
 
 ## 单一入口

@@ -1,0 +1,14 @@
+# Statically link the MSVC C runtime into Windows binaries and libraries.
+#
+# Without this, `weixin.exe` and `ilink_sdk.dll` import `VCRUNTIME140.dll` and
+# the UCRT (`api-ms-win-crt-*`), so they refuse to start on a clean Windows
+# install that has no Visual C++ Redistributable. `+crt-static` removes those
+# imports and only leaves DLLs that ship with the OS.
+#
+# This section is only read when building *inside this repository*; it is not
+# applied when the crate is consumed as a dependency by another workspace.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
