@@ -1,0 +1,9 @@
+[workspace]
+
+/target
+*.pdb
+*.log
+openclaw.json
+.idea/
+.vscode/
+.DS_Store
