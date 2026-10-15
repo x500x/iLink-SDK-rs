@@ -129,6 +129,9 @@ mod tests {
 
     #[test]
     fn sdk_dirs_are_nested() {
+        // resolve_state_dir() reads process-global env vars, so hold the lock
+        // to keep the two derivations consistent under parallel tests.
+        let _l = super::super::sync_buf::test_env_lock().lock().unwrap();
         assert_eq!(sdk_state_dir(), resolve_state_dir().join("openclaw-weixin"));
         assert_eq!(
             accounts_dir(),

@@ -15,6 +15,10 @@ exclude = ["/.github/"]
 [lib]
 name = "ilink_sdk"
 path = "src/lib.rs"
+# Build the SDK as a shared library (dll/so/dylib), a static library
+# (lib/staticlib) and a normal Rust rlib so it can be embedded from Rust,
+# linked from C/C++/Go/... through the C ABI in `src/ffi.rs`, or vendored.
+crate-type = ["rlib", "cdylib", "staticlib"]
 
 [[bin]]
 name = "weixin"

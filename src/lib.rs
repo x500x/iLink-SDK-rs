@@ -46,6 +46,7 @@ pub mod api;
 pub mod cdn;
 pub mod client;
 pub mod error;
+pub mod ffi;
 pub mod logging;
 pub mod media;
 pub mod messaging;

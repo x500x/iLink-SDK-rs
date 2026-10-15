@@ -21,6 +21,7 @@ practical guides and a module reference.
 | [Errors & retries](reference/errors.md) | `ErrorKind` classification and retry policies. |
 | [Configuration](reference/configuration.md) | `openclaw.json`, environment variables, feature flags. |
 | [CLI](reference/cli.md) | The bundled `weixin` binary. |
+| [C ABI (dll / so / dylib)](reference/ffi.md) | Call the SDK from C/C++/Go via the shared/static library. |
 | [API client reference](reference/api-client.md) | The low-level `WeixinApiClient`. |
 | [API handbook](reference/api.md) | Exhaustive catalog of every public type, function, and constant. |
 | [API by board](apis/README.md) | Detailed, per-area guides for each API surface. |
@@ -38,6 +39,7 @@ ilink_sdk/
 ├── cdn            AES-128-ECB crypto + CDN upload/download
 ├── client         high-level WeixinClient / builder
 ├── error          Error / ErrorKind / Result
+├── ffi            C ABI (dll/so/dylib) JSON dispatch
 ├── logging        tracing subscriber helpers (cli feature)
 ├── media          MIME detection
 ├── messaging      auth (QR), outbound, inbound context, typing, quote cache
@@ -55,6 +57,7 @@ ilink_sdk/
 | Feature flags | `cli` is enabled by default |
 
 ```bash
-cargo build --no-default-features   # library only, no CLI
+cargo build --no-default-features   # library + C ABI, no CLI
+cargo build --release               # also emits ilink_sdk.dll / .so / .dylib + .lib / .a
 cargo doc --no-deps --open          # build this reference locally
 ```

@@ -19,6 +19,7 @@
 | [错误与重试](reference/errors.md) | `ErrorKind` 分类与重试策略。 |
 | [配置](reference/configuration.md) | `openclaw.json`、环境变量、feature 开关。 |
 | [命令行工具](reference/cli.md) | 内置的 `weixin` 二进制。 |
+| [C ABI（dll / so / dylib）](reference/ffi.md) | 通过共享/静态库从 C/C++/Go 调用本 SDK。 |
 | [API 客户端参考](reference/api-client.md) | 底层 `WeixinApiClient`。 |
 | [API 手册](reference/api.md) | 逐个列出每个公开类型、函数与常量的完整清单。 |
 | [分板块 API 手册](apis/README.md) | 按领域逐一详述各 API 的作用与用法。 |
@@ -35,6 +36,7 @@ ilink_sdk/
 ├── cdn            AES-128-ECB 加密 + CDN 上传/下载
 ├── client         高层 WeixinClient / Builder
 ├── error          Error / ErrorKind / Result
+├── ffi            C ABI（dll/so/dylib）JSON 分发
 ├── logging        tracing 订阅器辅助（cli feature）
 ├── media          MIME 探测
 ├── messaging      auth（二维码）、outbound、inbound context、typing、quote cache
@@ -52,6 +54,7 @@ ilink_sdk/
 | Feature 开关 | `cli` 默认开启 |
 
 ```bash
-cargo build --no-default-features   # 仅库，不含 CLI
+cargo build --no-default-features   # 仅库 + C ABI，不含 CLI
+cargo build --release               # 同时产出 ilink_sdk.dll / .so / .dylib 与 .lib / .a
 cargo doc --no-deps --open          # 本地构建本参考文档
 ```

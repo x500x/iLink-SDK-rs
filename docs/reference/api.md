@@ -28,6 +28,7 @@ Top-level modules:
 | [`util`](#utilmod) | IDs, redaction, time |
 | [`logging`](#loggingmod) | `tracing` subscriber helpers (CLI feature) |
 | [`tls`](#tlsmod) | rustls configuration |
+| `ffi` | C ABI (`ilink_call`/`ilink_version`/`ilink_string_free`) — see [ffi.md](ffi.md) |
 
 ### `prelude`
 

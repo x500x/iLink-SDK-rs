@@ -148,8 +148,9 @@ client-side timeout *or* an external cancellation, matching the TypeScript
 
 ## CLI
 
-A small binary wraps the library so behaviour can be exercised end to end
-before writing code:
+The `cli` feature (on by default) builds a `weixin` binary that wraps the
+whole library so behaviour can be exercised — and scripted — end to end before
+writing code:
 
 ```bash
 cargo run -- login                 # QR login, saves credentials
@@ -157,9 +158,50 @@ cargo run -- accounts              # list registered accounts
 cargo run -- status                # resolved account settings
 cargo run -- send <@im.wechat> "hi" --context-token <token>
 cargo run -- send-file <@im.wechat> ./photo.png --caption "look"
-cargo run -- listen                # long-poll and print inbound messages
+cargo run -- send-item <@im.wechat> '{"type":1,"text_item":{"text":"hi"}}'
+cargo run -- listen                # long-poll, save media, print inbound messages
+cargo run -- typing <@im.wechat> on
+cargo run -- notify start
+cargo run -- upload <@im.wechat> ./photo.png --media-type image
+cargo run -- download --param <p> --aes-key <k> -o ./out.jpg
+cargo run -- quote policy && cargo run -- quote gc
+cargo run -- context set <@im.wechat> <token>
+cargo run -- sync show
+cargo run -- session status
+cargo run -- mime ./photo.png
 cargo run -- logout <account-id>
 ```
+
+Every command accepts `--json` for machine-readable output and the global
+routing flags `--account`, `--base-url`, `--cdn-base-url`, `--route-tag`,
+`--bot-agent`, `--timeout-ms`. See [docs/reference/cli.md](docs/reference/cli.md)
+for the complete command reference.
+
+## Shared library (dll / so / dylib)
+
+The crate is built as `rlib` **and** `cdylib` **and** `staticlib`, so
+`cargo build --release` produces a native shared/static library next to the
+Rust rlib:
+
+| Platform | Output |
+| --- | --- |
+| Windows | `ilink_sdk.dll`, `ilink_sdk.dll.lib` (import), `ilink_sdk.lib` (static) |
+| Linux | `libilink_sdk.so`, `libilink_sdk.a` |
+| macOS | `libilink_sdk.dylib`, `libilink_sdk.a` |
+
+The whole SDK is reachable from C/C++/Go/… through one JSON-in / JSON-out call
+declared in [`include/ilink_sdk.h`](include/ilink_sdk.h):
+
+```c
+char *out = ilink_call("send.text",
+                       "{\"to\":\"someone@im.wechat\",\"text\":\"hi\"}");
+puts(out);                 /* {"ok":true,"result":{...}} */
+ilink_string_free(out);
+```
+
+A runnable example lives in
+[`examples/c/ilink_demo.c`](examples/c/ilink_demo.c); the operation catalogue is
+in [docs/reference/ffi.md](docs/reference/ffi.md).
 
 ## Configuration
 
@@ -190,8 +232,10 @@ values fall back to their defaults.
 | --- | --- | --- |
 | `cli` | on | the `weixin` binary (`clap`, `qrcode`, `directories`, `tracing-subscriber`) |
 
+The C ABI in `src/ffi.rs` is always compiled; it has no extra dependencies.
+
 ```bash
-cargo build --no-default-features   # library only, no CLI
+cargo build --no-default-features   # library + C ABI, no CLI
 ```
 
 ## Testing
