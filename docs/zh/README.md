@@ -20,6 +20,10 @@
 | [配置](reference/configuration.md) | `openclaw.json`、环境变量、feature 开关。 |
 | [命令行工具](reference/cli.md) | 内置的 `weixin` 二进制。 |
 | [API 客户端参考](reference/api-client.md) | 底层 `WeixinApiClient`。 |
+| [API 手册](reference/api.md) | 逐个列出每个公开类型、函数与常量的完整清单。 |
+
+> 需要某个公开项的确切签名时，优先查阅 [API 手册](reference/api.md)；
+> 它与 `src/lib.rs` 及每个模块文件一一对应。
 
 ## 目录结构
 

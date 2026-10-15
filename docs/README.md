@@ -22,6 +22,10 @@ practical guides and a module reference.
 | [Configuration](reference/configuration.md) | `openclaw.json`, environment variables, feature flags. |
 | [CLI](reference/cli.md) | The bundled `weixin` binary. |
 | [API client reference](reference/api-client.md) | The low-level `WeixinApiClient`. |
+| [API handbook](reference/api.md) | Exhaustive catalog of every public type, function, and constant. |
+
+> Prefer the [API handbook](reference/api.md) when you need the exact signature
+> of a specific public item; it mirrors `src/lib.rs` and every module file.
 
 ## Crate layout
 
