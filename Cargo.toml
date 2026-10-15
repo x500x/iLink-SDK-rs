@@ -31,13 +31,13 @@ cli = ["dep:clap", "dep:qrcode", "dep:directories", "dep:tracing-subscriber"]
 
 [dependencies]
 # async runtime
-tokio = { version = "1", default-features = false, features = ["rt", "rt-multi-thread", "macros", "time", "sync", "fs", "io-util", "net", "process", "signal"] }
+tokio = { version = "1", default-features = false, features = ["rt", "rt-multi-thread", "macros", "time", "sync", "fs", "io-util", "net"] }
 tokio-util = { version = "0.7", default-features = false, features = ["rt"] }
 futures = { version = "0.3", default-features = false }
 async-trait = "0.1"
 
 # http / tls
-reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "http2"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls-manual-roots"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
 rustls-platform-verifier = "0.6"
 url = "2"
@@ -64,10 +64,10 @@ tracing = "0.1"
 rusqlite = { version = "0.37", features = ["bundled"] }
 
 # cli (optional)
-clap = { version = "4", features = ["derive", "env", "wrap_help"], optional = true }
+clap = { version = "4", default-features = false, features = ["std", "color", "help", "usage", "error-context", "derive", "env", "wrap_help"], optional = true }
 qrcode = { version = "0.14", default-features = false, optional = true }
 directories = { version = "5", optional = true }
-tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "env-filter", "ansi", "std"], optional = true }
+tracing-subscriber = { version = "0.3", default-features = false, features = ["fmt", "ansi", "std"], optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["full"] }
@@ -78,3 +78,6 @@ wiremock = "0.6"
 lto = true
 codegen-units = 1
 strip = true
+# Size-first codegen. The hot paths are network/TLS bound (ring's assembly is
+# unaffected), so this trades a little CPU for a noticeably smaller binary.
+opt-level = "s"

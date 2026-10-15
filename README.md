@@ -252,6 +252,23 @@ The C ABI in `src/ffi.rs` is always compiled; it has no extra dependencies.
 cargo build --no-default-features   # library + C ABI, no CLI
 ```
 
+## Release profile
+
+`[profile.release]` is tuned for small, self-contained binaries:
+
+- `lto = true`, `codegen-units = 1`, `strip = true`;
+- `opt-level = "s"` — the hot paths are network/TLS bound, and `ring`'s
+  assembly is unaffected, so this costs little CPU while shrinking the
+  artifacts by ~30% (a 1 MiB AES-ECB round trip is ~20% slower, which is
+  ~12 ms for a 25 MiB media file). Set `opt-level = 3` if you prefer maximum
+  throughput over size;
+- on Windows, `+crt-static` (see [`.cargo/config.toml`](.cargo/config.toml))
+  removes the Visual C++ Redistributable dependency.
+
+HTTP/2 is disabled (the client configures no ALPN and negotiates HTTP/1.1),
+and the CLI parses `RUST_LOG` for its global level instead of pulling in the
+`env-filter` regex engine; both keep the binaries smaller.
+
 ## Testing
 
 ```bash

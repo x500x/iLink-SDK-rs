@@ -112,11 +112,31 @@ pub struct ReqwestTransport {
 impl ReqwestTransport {
     pub fn new() -> Result<Self> {
         Ok(ReqwestTransport {
-            client: Client::builder()
-                .use_preconfigured_tls(crate::tls::default_tls_config()?)
-                .build()?,
+            client: shared_client()?,
         })
     }
+}
+
+/// Process-wide [`reqwest::Client`] reused by every default transport.
+///
+/// Building a client is expensive: it constructs the rustls configuration and
+/// loads the operating-system trust store, and each client owns a separate
+/// connection pool. Sharing one instance means repeated calls (the FFI builds
+/// a client per operation) reuse keep-alive TLS connections instead of paying
+/// for a new handshake every time. The SDK has no per-account client settings
+/// that would require a distinct client.
+fn shared_client() -> Result<Client> {
+    static CLIENT: std::sync::OnceLock<Client> = std::sync::OnceLock::new();
+    if let Some(client) = CLIENT.get() {
+        return Ok(client.clone());
+    }
+    let client = Client::builder()
+        .use_preconfigured_tls(crate::tls::default_tls_config()?)
+        .build()?;
+    // A concurrent caller may win the race; its client is equivalent, and the
+    // local clone stays valid either way.
+    let _ = CLIENT.set(client.clone());
+    Ok(client)
 }
 
 impl Default for ReqwestTransport {

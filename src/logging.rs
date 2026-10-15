@@ -58,20 +58,45 @@ impl std::str::FromStr for Level {
 
 /// Install a `tracing_subscriber` honouring `RUST_LOG` (defaulting to `info`).
 ///
+/// The `RUST_LOG` value is parsed for its global level (`info`, `debug`, …);
+/// per-target directives (`ilink_sdk=debug`) are accepted but ignored, which
+/// avoids pulling the `env-filter` regex machinery into the binary.
+///
 /// No-op when the `cli` feature is disabled — in library mode the host
 /// application owns the subscriber.
 #[cfg(feature = "cli")]
 pub fn init_tracing(level: Level) {
-    use tracing_subscriber::EnvFilter;
-
-    let filter =
-        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(level.as_str()));
+    let filter = std::env::var("RUST_LOG")
+        .ok()
+        .and_then(|raw| parse_global_level(&raw))
+        .unwrap_or_else(|| level_filter(level));
 
     let _ = tracing_subscriber::fmt()
-        .with_env_filter(filter)
+        .with_max_level(filter)
         .with_target(true)
         .with_ansi(std::env::var_os("NO_COLOR").is_none())
         .try_init();
+}
+
+/// Extract the global level from a `RUST_LOG` directive list.
+#[cfg(feature = "cli")]
+fn parse_global_level(raw: &str) -> Option<tracing_subscriber::filter::LevelFilter> {
+    raw.split(',')
+        .map(str::trim)
+        .filter(|directive| !directive.is_empty() && !directive.contains('='))
+        .find_map(|directive| directive.parse().ok())
+}
+
+#[cfg(feature = "cli")]
+fn level_filter(level: Level) -> tracing_subscriber::filter::LevelFilter {
+    use tracing_subscriber::filter::LevelFilter;
+    match level {
+        Level::Trace => LevelFilter::TRACE,
+        Level::Debug => LevelFilter::DEBUG,
+        Level::Info => LevelFilter::INFO,
+        Level::Warn => LevelFilter::WARN,
+        Level::Error => LevelFilter::ERROR,
+    }
 }
 
 #[cfg(not(feature = "cli"))]
