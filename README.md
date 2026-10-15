@@ -1,4 +1,4 @@
-# openclaw-weixin (Rust SDK)
+# iLink SDK (ilink-sdk)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
@@ -29,18 +29,18 @@ there is no daemon, no webhook endpoint, and no IPC to stand up.
 
 ```toml
 [dependencies]
-openclaw-weixin = "2.4"
+ilink-sdk = "2.4"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // 1. Start a QR login and show the URL.
     let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
-    let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+    let qr = ilink_sdk::messaging::QrLogin::new(&api);
     let start = qr.start(None).await?;
     println!("Scan this: {}", start.qrcode_url);
 
@@ -54,17 +54,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let session = result.session.expect("login must succeed");
-    let account_id = openclaw_weixin::storage::accounts::normalize_account_id(&session.bot_id);
+    let account_id = ilink_sdk::storage::accounts::normalize_account_id(&session.bot_id);
 
-    openclaw_weixin::storage::accounts::save_account(
+    ilink_sdk::storage::accounts::save_account(
         &account_id,
-        &openclaw_weixin::storage::accounts::AccountUpdate {
+        &ilink_sdk::storage::accounts::AccountUpdate {
             token: Some(session.token),
             base_url: Some(session.base_url),
             user_id: Some(session.user_id),
         },
     )?;
-    openclaw_weixin::storage::accounts::register_account_id(&account_id)?;
+    ilink_sdk::storage::accounts::register_account_id(&account_id)?;
 
     // 3. Send a message back.
     let client = WeixinClientBuilder::new().account_id(&account_id).build().await?;
@@ -73,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .send_text(
             "someone@im.wechat",
             "hello from Rust",
-            &openclaw_weixin::messaging::SendOpts::default(),
+            &ilink_sdk::messaging::SendOpts::default(),
         )
         .await?;
 
@@ -229,8 +229,11 @@ Rust — a service, a CLI, a bot, a test harness — use this.
 
 ## License
 
-MIT, matching the upstream
-[openclaw-weixin](https://github.com/Tencent/openclaw-weixin) project.
-See [LICENSE](./LICENSE) for the full text.
+MIT. This Rust SDK is a port of the upstream
+[openclaw-weixin](https://github.com/Tencent/openclaw-weixin) project and
+retains its copyright notice.
 
-Copyright (C) 2026 Tencent. All rights reserved.
+- Upstream `openclaw-weixin`: Copyright (C) 2026 Tencent. All rights reserved.
+- Rust port (`iLink-SDK-rs`): Copyright (C) 2026 x500x. All rights reserved.
+
+See [LICENSE](./LICENSE) for the full text.

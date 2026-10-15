@@ -825,6 +825,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "ilink-sdk"
+version = "2.4.10"
+dependencies = [
+ "aes",
+ "anyhow",
+ "async-trait",
+ "base64 0.22.1",
+ "clap",
+ "directories",
+ "futures",
+ "hex",
+ "md-5",
+ "percent-encoding",
+ "qrcode",
+ "rand 0.9.5",
+ "reqwest",
+ "rusqlite",
+ "rustls",
+ "rustls-platform-verifier",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "thiserror 2.0.21",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+ "wiremock",
+]
+
+[[package]]
 name = "indexmap"
 version = "2.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1047,39 +1080,6 @@ name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
-
-[[package]]
-name = "openclaw-weixin"
-version = "2.4.10"
-dependencies = [
- "aes",
- "anyhow",
- "async-trait",
- "base64 0.22.1",
- "clap",
- "directories",
- "futures",
- "hex",
- "md-5",
- "percent-encoding",
- "qrcode",
- "rand 0.9.5",
- "reqwest",
- "rusqlite",
- "rustls",
- "rustls-platform-verifier",
- "serde",
- "serde_json",
- "sha2",
- "tempfile",
- "thiserror 2.0.21",
- "tokio",
- "tokio-util",
- "tracing",
- "tracing-subscriber",
- "url",
- "wiremock",
-]
 
 [[package]]
 name = "openssl-probe"

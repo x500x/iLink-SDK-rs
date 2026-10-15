@@ -82,7 +82,7 @@ pub fn is_audio(path: &str) -> bool;   // mime starts with "audio/"
 ## Usage example
 
 ```rust,no_run
-use openclaw_weixin::media::{MediaKind, mime_from_filename, extension_from_mime, is_image};
+use ilink_sdk::media::{MediaKind, mime_from_filename, extension_from_mime, is_image};
 
 # fn example() {
 assert_eq!(mime_from_filename("a.PNG"), "image/png");

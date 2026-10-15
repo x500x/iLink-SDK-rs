@@ -1,4 +1,4 @@
-# openclaw-weixin — Rust SDK documentation
+# iLink SDK — Rust SDK documentation
 
 A Rust SDK for the Tencent **Weixin (iLink)** backend protocol: QR-code
 login, long-poll message delivery, and CDN media upload/download, packaged as
@@ -33,7 +33,7 @@ practical guides and a module reference.
 ## Crate layout
 
 ```text
-openclaw_weixin/
+ilink_sdk/
 ├── api            HTTP client + wire types + session guard
 ├── cdn            AES-128-ECB crypto + CDN upload/download
 ├── client         high-level WeixinClient / builder

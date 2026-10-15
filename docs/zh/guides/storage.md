@@ -69,7 +69,7 @@ SDK 自身的数据位于 `<root>/openclaw-weixin/`：
 
 ```rust,no_run
 # fn run(account_id: &str) {
-use openclaw_weixin::storage::sync_buf::{load_for_account, save_for_account, get_sync_buf_path};
+use ilink_sdk::storage::sync_buf::{load_for_account, save_for_account, get_sync_buf_path};
 
 let cursor = load_for_account(account_id);            // Option<String>
 if let Some(buf) = &cursor {
@@ -90,8 +90,8 @@ let _ = get_sync_buf_path(account_id);                 // <accounts>/<id>.sync.j
 ### 打开
 
 ```rust,no_run
-# fn run() -> openclaw_weixin::Result<()> {
-use openclaw_weixin::messaging::quote_cache::QuoteStore;
+# fn run() -> ilink_sdk::Result<()> {
+use ilink_sdk::messaging::quote_cache::QuoteStore;
 
 let store = QuoteStore::open_default()?;   // <root>/openclaw-weixin/ref-messages.sqlite
 # Ok(())
@@ -101,7 +101,7 @@ let store = QuoteStore::open_default()?;   // <root>/openclaw-weixin/ref-message
 或在 [`WeixinClient`] 上开启：
 
 ```rust,no_run
-# fn run(client: &mut openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# fn run(client: &mut ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 client.enable_quote_cache()?;
 let _ = client.quote_store();
 # Ok(())

@@ -84,9 +84,9 @@ pub struct SendBytesOpts {
 ### Usage: sending text and files
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn example(sender: &MessageSender) -> openclaw_weixin::Result<()> {
+# async fn example(sender: &MessageSender) -> ilink_sdk::Result<()> {
 // Reply in-thread to an inbound message whose context_token we captured
 let opts = SendOpts { context_token: Some("ctx-abc".into()), ..Default::default() };
 let r = sender.send_text("someone@im.wechat", "hello", &opts).await?;
@@ -166,10 +166,10 @@ pub fn remember_context_token(...) -> Option<String>;           // remember toke
 ### Usage: parse inbound and reply
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::context::message_to_context;
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::context::message_to_context;
 
-# fn example(msg: openclaw_weixin::api::types::WeixinMessage, sender: &MessageSender) {
+# fn example(msg: ilink_sdk::api::types::WeixinMessage, sender: &MessageSender) {
 // After get_updates returns `msg`
 let ctx = message_to_context(msg, "account-id", "cdn-base-url");
 println!("from={:?} text={}", ctx.from_user_id, ctx.content);
@@ -217,10 +217,10 @@ is set.
 ### Usage
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::typing::send_typing;
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::typing::send_typing;
 
-# async fn example(account: &StoredAccount, api: std::sync::Arc<WeixinApiClient>) -> openclaw_weixin::Result<()> {
+# async fn example(account: &StoredAccount, api: std::sync::Arc<WeixinApiClient>) -> ilink_sdk::Result<()> {
 send_typing(account, api, "someone@im.wechat", || async {
     // ... long generation / tool call ...
 }).await?;

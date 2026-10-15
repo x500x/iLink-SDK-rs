@@ -119,8 +119,8 @@ impl WeixinClient {
 `quote_store()` 取得引用。
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-# async fn example() -> openclaw_weixin::Result<()> {
+use ilink_sdk::prelude::*;
+# async fn example() -> ilink_sdk::Result<()> {
 let mut client = WeixinClientBuilder::new().account_id("acct").build().await?;
 client.enable_quote_cache()?;
 if let Some(store) = client.quote_store() {
@@ -135,10 +135,10 @@ if let Some(store) = client.quote_store() {
 ### 从已注册账户构建并发送
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
 #[tokio::main]
-async fn main() -> openclaw_weixin::Result<()> {
+async fn main() -> ilink_sdk::Result<()> {
     let client = WeixinClientBuilder::new()
         .account_id("b0f5860fdecb-im-bot")
         .build()
@@ -162,10 +162,10 @@ async fn main() -> openclaw_weixin::Result<()> {
 ### 登录后立即保存并构建
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::storage::accounts::{self, AccountUpdate};
+use ilink_sdk::prelude::*;
+use ilink_sdk::storage::accounts::{self, AccountUpdate};
 
-# async fn example(session: QrSession) -> openclaw_weixin::Result<()> {
+# async fn example(session: QrSession) -> ilink_sdk::Result<()> {
 let account_id = accounts::normalize_account_id(&session.bot_id);
 let client = WeixinClient::save_and_load(&account_id, AccountUpdate {
     token: Some(session.token),
@@ -179,9 +179,9 @@ let client = WeixinClient::save_and_load(&account_id, AccountUpdate {
 ### 从 QrSession 直接构建（不落盘）
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn example(session: QrSession) -> openclaw_weixin::Result<()> {
+# async fn example(session: QrSession) -> ilink_sdk::Result<()> {
 let client = WeixinClient::from_session(session, Some("MyBot/1.0".into())).await?;
 client.sender().send_text("u@im.wechat", "临时会话", &SendOpts::default()).await?;
 # Ok(())

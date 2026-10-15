@@ -1,4 +1,4 @@
-//! # openclaw-weixin
+//! # ilink-sdk
 //!
 //! A Rust SDK for the Tencent Weixin (iLink) backend protocol.
 //!
@@ -11,13 +11,13 @@
 //! ## Quick start
 //!
 //! ```no_run
-//! use openclaw_weixin::prelude::*;
+//! use ilink_sdk::prelude::*;
 //!
 //! # async fn example() -> std::result::Result<(), Box<dyn std::error::Error>> {
 //! let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
 //!
 //! // 1. Get a QR code and show it to the user.
-//! let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+//! let qr = ilink_sdk::messaging::QrLogin::new(&api);
 //! let start = qr.start(None).await?;
 //! println!("Scan: {}", start.qrcode_url);
 //!

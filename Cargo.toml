@@ -1,19 +1,19 @@
 [package]
-name = "openclaw-weixin"
+name = "ilink-sdk"
 version = "2.4.10"
 edition = "2021"
 rust-version = "1.82"
 description = "Rust SDK for the Tencent Weixin (iLink) backend protocol: QR-code login, long-poll messaging, CDN media upload/download."
 readme = "README.md"
-authors = ["Tencent"]
+authors = ["x500x", "Tencent"]
 license = "MIT"
-repository = "https://github.com/Tencent/openclaw-weixin"
+repository = "https://github.com/x500x/iLink-SDK-rs"
 keywords = ["weixin", "ilink", "im", "sdk", "bot"]
 categories = ["api-bindings", "network-programming"]
 exclude = ["/.github/"]
 
 [lib]
-name = "openclaw_weixin"
+name = "ilink_sdk"
 path = "src/lib.rs"
 
 [[bin]]

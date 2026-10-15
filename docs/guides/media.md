@@ -17,9 +17,9 @@ The SDK therefore implements ECB explicitly per block
 byte-for-byte equality with Node's `aes-128-ecb`.
 
 ```rust,no_run
-use openclaw_weixin::cdn::{encrypt_aes_ecb, decrypt_aes_ecb};
+use ilink_sdk::cdn::{encrypt_aes_ecb, decrypt_aes_ecb};
 
-# fn run() -> openclaw_weixin::Result<()> {
+# fn run() -> ilink_sdk::Result<()> {
 let key = [0x42u8; 16];
 let ct = encrypt_aes_ecb(b"hello world", &key)?;  // 16 bytes
 let pt = decrypt_aes_ecb(&ct, &key)?;             // b"hello world"
@@ -42,9 +42,9 @@ read file → MD5 → generate AES key + filekey → padded size
 ```
 
 ```rust,no_run
-# async fn run(api: openclaw_weixin::WeixinApiClient, path: &std::path::Path) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::cdn::{upload_image, upload_video, upload_file_attachment, UploadedFile};
-use openclaw_weixin::storage::accounts::CDN_BASE_URL;
+# async fn run(api: ilink_sdk::WeixinApiClient, path: &std::path::Path) -> ilink_sdk::Result<()> {
+use ilink_sdk::cdn::{upload_image, upload_video, upload_file_attachment, UploadedFile};
+use ilink_sdk::storage::accounts::CDN_BASE_URL;
 
 let to = "someone@im.wechat";
 let cdn = CDN_BASE_URL;
@@ -74,8 +74,8 @@ failures retry up to [`UPLOAD_MAX_RETRIES`] (3) times with exponential backoff
 ## Downloading (inbound)
 
 ```rust,no_run
-# async fn run(media: openclaw_weixin::api::types::CdnMedia, aes_key_b64: &str, cdn_base_url: &str) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::cdn::{download_and_decrypt, download_plain, parse_aes_key, MediaSink, download_item_media};
+# async fn run(media: ilink_sdk::api::types::CdnMedia, aes_key_b64: &str, cdn_base_url: &str) -> ilink_sdk::Result<()> {
+use ilink_sdk::cdn::{download_and_decrypt, download_plain, parse_aes_key, MediaSink, download_item_media};
 
 // Encrypted media (image/video/file/voice):
 let bytes = download_and_decrypt(&media, aes_key_b64, cdn_base_url, "inbound").await?;

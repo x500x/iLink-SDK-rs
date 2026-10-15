@@ -1,6 +1,6 @@
 # API handbook
 
-This page is the authoritative reference for everything the `openclaw_weixin`
+This page is the authoritative reference for everything the `ilink_sdk`
 crate exposes publicly. It is generated from the crate's module structure and
 is intended to be read alongside the source files it links to.
 
@@ -11,7 +11,7 @@ is intended to be read alongside the source files it links to.
 
 ## Crate root
 
-Crate name: `openclaw_weixin` (library), version `openclaw_weixin::VERSION`
+Crate name: `ilink_sdk` (library), version `ilink_sdk::VERSION`
 (`env!("CARGO_PKG_VERSION")`).
 
 Top-level modules:
@@ -32,7 +32,7 @@ Top-level modules:
 ### `prelude`
 
 The convenience re-export module gathers the most common types so callers can
-`use openclaw_weixin::prelude::*;`.
+`use ilink_sdk::prelude::*;`.
 
 ```rust
 pub mod prelude {

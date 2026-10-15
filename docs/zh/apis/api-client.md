@@ -187,7 +187,7 @@ pub struct ReqwestTransport;   // 默认实现，使用 reqwest + rustls
 示例——一个记录所有请求的 mock（示意）：
 
 ```rust
-use openclaw_weixin::api::{HttpTransport, ReqwestTransport, WeixinApiOptions, WeixinApiClient};
+use ilink_sdk::api::{HttpTransport, ReqwestTransport, WeixinApiOptions, WeixinApiClient};
 use std::sync::Arc;
 
 // 用默认实现包装，仅在测试中替换
@@ -322,8 +322,8 @@ impl SessionGuard {
 ### 直接驱动长轮询
 
 ```rust,no_run
-use openclaw_weixin::api::{WeixinApiClient, WeixinApiOptions, GetUpdatesReq};
-use openclaw_weixin::error::{ErrorKind, Result};
+use ilink_sdk::api::{WeixinApiClient, WeixinApiOptions, GetUpdatesReq};
+use ilink_sdk::error::{ErrorKind, Result};
 
 async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
     loop {
@@ -331,7 +331,7 @@ async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
         let resp = api.get_updates(&req, None, None).await?;
         // 业务错误（如 -14 令牌过期）应在此处理
         if resp.is_stale_token(-14) {
-            return Err(openclaw_weixin::error::Error::new(
+            return Err(ilink_sdk::error::Error::new(
                 ErrorKind::Unknown, "token stale"));
         }
         if let Some(msgs) = resp.msgs.as_ref() {
@@ -347,7 +347,7 @@ async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
 ### 注入 mock 传输做断言（示意）
 
 ```rust,no_run
-use openclaw_weixin::api::{HttpTransport, WeixinApiOptions, WeixinApiClient};
+use ilink_sdk::api::{HttpTransport, WeixinApiOptions, WeixinApiClient};
 use std::sync::Arc;
 
 // 自定义 transport 实现 HttpTransport::request，

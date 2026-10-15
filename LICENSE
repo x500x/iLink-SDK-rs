@@ -4,6 +4,12 @@ Copyright (C) 2026 Tencent.  All rights reserved.
 
 openclaw-weixin is licensed under the MIT.
 
+This repository (iLink-SDK-rs) is a Rust port of the upstream
+openclaw-weixin project. The upstream copyright notice above is retained
+as required by the MIT license.
+
+Rust port: Copyright (C) 2026 x500x.  All rights reserved.
+
 
 Terms of the MIT:
 --------------------------------------------------------------------

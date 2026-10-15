@@ -47,4 +47,4 @@ credentials.
 ## Tracing
 
 The CLI initializes a `tracing-subscriber` (via the `logging` module) driven by
-`RUST_LOG` (e.g. `RUST_LOG=openclaw_weixin=debug cargo run -- listen`).
+`RUST_LOG` (e.g. `RUST_LOG=ilink_sdk=debug cargo run -- listen`).

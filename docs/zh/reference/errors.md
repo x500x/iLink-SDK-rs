@@ -1,7 +1,7 @@
 # 错误与重试
 
 SDK 中每个可能失败的操作都返回
-[`openclaw_weixin::Result<T>`](../../../src/error.rs)，参数化为 [`Error`]。传输层失败
+[`ilink_sdk::Result<T>`](../../../src/error.rs)，参数化为 [`Error`]。传输层失败
 会带有一个分类后的 [`ErrorKind`]，以便调用方按失败原因分支处理，而不是字符串匹配——
 这与 TypeScript 的 `classifyFetchError` 一致。
 
@@ -29,13 +29,13 @@ SDK 中每个可能失败的操作都返回
 ## 示例：按原因分支
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::{ErrorKind, WeixinApiClient};
-use openclaw_weixin::api::types::{GetUpdatesReq, MessageItemType};
-use openclaw_weixin::storage::sync_buf::save_for_account;
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
+use ilink_sdk::{ErrorKind, WeixinApiClient};
+use ilink_sdk::api::types::{GetUpdatesReq, MessageItemType};
+use ilink_sdk::storage::sync_buf::save_for_account;
 
 let account_id = client.account_id().to_string();
-let mut cursor = openclaw_weixin::storage::sync_buf::load_for_account(&account_id);
+let mut cursor = ilink_sdk::storage::sync_buf::load_for_account(&account_id);
 
 loop {
     let result = client.api().get_updates(

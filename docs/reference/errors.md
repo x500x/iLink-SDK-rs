@@ -1,7 +1,7 @@
 # Errors & retries
 
 Every fallible operation in the SDK returns
-[`openclaw_weixin::Result<T>`](../../src/error.rs), parameterised by [`Error`].
+[`ilink_sdk::Result<T>`](../../src/error.rs), parameterised by [`Error`].
 Transport-level failures carry a classified [`ErrorKind`] so callers can branch
 on the failure cause instead of string matching — mirroring the TypeScript
 `classifyFetchError`.
@@ -29,13 +29,13 @@ on the failure cause instead of string matching — mirroring the TypeScript
 ## Example: branch on the cause
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::{ErrorKind, WeixinApiClient};
-use openclaw_weixin::api::types::{GetUpdatesReq, MessageItemType};
-use openclaw_weixin::storage::sync_buf::save_for_account;
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
+use ilink_sdk::{ErrorKind, WeixinApiClient};
+use ilink_sdk::api::types::{GetUpdatesReq, MessageItemType};
+use ilink_sdk::storage::sync_buf::save_for_account;
 
 let account_id = client.account_id().to_string();
-let mut cursor = openclaw_weixin::storage::sync_buf::load_for_account(&account_id);
+let mut cursor = ilink_sdk::storage::sync_buf::load_for_account(&account_id);
 
 loop {
     let result = client.api().get_updates(

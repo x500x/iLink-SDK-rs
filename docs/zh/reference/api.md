@@ -1,13 +1,13 @@
 # API 手册
 
-本页是 `openclaw_weixin` 包对外公开的全部 API 的权威参考。它根据 crate 的模块结构整理，建议配合其链接到的源文件一起阅读。
+本页是 `ilink_sdk` 包对外公开的全部 API 的权威参考。它根据 crate 的模块结构整理，建议配合其链接到的源文件一起阅读。
 
 > 该 crate **不含内嵌 HTTP 服务器，也不依赖网关**。以下每一项都是你可以直接调用或构造的函数、类型或常量。关于登录流程、消息收发、媒体等叙事性指南，请参阅
 > [docs/zh/README.md](../README.md) 索引。
 
 ## crate 根
 
-包名：`openclaw_weixin`（库），版本 `openclaw_weixin::VERSION`（`env!("CARGO_PKG_VERSION")`）。
+包名：`ilink_sdk`（库），版本 `ilink_sdk::VERSION`（`env!("CARGO_PKG_VERSION")`）。
 
 顶层模块：
 
@@ -27,7 +27,7 @@
 ### `prelude`
 
 便捷再导出模块，汇集最常用的类型，调用方可以直接
-`use openclaw_weixin::prelude::*;`。
+`use ilink_sdk::prelude::*;`。
 
 ```rust
 pub mod prelude {

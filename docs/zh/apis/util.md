@@ -41,7 +41,7 @@ pub fn random_u32() -> u32;
 用法示例：
 
 ```rust,no_run
-use openclaw_weixin::util::random::{generate_id, temp_file_name, file_key};
+use ilink_sdk::util::random::{generate_id, temp_file_name, file_key};
 
 # fn example() {
 let id = generate_id("openclaw-weixin");
@@ -86,7 +86,7 @@ pub fn redact_url(url: &str) -> String;
 ### 示例
 
 ```rust,no_run
-use openclaw_weixin::util::redact::{redact_token, redact_body, redact_url};
+use ilink_sdk::util::redact::{redact_token, redact_body, redact_url};
 
 # fn example() {
 assert_eq!(redact_token(None, None), "(none)");
@@ -122,7 +122,7 @@ pub fn now_iso8601() -> String;
 换算 `(year, month, day)`，再组装为 `YYYY-MM-DDTHH:MM:SS.mmmZ` 形态：
 
 ```rust,no_run
-use openclaw_weixin::util::time::{now_iso8601, now_millis};
+use ilink_sdk::util::time::{now_iso8601, now_millis};
 
 # fn example() {
 let s = now_iso8601();

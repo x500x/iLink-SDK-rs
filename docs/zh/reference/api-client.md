@@ -7,10 +7,10 @@
 ## 构造
 
 ```rust,no_run
-use openclaw_weixin::api::{WeixinApiClient, WeixinApiOptions};
-use openclaw_weixin::storage::accounts::DEFAULT_BASE_URL;
+use ilink_sdk::api::{WeixinApiClient, WeixinApiOptions};
+use ilink_sdk::storage::accounts::DEFAULT_BASE_URL;
 
-# fn run() -> openclaw_weixin::Result<()> {
+# fn run() -> ilink_sdk::Result<()> {
 let api = WeixinApiClient::new(
     WeixinApiOptions::new(DEFAULT_BASE_URL)     // API base URL
         .with_token("bot-token")                 // bot token (Bearer)

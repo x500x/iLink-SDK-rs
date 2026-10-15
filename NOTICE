@@ -1,0 +1,21 @@
+openclaw-weixin / iLink-SDK-rs
+==============================
+
+This repository (https://github.com/x500x/iLink-SDK-rs) is a Rust port of
+the upstream "openclaw-weixin" project
+(https://github.com/Tencent/openclaw-weixin), which is licensed under the
+MIT license.
+
+Upstream work
+-------------
+Copyright (C) 2026 Tencent. All rights reserved.
+Licensed under the MIT license (see LICENSE).
+
+Rust port
+---------
+Copyright (C) 2026 x500x. All rights reserved.
+Licensed under the MIT license (see LICENSE).
+
+The upstream copyright and permission notice is retained in LICENSE as
+required by the MIT license. Documentation and identifiers in this port are
+derived from the upstream TypeScript implementation.

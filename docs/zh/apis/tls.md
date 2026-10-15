@@ -39,7 +39,7 @@ impl rustls::client::danger::ServerCertVerifier for DangerIgnoreVerifier { /* å…
 ```rust,no_run
 # #[cfg(test)]
 # mod tests {
-use openclaw_weixin::tls::DangerIgnoreVerifier;
+use ilink_sdk::tls::DangerIgnoreVerifier;
 use rustls::crypto::ring::default_provider;
 use rustls::{ClientConfig, RootCertStore};
 

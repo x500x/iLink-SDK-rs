@@ -20,9 +20,9 @@
 ## 开始一个会话
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn run() -> openclaw_weixin::Result<()> {
+# async fn run() -> ilink_sdk::Result<()> {
 let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
 let qr = QrLogin::new(&api);
 // 或：qr.with_bot_type("3")
@@ -43,8 +43,8 @@ println!("请扫描：{}", start.qrcode_url);
 `wait` 会运行整个循环：轮询、处理验证码、过期刷新，并返回 [`QrWaitResult`]。
 
 ```rust,no_run
-# async fn run(api: openclaw_weixin::WeixinApiClient) -> openclaw_weixin::Result<()> {
-# let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+# async fn run(api: ilink_sdk::WeixinApiClient) -> ilink_sdk::Result<()> {
+# let qr = ilink_sdk::messaging::QrLogin::new(&api);
 # let start = qr.start(None).await?;
 # let session_key = start.session_key;
 let result = qr
@@ -94,23 +94,23 @@ match result {
 如果你需要把循环嵌入自己的事件循环，可直接使用 `poll`。它返回 [`PollOutcome`]：
 
 ```rust,no_run
-# async fn run(api: openclaw_weixin::WeixinApiClient, session_key: &str) -> openclaw_weixin::Result<()> {
-# let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+# async fn run(api: ilink_sdk::WeixinApiClient, session_key: &str) -> ilink_sdk::Result<()> {
+# let qr = ilink_sdk::messaging::QrLogin::new(&api);
 loop {
     match qr.poll(session_key).await? {
-        openclaw_weixin::messaging::PollOutcome::Continue => {}
-        openclaw_weixin::messaging::PollOutcome::NeedsVerification { retry } => {
+        ilink_sdk::messaging::PollOutcome::Continue => {}
+        ilink_sdk::messaging::PollOutcome::NeedsVerification { retry } => {
             // 提示输入验证码；提交后立刻再次轮询
             qr.submit_verify_code(session_key, "123456");
             continue;
         }
-        openclaw_weixin::messaging::PollOutcome::Expired
-        | openclaw_weixin::messaging::PollOutcome::VerifyCodeBlocked => {
+        ilink_sdk::messaging::PollOutcome::Expired
+        | ilink_sdk::messaging::PollOutcome::VerifyCodeBlocked => {
             let refreshed = qr.refresh(session_key).await?; // 重新渲染 refreshed.qrcode_url
             let _ = refreshed;
         }
-        openclaw_weixin::messaging::PollOutcome::AlreadyConnected => break,
-        openclaw_weixin::messaging::PollOutcome::Done(session) => {
+        ilink_sdk::messaging::PollOutcome::AlreadyConnected => break,
+        ilink_sdk::messaging::PollOutcome::Done(session) => {
             println!("完成：{}", session.bot_id);
             break;
         }
@@ -142,8 +142,8 @@ loop {
 登录成功后，持久化 token 并裁剪同一用户下的陈旧账户，使得只保留最新的那个：
 
 ```rust,no_run
-# fn run(session: &openclaw_weixin::messaging::QrSession) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::storage::accounts::{normalize_account_id, save_account, register_account_id,
+# fn run(session: &ilink_sdk::messaging::QrSession) -> ilink_sdk::Result<()> {
+use ilink_sdk::storage::accounts::{normalize_account_id, save_account, register_account_id,
     clear_stale_accounts_for_user_id, AccountUpdate};
 
 let account_id = normalize_account_id(&session.bot_id);

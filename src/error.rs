@@ -1,4 +1,4 @@
-//! Error types for the openclaw-weixin Rust SDK.
+//! Error types for the iLink SDK (ilink-sdk).
 //!
 //! Every fallible operation in this crate returns [`Result<T>`], which is
 //! parameterised by [`Error`]. Transport-level failures carry a classified

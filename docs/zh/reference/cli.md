@@ -45,4 +45,4 @@ TypeScript 客户端也会共享这些凭证。
 ## 日志
 
 CLI 会初始化一个 `tracing-subscriber`（经由 `logging` 模块），由 `RUST_LOG` 驱动
-（例如 `RUST_LOG=openclaw_weixin=debug cargo run -- listen`）。
+（例如 `RUST_LOG=ilink_sdk=debug cargo run -- listen`）。

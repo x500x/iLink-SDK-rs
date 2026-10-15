@@ -10,9 +10,9 @@ holds the request until a message arrives or the long-poll timeout (default
 35s, [`DEFAULT_LONG_POLL_TIMEOUT_MS`]) is hit.
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::api::types::{GetUpdatesReq, MessageItemType};
-use openclaw_weixin::storage::sync_buf::load_for_account;
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
+use ilink_sdk::api::types::{GetUpdatesReq, MessageItemType};
+use ilink_sdk::storage::sync_buf::load_for_account;
 use tokio_util::sync::CancellationToken;
 
 let account_id = client.account_id().to_string();
@@ -31,7 +31,7 @@ loop {
 
     if let Some(buf) = resp.get_updates_buf {
         cursor = Some(buf);
-        openclaw_weixin::storage::sync_buf::save_for_account(&account_id, &cursor.clone().unwrap_or_default());
+        ilink_sdk::storage::sync_buf::save_for_account(&account_id, &cursor.clone().unwrap_or_default());
     }
 
     for msg in resp.msgs.unwrap_or_default() {
@@ -63,13 +63,13 @@ loop {
 ## Sending text
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 let to = "someone@im.wechat";
 
 client.sender().send_text(
     to,
     "hello from Rust",
-    &openclaw_weixin::messaging::SendOpts {
+    &ilink_sdk::messaging::SendOpts {
         context_token: Some("ctx-abc".into()),   // echo the inbound token
         run_id: None,
     },
@@ -89,9 +89,9 @@ sends a message referencing it. The media type (image / video / file) is
 detected from the file extension.
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 use std::path::Path;
-use openclaw_weixin::storage::accounts::CDN_BASE_URL;
+use ilink_sdk::storage::accounts::CDN_BASE_URL;
 
 let to = "someone@im.wechat";
 let cdn_base_url = client.account().cdn_base_url.clone();
@@ -100,7 +100,7 @@ client.sender().send_file(
     to,
     Path::new("./photo.png"),
     "look at this",            // optional caption (sent as a separate text item)
-    &openclaw_weixin::messaging::SendOpts::default(),
+    &ilink_sdk::messaging::SendOpts::default(),
     &cdn_base_url,
 ).await?;
 # Ok(())
@@ -126,16 +126,16 @@ ticket with `get_config`, then call `send_typing` (or use the
 [`TypingHelper`]).
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient, user_id: &str) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::messaging::Typing;
+# async fn run(client: ilink_sdk::WeixinClient, user_id: &str) -> ilink_sdk::Result<()> {
+use ilink_sdk::messaging::Typing;
 
 let cfg = client.api().get_config(user_id, None).await?;
 let ticket = cfg.typing_ticket.unwrap_or_default();
 
 // An empty ticket is a no-op (the account may not support typing).
-openclaw_weixin::messaging::send_typing(client.api(), user_id, &ticket, Typing::Typing).await?;
+ilink_sdk::messaging::send_typing(client.api(), user_id, &ticket, Typing::Typing).await?;
 // ... send the reply ...
-openclaw_weixin::messaging::send_typing(client.api(), user_id, &ticket, Typing::Cancel).await?;
+ilink_sdk::messaging::send_typing(client.api(), user_id, &ticket, Typing::Cancel).await?;
 # Ok(())
 # }
 ```
@@ -153,7 +153,7 @@ thread correctly. The SDK gives you two tools:
 
 ```rust,no_run
 # fn run() {
-use openclaw_weixin::messaging::context::ContextTokenStore;
+use ilink_sdk::messaging::context::ContextTokenStore;
 
 let mut store = ContextTokenStore::new();       // defaults to the accounts dir
 store.set("acct", "user@im.wechat", "ctx-xyz");  // memory + disk
@@ -172,8 +172,8 @@ application: it flattens the body, attaches downloaded media paths, and pulls
 inline quote (`ref_msg`) metadata into `reply_to_*` fields.
 
 ```rust,no_run
-# fn run(msg: openclaw_weixin::api::types::WeixinMessage, account_id: &str, media: openclaw_weixin::cdn::download::InboundMedia) {
-use openclaw_weixin::messaging::context::message_to_context;
+# fn run(msg: ilink_sdk::api::types::WeixinMessage, account_id: &str, media: ilink_sdk::cdn::download::InboundMedia) {
+use ilink_sdk::messaging::context::message_to_context;
 
 let ctx = message_to_context(&msg, account_id, &media);
 println!("body = {}", ctx.body);
@@ -194,7 +194,7 @@ Newer Weixin clients send only a server message id for a quoted message. To let
 later quotes restore their original text/media, enable the local quote cache:
 
 ```rust,no_run
-# fn run(client: &mut openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# fn run(client: &mut ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 client.enable_quote_cache()?;        // opens ref-messages.sqlite
 # Ok(())
 # }

@@ -5,8 +5,8 @@
 
 use std::time::Duration;
 
-use openclaw_weixin::api::types::{GetUpdatesReq, GetUpdatesResp, SendMessageReq, WeixinMessage};
-use openclaw_weixin::api::{WeixinApiClient, WeixinApiOptions, DEFAULT_LONG_POLL_TIMEOUT_MS};
+use ilink_sdk::api::types::{GetUpdatesReq, GetUpdatesResp, SendMessageReq, WeixinMessage};
+use ilink_sdk::api::{WeixinApiClient, WeixinApiOptions, DEFAULT_LONG_POLL_TIMEOUT_MS};
 use wiremock::matchers::{body_partial_json, header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
@@ -152,9 +152,9 @@ async fn send_message_posts_full_body_and_returns_server_id() {
             message_type: Some(2),
             message_state: Some(2),
             context_token: Some("ct-9".into()),
-            item_list: Some(vec![openclaw_weixin::api::types::MessageItem {
+            item_list: Some(vec![ilink_sdk::api::types::MessageItem {
                 r#type: Some(1),
-                text_item: Some(openclaw_weixin::api::types::TextItem {
+                text_item: Some(ilink_sdk::api::types::TextItem {
                     text: Some("hello".into()),
                 }),
                 ..Default::default()
@@ -213,7 +213,7 @@ async fn http_500_is_an_error() {
 
 #[tokio::test]
 async fn get_upload_url_posts_all_fields() {
-    use openclaw_weixin::api::types::GetUploadUrlReq;
+    use ilink_sdk::api::types::GetUploadUrlReq;
 
     let server = MockServer::start().await;
     Mock::given(method("POST"))
@@ -344,7 +344,7 @@ async fn connection_refused_is_a_transport_error() {
 async fn parse_api_json_keeps_uint64_in_nested_message() {
     let client = WeixinApiClient::new(WeixinApiOptions::new("http://127.0.0.1:1")).unwrap();
     let raw = r#"{"ret":0,"msgs":[{"message_id":18446744073709551615}]}"#;
-    let parsed: GetUpdatesResp = openclaw_weixin::api::parse_api_json(raw).unwrap();
+    let parsed: GetUpdatesResp = ilink_sdk::api::parse_api_json(raw).unwrap();
     let msg = &parsed.msgs.unwrap()[0];
     assert_eq!(msg.message_id.as_deref(), Some("18446744073709551615"));
     let _ = client;

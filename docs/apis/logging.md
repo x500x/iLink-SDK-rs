@@ -53,7 +53,7 @@ variable (default level set by the passed `level`, typically `Info`).
 ### CLI application (cli feature enabled)
 
 ```rust,no_run
-use openclaw_weixin::logging::{init_tracing, Level};
+use ilink_sdk::logging::{init_tracing, Level};
 
 fn main() {
     init_tracing(Level::Info);   // honors RUST_LOG, default Info
@@ -70,7 +70,7 @@ RUST_LOG=debug cargo run --bin weixin listen
 ### Library application (no cli feature, bring your own tracing subscriber)
 
 ```rust,no_run
-use openclaw_weixin::logging::ACCOUNT_FIELD;
+use ilink_sdk::logging::ACCOUNT_FIELD;
 use tracing::info;
 
 # fn example() {

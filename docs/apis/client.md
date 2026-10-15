@@ -101,9 +101,9 @@ after construction if you want replies to carry proper `context_token` reference
 ### Build from a stored account (listen mode)
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn example() -> openclaw_weixin::Result<()> {
+# async fn example() -> ilink_sdk::Result<()> {
 let client = WeixinClient::save_and_load("b0f5860fdecb-im-bot").await?;
 println!("account {} token len {}", client.account_id(), client.token().len());
 client.notify_start().await?;
@@ -114,9 +114,9 @@ client.notify_start().await?;
 ### Build immediately after QR login (no persistence needed)
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# fn example(session: QrSession) -> openclaw_weixin::Result<()> {
+# fn example(session: QrSession) -> ilink_sdk::Result<()> {
 // session is the result of QrLogin::wait
 let client = WeixinClientBuilder::from_session(session)?;
 let _ = client.sender().send_text("someone@im.wechat", "hi", &SendOpts::default());
@@ -127,9 +127,9 @@ let _ = client.sender().send_text("someone@im.wechat", "hi", &SendOpts::default(
 ### Override route tag / base URL
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn example() -> openclaw_weixin::Result<()> {
+# async fn example() -> ilink_sdk::Result<()> {
 let client = WeixinClientBuilder::new()
     .account_id("b0f5860fdecb-im-bot")
     .base_url("https://ilinkai.weixin.qq.com")

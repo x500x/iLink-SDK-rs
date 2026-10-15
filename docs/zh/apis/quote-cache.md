@@ -177,10 +177,10 @@ pub fn quote_media_subdir(account_id: &str) -> String;
 ### 开启并使用（配合 WeixinClient）
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::quote_cache::{QuoteStore, QuoteMessageInput, Direction};
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::quote_cache::{QuoteStore, QuoteMessageInput, Direction};
 
-# fn example() -> openclaw_weixin::Result<()> {
+# fn example() -> ilink_sdk::Result<()> {
 let mut store = QuoteStore::open_default()?;  // 默认策略，enabled
 
 let mut input = QuoteMessageInput {
@@ -206,9 +206,9 @@ if let Some(rec) = store.find("acct", "u@im.wechat", "42") {
 ### 登记受管媒体
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# use openclaw_weixin::messaging::quote_cache::{QuoteStore, QuoteMessageInput, Direction};
-# fn example(mut store: QuoteStore) -> openclaw_weixin::Result<()> {
+# use ilink_sdk::prelude::*;
+# use ilink_sdk::messaging::quote_cache::{QuoteStore, QuoteMessageInput, Direction};
+# fn example(mut store: QuoteStore) -> ilink_sdk::Result<()> {
 // 1) 先把媒体放到受管根目录
 let dir = store.ensure_account_media_dir("acct")?;
 let file = dir.join("quote.png");
@@ -238,8 +238,8 @@ if let Some(rec) = store.find("acct", "u@im.wechat", "7") {
 ### 删除账户与手动 GC
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# use openclaw_weixin::messaging::quote_cache::QuoteStore;
+# use ilink_sdk::prelude::*;
+# use ilink_sdk::messaging::quote_cache::QuoteStore;
 # fn example(mut store: QuoteStore) {
 store.delete_account("acct");   // 删行 + 删该账户受管媒体目录
 store.gc();                    // 随时可手动触发完整 GC

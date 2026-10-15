@@ -138,12 +138,12 @@ others.
 ### Open and record an inbound message
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::quote_cache::{
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::quote_cache::{
     QuoteStore, QuoteCachePolicy, QuoteMessageInput, Direction,
 };
 
-# fn example() -> openclaw_weixin::Result<()> {
+# fn example() -> ilink_sdk::Result<()> {
 let store = QuoteStore::open_default(&QuoteCachePolicy::default())?;
 let input = QuoteMessageInput {
     message_id: "msg-123".into(),
@@ -173,10 +173,10 @@ if let Some(rec) = store.find("acct", "msg-123")? {
 ### Periodic GC (daemon-style)
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::quote_cache::QuoteStore;
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::quote_cache::QuoteStore;
 
-# fn example(store: &QuoteStore) -> openclaw_weixin::Result<()> {
+# fn example(store: &QuoteStore) -> ilink_sdk::Result<()> {
 store.gc()?;   // call every few minutes from a background task
 # Ok(())
 # }

@@ -1,6 +1,6 @@
 # Error handling API
 
-Every fallible operation in `openclaw_weixin` returns `Result<T>` (i.e.
+Every fallible operation in `ilink_sdk` returns `Result<T>` (i.e.
 `std::result::Result<T, Error>`). The error-handling module lives in
 [`../../src/error.rs`](../../src/error.rs). It classifies transport failures into
 `ErrorKind` so callers can branch on the failure category instead of string
@@ -44,7 +44,7 @@ impl std::fmt::Display for ErrorKind { /* delegates to as_str */ }
 Example:
 
 ```rust
-use openclaw_weixin::error::ErrorKind;
+use ilink_sdk::error::ErrorKind;
 assert_eq!(ErrorKind::Dns.as_str(), "dns");
 assert_eq!(ErrorKind::Tls.description(), "TLS handshake error");
 ```

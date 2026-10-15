@@ -22,9 +22,9 @@ QR code with the Weixin app. The flow is implemented in
 ## Starting a session
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn run() -> openclaw_weixin::Result<()> {
+# async fn run() -> ilink_sdk::Result<()> {
 let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
 let qr = QrLogin::new(&api);
 // or: qr.with_bot_type("3")
@@ -46,8 +46,8 @@ process), pass it to `start` to re-register the same session.
 return a [`QrWaitResult`].
 
 ```rust,no_run
-# async fn run(api: openclaw_weixin::WeixinApiClient) -> openclaw_weixin::Result<()> {
-# let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+# async fn run(api: ilink_sdk::WeixinApiClient) -> ilink_sdk::Result<()> {
+# let qr = ilink_sdk::messaging::QrLogin::new(&api);
 # let start = qr.start(None).await?;
 # let session_key = start.session_key;
 let result = qr
@@ -100,23 +100,23 @@ If you need to embed the loop in your own event loop, use `poll` directly. It
 returns a [`PollOutcome`]:
 
 ```rust,no_run
-# async fn run(api: openclaw_weixin::WeixinApiClient, session_key: &str) -> openclaw_weixin::Result<()> {
-# let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+# async fn run(api: ilink_sdk::WeixinApiClient, session_key: &str) -> ilink_sdk::Result<()> {
+# let qr = ilink_sdk::messaging::QrLogin::new(&api);
 loop {
     match qr.poll(session_key).await? {
-        openclaw_weixin::messaging::PollOutcome::Continue => {}
-        openclaw_weixin::messaging::PollOutcome::NeedsVerification { retry } => {
+        ilink_sdk::messaging::PollOutcome::Continue => {}
+        ilink_sdk::messaging::PollOutcome::NeedsVerification { retry } => {
             // prompt for code; submit it, then poll again immediately
             qr.submit_verify_code(session_key, "123456");
             continue;
         }
-        openclaw_weixin::messaging::PollOutcome::Expired
-        | openclaw_weixin::messaging::PollOutcome::VerifyCodeBlocked => {
+        ilink_sdk::messaging::PollOutcome::Expired
+        | ilink_sdk::messaging::PollOutcome::VerifyCodeBlocked => {
             let refreshed = qr.refresh(session_key).await?; // re-render refreshed.qrcode_url
             let _ = refreshed;
         }
-        openclaw_weixin::messaging::PollOutcome::AlreadyConnected => break,
-        openclaw_weixin::messaging::PollOutcome::Done(session) => {
+        ilink_sdk::messaging::PollOutcome::AlreadyConnected => break,
+        ilink_sdk::messaging::PollOutcome::Done(session) => {
             println!("done: {}", session.bot_id);
             break;
         }
@@ -149,8 +149,8 @@ After a successful login, persist the token and prune stale accounts for the
 same user so only the latest survives:
 
 ```rust,no_run
-# fn run(session: &openclaw_weixin::messaging::QrSession) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::storage::accounts::{normalize_account_id, save_account, register_account_id,
+# fn run(session: &ilink_sdk::messaging::QrSession) -> ilink_sdk::Result<()> {
+use ilink_sdk::storage::accounts::{normalize_account_id, save_account, register_account_id,
     clear_stale_accounts_for_user_id, AccountUpdate};
 
 let account_id = normalize_account_id(&session.bot_id);

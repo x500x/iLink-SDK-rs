@@ -70,8 +70,8 @@ impl<'a> MessageSender<'a> {
 发送纯文本。空 `text` 不发送任何 `item_list`（仅构造空消息体）。
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# async fn example(sender: &MessageSender<'_>) -> openclaw_weixin::Result<()> {
+# use ilink_sdk::prelude::*;
+# async fn example(sender: &MessageSender<'_>) -> ilink_sdk::Result<()> {
 let r = sender.send_text(
     "someone@im.wechat",
     "你好",
@@ -88,9 +88,9 @@ println!("sent {}", r.message_id);
 `ref_msg` 的引用项、工具调用项）。
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# use openclaw_weixin::api::types::{MessageItem, MessageItemType, TextItem};
-# async fn example(sender: &MessageSender<'_>) -> openclaw_weixin::Result<()> {
+# use ilink_sdk::prelude::*;
+# use ilink_sdk::api::types::{MessageItem, MessageItemType, TextItem};
+# async fn example(sender: &MessageSender<'_>) -> ilink_sdk::Result<()> {
 let item = MessageItem {
     r#type: Some(MessageItemType::Text.value()),
     text_item: Some(TextItem { text: Some("自定义项".into()) }),
@@ -114,8 +114,8 @@ sender.send_item("someone@im.wechat", item, &SendOpts::default()).await?;
 `client.account().cdn_base_url`）。
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# async fn example(sender: &MessageSender<'_>) -> openclaw_weixin::Result<()> {
+# use ilink_sdk::prelude::*;
+# async fn example(sender: &MessageSender<'_>) -> ilink_sdk::Result<()> {
 use std::path::Path;
 let _ = sender.send_file(
     "someone@im.wechat",
@@ -215,14 +215,14 @@ pub fn remember_context_token(store: &mut ContextTokenStore, ctx: &MsgContext) -
 ### 入站处理完整示例（示意）
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::context::{ContextTokenStore, message_to_context};
-use openclaw_weixin::cdn::download::{download_item_media, MediaSink, InboundMedia};
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::context::{ContextTokenStore, message_to_context};
+use ilink_sdk::cdn::download::{download_item_media, MediaSink, InboundMedia};
 
 # async fn example(
 #     api: &WeixinApiClient, msg: WeixinMessage, account_id: &str, cdn: &str,
 #     store: &mut ContextTokenStore, sink: &MediaSink,
-# ) -> openclaw_weixin::Result<()> {
+# ) -> ilink_sdk::Result<()> {
 // 假设 msg 来自 get_updates 长轮询
 let media = download_item_media(
     msg.item_list.as_deref().unwrap_or(&[]).first().unwrap(),
@@ -269,9 +269,9 @@ impl<'a> TypingHelper<'a> {
 示例：
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# use openclaw_weixin::messaging::typing::{TypingHelper, send_typing, Typing};
-# async fn example(api: &WeixinApiClient, user: &str, ticket: &str) -> openclaw_weixin::Result<()> {
+# use ilink_sdk::prelude::*;
+# use ilink_sdk::messaging::typing::{TypingHelper, send_typing, Typing};
+# async fn example(api: &WeixinApiClient, user: &str, ticket: &str) -> ilink_sdk::Result<()> {
 let helper = TypingHelper::new(api, user, ticket);
 if helper.enabled() {
     helper.start().await?;

@@ -1,12 +1,12 @@
 # 分板块 API 手册
 
-本目录把 `openclaw_weixin` crate 对外公开的 API 按职责拆成若干板块，逐板块
+本目录把 `ilink_sdk` crate 对外公开的 API 按职责拆成若干板块，逐板块
 详细介绍每个 API 的**作用、参数、返回值、错误、用法示例与注意事项**。
 
 与 [`../../reference/api.md`](../../reference/api.md)（一页式签名清单）不同，这里
 每个文件都聚焦一个领域，并给出可运行的代码片段与典型组合方式。
 
-> 约定：所有示例都假定已 `use openclaw_weixin::prelude::*;`，并运行在
+> 约定：所有示例都假定已 `use ilink_sdk::prelude::*;`，并运行在
 > `tokio` 运行时下。需要真实账号或触网的示例会标注为「示意」。
 
 ## 板块索引
@@ -29,7 +29,7 @@
 ## 模块到板块的映射
 
 ```text
-openclaw_weixin/
+ilink_sdk/
 ├── error        → error.md
 ├── api          → api-client.md
 │   ├── client
@@ -56,10 +56,10 @@ openclaw_weixin/
 （示意，需要真实账号）：
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
 #[tokio::main]
-async fn main() -> openclaw_weixin::Result<()> {
+async fn main() -> ilink_sdk::Result<()> {
     // 1) 登录（详见 authentication.md）
     let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
     let qr = QrLogin::new(&api);

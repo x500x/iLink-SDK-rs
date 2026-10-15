@@ -35,9 +35,9 @@ pub fn decrypt_aes_ecb(ciphertext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>>;
 示例（示意）：
 
 ```rust,no_run
-use openclaw_weixin::cdn::aes_ecb::{encrypt_aes_ecb, decrypt_aes_ecb, aes_ecb_padded_size};
+use ilink_sdk::cdn::aes_ecb::{encrypt_aes_ecb, decrypt_aes_ecb, aes_ecb_padded_size};
 
-# fn example() -> openclaw_weixin::Result<()> {
+# fn example() -> ilink_sdk::Result<()> {
 let key = [0u8; 16];
 let plain = b"hello weixin";
 let padded = aes_ecb_padded_size(plain.len()); // 16 的倍数
@@ -138,10 +138,10 @@ silk(6)/其它保持 `.silk` 原始字节，交由宿主用 `ffmpeg` / `silk-was
 ### 示例：下载入站媒体
 
 ```rust,no_run
-use openclaw_weixin::cdn::download::{download_item_media, MediaSink, InboundMedia};
-use openclaw_weixin::api::types::MessageItem;
+use ilink_sdk::cdn::download::{download_item_media, MediaSink, InboundMedia};
+use ilink_sdk::api::types::MessageItem;
 
-# async fn example(item: &MessageItem, cdn: &str) -> openclaw_weixin::Result<()> {
+# async fn example(item: &MessageItem, cdn: &str) -> ilink_sdk::Result<()> {
 let sink = MediaSink::new(std::env::temp_dir()).with_subdir("inbound");
 let media: InboundMedia = download_item_media(item, cdn, &sink, "inbound").await;
 if let Some(p) = media.image_path {
@@ -205,15 +205,15 @@ pub fn backoff_delay(attempt: usize) -> Duration;   // 250ms，指数退避，�
 ### 示例：上传图片并拿到可发送的媒体引用
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::cdn::upload::upload_image;
+use ilink_sdk::prelude::*;
+use ilink_sdk::cdn::upload::upload_image;
 use std::path::Path;
 
-# async fn example(api: &WeixinApiClient, cdn: &str) -> openclaw_weixin::Result<()> {
+# async fn example(api: &WeixinApiClient, cdn: &str) -> ilink_sdk::Result<()> {
 let uploaded = upload_image("someone@im.wechat", Path::new("./pic.png"), api, cdn).await?;
 println!("download_param = {}", uploaded.download_param);
 // 用 uploaded.download_param 与 uploaded.aes_key_base64() 构造 CdnMedia
-let media = openclaw_weixin::api::types::CdnMedia {
+let media = ilink_sdk::api::types::CdnMedia {
     encrypt_query_param: Some(uploaded.download_param),
     aes_key: Some(uploaded.aes_key_base64()),
     encrypt_type: Some(1),

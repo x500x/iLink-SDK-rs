@@ -49,7 +49,7 @@ pub fn init_tracing(_level: Level) {}   // 无操作（未启用 cli 时）
 ### CLI 应用（启用 cli feature）
 
 ```rust,no_run
-use openclaw_weixin::logging::{init_tracing, Level};
+use ilink_sdk::logging::{init_tracing, Level};
 
 fn main() {
     init_tracing(Level::Info);   // 遵循 RUST_LOG，默认 Info
@@ -66,7 +66,7 @@ RUST_LOG=debug cargo run --bin weixin listen
 ### 库应用（不使用 cli feature，自行接入 tracing）
 
 ```rust,no_run
-use openclaw_weixin::logging::ACCOUNT_FIELD;
+use ilink_sdk::logging::ACCOUNT_FIELD;
 use tracing::info;
 
 # fn example() {

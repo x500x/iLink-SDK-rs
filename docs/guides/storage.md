@@ -70,7 +70,7 @@ The resolved view of an account: `account_id`, `base_url`, `cdn_base_url`
 
 ```rust,no_run
 # fn run(account_id: &str) {
-use openclaw_weixin::storage::sync_buf::{load_for_account, save_for_account, get_sync_buf_path};
+use ilink_sdk::storage::sync_buf::{load_for_account, save_for_account, get_sync_buf_path};
 
 let cursor = load_for_account(account_id);            // Option<String>
 if let Some(buf) = &cursor {
@@ -92,8 +92,8 @@ each message's body and managed media so later quotes can restore context.
 ### Opening
 
 ```rust,no_run
-# fn run() -> openclaw_weixin::Result<()> {
-use openclaw_weixin::messaging::quote_cache::QuoteStore;
+# fn run() -> ilink_sdk::Result<()> {
+use ilink_sdk::messaging::quote_cache::QuoteStore;
 
 let store = QuoteStore::open_default()?;   // <root>/openclaw-weixin/ref-messages.sqlite
 # Ok(())
@@ -103,7 +103,7 @@ let store = QuoteStore::open_default()?;   // <root>/openclaw-weixin/ref-message
 Or enable it on a [`WeixinClient`]:
 
 ```rust,no_run
-# fn run(client: &mut openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# fn run(client: &mut ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 client.enable_quote_cache()?;
 let _ = client.quote_store();
 # Ok(())

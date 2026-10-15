@@ -1,6 +1,6 @@
 # API by board
 
-This directory splits the `openclaw_weixin` crate's public API into focused
+This directory splits the `ilink_sdk` crate's public API into focused
 boards, each explaining in depth the **purpose, parameters, return values,
 errors, usage examples, and caveats** of every API in that area.
 
@@ -8,7 +8,7 @@ Unlike [`../reference/api.md`](../reference/api.md) (a one-page signature
 catalog), each file here focuses on one domain and gives runnable code snippets
 and typical composition patterns.
 
-> Convention: all examples assume `use openclaw_weixin::prelude::*;` and run under
+> Convention: all examples assume `use ilink_sdk::prelude::*;` and run under
 > a `tokio` runtime. Examples that need a real account or the network are marked
 > "illustrative".
 
@@ -32,7 +32,7 @@ and typical composition patterns.
 ## Module to board mapping
 
 ```text
-openclaw_weixin/
+ilink_sdk/
 ├── error        → error.md
 ├── api          → api-client.md
 │   ├── client
@@ -59,10 +59,10 @@ The following stitches several boards together to show the typical
 "login → persist → send → receive" order (illustrative; needs a real account):
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
 #[tokio::main]
-async fn main() -> openclaw_weixin::Result<()> {
+async fn main() -> ilink_sdk::Result<()> {
     // 1) Log in (see authentication.md)
     let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
     let qr = QrLogin::new(&api);

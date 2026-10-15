@@ -6,7 +6,7 @@
 
 ```toml
 [dependencies]
-openclaw-weixin = "2.4"
+ilink-sdk = "2.4"
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -14,7 +14,7 @@ tokio = { version = "1", features = ["full"] }
 > 默认的 `cli` feature：
 >
 > ```toml
-> openclaw-weixin = { version = "2.4", default-features = false }
+> ilink-sdk = { version = "2.4", default-features = false }
 > ```
 
 ## 2. 二维码登录
@@ -24,7 +24,7 @@ tokio = { version = "1", features = ["full"] }
 其中包含 bot `token`、`bot_id`、base URL，以及配对的 `user_id`。
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -49,18 +49,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?;
 
     let session = result.session.expect("登录必须成功");
-    let account_id = openclaw_weixin::storage::accounts::normalize_account_id(&session.bot_id);
+    let account_id = ilink_sdk::storage::accounts::normalize_account_id(&session.bot_id);
 
     // 持久化 token，以便后续运行直接构建客户端。
-    openclaw_weixin::storage::accounts::save_account(
+    ilink_sdk::storage::accounts::save_account(
         &account_id,
-        &openclaw_weixin::storage::accounts::AccountUpdate {
+        &ilink_sdk::storage::accounts::AccountUpdate {
             token: Some(session.token),
             base_url: Some(session.base_url),
             user_id: Some(session.user_id),
         },
     )?;
-    openclaw_weixin::storage::accounts::register_account_id(&account_id)?;
+    ilink_sdk::storage::accounts::register_account_id(&account_id)?;
 
     Ok(())
 }
@@ -75,9 +75,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 [`WeixinClient`]：
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 
-# async fn run() -> openclaw_weixin::Result<()> {
+# async fn run() -> ilink_sdk::Result<()> {
 let client = WeixinClientBuilder::new()
     .account_id("deadbeef-im-bot")          // 可选；默认使用唯一已注册账户
     .build()
@@ -88,7 +88,7 @@ client
     .send_text(
         "someone@im.wechat",
         "来自 Rust 的问候",
-        &openclaw_weixin::messaging::SendOpts::default(),
+        &ilink_sdk::messaging::SendOpts::default(),
     )
     .await?;
 # Ok(())
@@ -98,7 +98,7 @@ client
 对于一次性程序，也可以不碰账户存储，直接从一个 [`QrSession`] 构建客户端：
 
 ```rust,no_run
-# async fn run(session: openclaw_weixin::messaging::QrSession) -> openclaw_weixin::Result<()> {
+# async fn run(session: ilink_sdk::messaging::QrSession) -> ilink_sdk::Result<()> {
 let client = WeixinClient::from_session(session, None).await?;
 # Ok(())
 # }
@@ -107,9 +107,9 @@ let client = WeixinClient::from_session(session, None).await?;
 ## 4. 接收消息（长轮询）
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::api::types::{GetUpdatesReq, MessageItemType};
-use openclaw_weixin::storage::sync_buf::{load_for_account, save_for_account};
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
+use ilink_sdk::api::types::{GetUpdatesReq, MessageItemType};
+use ilink_sdk::storage::sync_buf::{load_for_account, save_for_account};
 
 let account_id = client.account_id().to_string();
 let mut cursor = load_for_account(&account_id); // 跨重启续传

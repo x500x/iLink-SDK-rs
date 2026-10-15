@@ -8,11 +8,11 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use clap::{Parser, Subcommand};
-use openclaw_weixin::api::WeixinApiOptions;
-use openclaw_weixin::client::{WeixinClient, WeixinClientBuilder};
-use openclaw_weixin::logging::{init_tracing, Level};
-use openclaw_weixin::messaging::SendOpts;
-use openclaw_weixin::storage::accounts;
+use ilink_sdk::api::WeixinApiOptions;
+use ilink_sdk::client::{WeixinClient, WeixinClientBuilder};
+use ilink_sdk::logging::{init_tracing, Level};
+use ilink_sdk::messaging::SendOpts;
+use ilink_sdk::storage::accounts;
 
 /// Weixin (iLink) SDK command line.
 #[derive(Debug, Parser)]
@@ -103,9 +103,7 @@ enum Command {
 }
 
 /// Build a client for API-only work, tolerating a missing token.
-fn api_only_client_cli(
-    cli: &Cli,
-) -> openclaw_weixin::error::Result<openclaw_weixin::api::WeixinApiClient> {
+fn api_only_client_cli(cli: &Cli) -> ilink_sdk::error::Result<ilink_sdk::api::WeixinApiClient> {
     let base = cli
         .base_url
         .clone()
@@ -125,7 +123,7 @@ fn api_only_client_cli(
             }
         }
     }
-    openclaw_weixin::api::WeixinApiClient::new(opts)
+    ilink_sdk::api::WeixinApiClient::new(opts)
 }
 
 fn main() {
@@ -138,7 +136,7 @@ fn main() {
     }
 }
 
-fn run(cli: &Cli) -> openclaw_weixin::error::Result<()> {
+fn run(cli: &Cli) -> ilink_sdk::error::Result<()> {
     match &cli.command {
         Command::Accounts => {
             let ids = accounts::list_indexed_account_ids();
@@ -212,14 +210,14 @@ fn run(cli: &Cli) -> openclaw_weixin::error::Result<()> {
     }
 }
 
-fn runtime() -> openclaw_weixin::error::Result<tokio::runtime::Runtime> {
+fn runtime() -> ilink_sdk::error::Result<tokio::runtime::Runtime> {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
-        .map_err(|e| openclaw_weixin::error::Error::unknown(e.to_string()))
+        .map_err(|e| ilink_sdk::error::Error::unknown(e.to_string()))
 }
 
-async fn build_client(cli: &Cli) -> openclaw_weixin::error::Result<WeixinClient> {
+async fn build_client(cli: &Cli) -> ilink_sdk::error::Result<WeixinClient> {
     WeixinClientBuilder::new()
         .account_id_opt(cli.account.clone())
         .base_url_opt(cli.base_url.clone())
@@ -228,7 +226,7 @@ async fn build_client(cli: &Cli) -> openclaw_weixin::error::Result<WeixinClient>
         .await
 }
 
-async fn show_status(cli: &Cli) -> openclaw_weixin::error::Result<()> {
+async fn show_status(cli: &Cli) -> ilink_sdk::error::Result<()> {
     let client = build_client(cli).await?;
     let a = client.account();
     println!("account_id={}", a.account_id);
@@ -247,7 +245,7 @@ async fn send_text_cmd(
     to: &str,
     text: &str,
     context_token: Option<&str>,
-) -> openclaw_weixin::error::Result<()> {
+) -> ilink_sdk::error::Result<()> {
     let client = build_client(cli).await?;
     let opts = SendOpts {
         context_token: context_token.map(str::to_string),
@@ -267,7 +265,7 @@ async fn send_file_cmd(
     path: &std::path::Path,
     caption: &str,
     context_token: Option<&str>,
-) -> openclaw_weixin::error::Result<()> {
+) -> ilink_sdk::error::Result<()> {
     let client = build_client(cli).await?;
     let cdn = client.account().cdn_base_url.clone();
     let opts = SendOpts {
@@ -282,10 +280,10 @@ async fn send_file_cmd(
     Ok(())
 }
 
-async fn login(cli: &Cli, timeout: u64, show_qr: bool) -> openclaw_weixin::error::Result<()> {
+async fn login(cli: &Cli, timeout: u64, show_qr: bool) -> ilink_sdk::error::Result<()> {
     // Login works without a stored account: the QR flow issues the token.
     let api = api_only_client_cli(cli)?;
-    let qr = openclaw_weixin::messaging::QrLogin::new(&api);
+    let qr = ilink_sdk::messaging::QrLogin::new(&api);
 
     let start = qr.start(None).await?;
     println!("{}", start.qrcode_url);
@@ -315,7 +313,7 @@ async fn login(cli: &Cli, timeout: u64, show_qr: bool) -> openclaw_weixin::error
                     Ok(line.trim().to_string())
                 }
             },
-            |refreshed: &openclaw_weixin::messaging::QrStartResult| {
+            |refreshed: &ilink_sdk::messaging::QrStartResult| {
                 let url = refreshed.qrcode_url.clone();
                 async move {
                     println!("qr refreshed: {url}");
@@ -351,7 +349,7 @@ async fn login(cli: &Cli, timeout: u64, show_qr: bool) -> openclaw_weixin::error
     }
     Ok(())
 }
-async fn listen(cli: &Cli, duration: u64, poll_timeout: u64) -> openclaw_weixin::error::Result<()> {
+async fn listen(cli: &Cli, duration: u64, poll_timeout: u64) -> ilink_sdk::error::Result<()> {
     let client = WeixinClientBuilder::new()
         .account_id_opt(cli.account.clone())
         .base_url_opt(cli.base_url.clone())
@@ -361,9 +359,9 @@ async fn listen(cli: &Cli, duration: u64, poll_timeout: u64) -> openclaw_weixin:
     let account_id = client.account_id().to_string();
     let api = client.api().clone();
 
-    let cursor_path = openclaw_weixin::storage::sync_buf::get_sync_buf_path(&account_id);
+    let cursor_path = ilink_sdk::storage::sync_buf::get_sync_buf_path(&account_id);
     let mut buf =
-        openclaw_weixin::storage::sync_buf::load_get_updates_buf(&cursor_path).unwrap_or_default();
+        ilink_sdk::storage::sync_buf::load_get_updates_buf(&cursor_path).unwrap_or_default();
 
     println!("listening on account {account_id}");
     client.notify_start().await.ok();
@@ -375,7 +373,7 @@ async fn listen(cli: &Cli, duration: u64, poll_timeout: u64) -> openclaw_weixin:
         }
         let resp = api
             .get_updates(
-                &openclaw_weixin::api::types::GetUpdatesReq {
+                &ilink_sdk::api::types::GetUpdatesReq {
                     get_updates_buf: Some(buf.clone()),
                     sync_buf: None,
                 },
@@ -394,14 +392,13 @@ async fn listen(cli: &Cli, duration: u64, poll_timeout: u64) -> openclaw_weixin:
         }
         if let Some(next) = resp.get_updates_buf.as_deref().filter(|s| !s.is_empty()) {
             buf = next.to_string();
-            let _ = openclaw_weixin::storage::sync_buf::save_get_updates_buf(&cursor_path, &buf);
+            let _ = ilink_sdk::storage::sync_buf::save_get_updates_buf(&cursor_path, &buf);
         }
 
         for msg in resp.msgs.as_deref().unwrap_or(&[]) {
             let from = msg.from_user_id.as_deref().unwrap_or("");
-            let body = openclaw_weixin::messaging::body_from_items(
-                msg.item_list.as_deref().unwrap_or(&[]),
-            );
+            let body =
+                ilink_sdk::messaging::body_from_items(msg.item_list.as_deref().unwrap_or(&[]));
             println!(
                 "inbound from={from} id={:?} body={body}",
                 msg.message_id.as_deref().unwrap_or("")

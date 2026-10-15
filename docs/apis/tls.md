@@ -44,7 +44,7 @@ Example (test stub, illustrative):
 ```rust,no_run
 # #[cfg(test)]
 # mod tests {
-use openclaw_weixin::tls::DangerIgnoreVerifier;
+use ilink_sdk::tls::DangerIgnoreVerifier;
 use rustls::crypto::ring::default_provider;
 use rustls::{ClientConfig, RootCertStore};
 

@@ -134,10 +134,10 @@ the CLI to find or reuse an already-authenticated session.
 ### Minimal: just start + fetch + poll (manual)
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::auth::QrLogin;
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::auth::QrLogin;
 
-# async fn example(api: &WeixinApiClient) -> openclaw_weixin::Result<()> {
+# async fn example(api: &WeixinApiClient) -> ilink_sdk::Result<()> {
 let qr = QrLogin::new(api);
 let start = qr.start(None).await?;
 println!("Scan this QR: {}", start.qrcode_url);
@@ -156,11 +156,11 @@ loop {
 ### Convenience: `wait` with a code prompt
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::messaging::auth::QrLogin;
+use ilink_sdk::prelude::*;
+use ilink_sdk::messaging::auth::QrLogin;
 use std::time::Duration;
 
-# async fn example(api: &WeixinApiClient) -> openclaw_weixin::Result<()> {
+# async fn example(api: &WeixinApiClient) -> ilink_sdk::Result<()> {
 let qr = QrLogin::new(api);
 let start = qr.start(None).await?;
 let result = qr.wait(

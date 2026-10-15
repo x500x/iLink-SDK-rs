@@ -235,10 +235,10 @@ pub fn load_bot_agent() -> Option<String>;
 ### 登录后保存并注册账户
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
-use openclaw_weixin::storage::accounts::{self, AccountUpdate};
+use ilink_sdk::prelude::*;
+use ilink_sdk::storage::accounts::{self, AccountUpdate};
 
-# fn example(session: QrSession) -> openclaw_weixin::Result<()> {
+# fn example(session: QrSession) -> ilink_sdk::Result<()> {
 let account_id = accounts::normalize_account_id(&session.bot_id);
 accounts::save_account(&account_id, &AccountUpdate {
     token: Some(session.token),
@@ -254,10 +254,10 @@ println!("saved account {}", account_id);
 ### 列出账户并解析
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# fn example() -> openclaw_weixin::Result<()> {
-for id in openclaw_weixin::storage::accounts::list_indexed_account_ids() {
-    let acc = openclaw_weixin::storage::accounts::resolve_account(&id)?;
+# use ilink_sdk::prelude::*;
+# fn example() -> ilink_sdk::Result<()> {
+for id in ilink_sdk::storage::accounts::list_indexed_account_ids() {
+    let acc = ilink_sdk::storage::accounts::resolve_account(&id)?;
     println!("{} enabled={} base={}", acc.account_id, acc.enabled, acc.base_url);
 }
 # Ok(())
@@ -267,8 +267,8 @@ for id in openclaw_weixin::storage::accounts::list_indexed_account_ids() {
 ### 持久化长轮询游标
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
-# use openclaw_weixin::storage::sync_buf;
+# use ilink_sdk::prelude::*;
+# use ilink_sdk::storage::sync_buf;
 # fn example(buf: &str) -> std::io::Result<()> {
 sync_buf::save_for_account("acct", buf)?;
 if let Some(next) = sync_buf::load_for_account("acct") {
@@ -281,9 +281,9 @@ if let Some(next) = sync_buf::load_for_account("acct") {
 ### 读取每账户 route tag
 
 ```rust,no_run
-# use openclaw_weixin::prelude::*;
+# use ilink_sdk::prelude::*;
 # fn example() {
-let tag = openclaw_weixin::storage::config::load_route_tag("acct");
+let tag = ilink_sdk::storage::config::load_route_tag("acct");
 println!("route tag: {:?}", tag);
 # }
 ```

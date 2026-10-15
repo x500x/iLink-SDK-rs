@@ -1,4 +1,4 @@
-# openclaw-weixin — Rust SDK 文档
+# iLink SDK — Rust SDK 文档
 
 一个用于腾讯 **微信 (iLink)** 后端协议的 Rust SDK：二维码登录、长轮询消息收发、
 以及 CDN 媒体上传/下载，打包为一个纯库，不内嵌 HTTP 服务器、也不依赖网关。
@@ -30,7 +30,7 @@
 ## 目录结构
 
 ```text
-openclaw_weixin/
+ilink_sdk/
 ├── api            HTTP 客户端 + 线类型 + 会话守卫
 ├── cdn            AES-128-ECB 加密 + CDN 上传/下载
 ├── client         高层 WeixinClient / Builder

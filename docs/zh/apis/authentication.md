@@ -183,11 +183,11 @@ pub fn local_token_list() -> Vec<String>;
 ### 完整等待流程（带控制台提示）
 
 ```rust,no_run
-use openclaw_weixin::prelude::*;
+use ilink_sdk::prelude::*;
 use std::io::Read;
 use std::time::Duration;
 
-# async fn example() -> openclaw_weixin::Result<()> {
+# async fn example() -> ilink_sdk::Result<()> {
 let api = WeixinApiClient::new(WeixinApiOptions::new(DEFAULT_BASE_URL))?;
 let qr = QrLogin::new(&api);
 let start = qr.start(None).await?;
@@ -222,10 +222,10 @@ match result.session {
 ### 手动驱动状态机（更细控制）
 
 ```rust,no_run
-use openclaw_weixin::messaging::auth::PollOutcome;
+use ilink_sdk::messaging::auth::PollOutcome;
 
-# async fn example(qr: &openclaw_weixin::messaging::auth::QrLogin<'_>, key: &str)
-# -> openclaw_weixin::Result<()> {
+# async fn example(qr: &ilink_sdk::messaging::auth::QrLogin<'_>, key: &str)
+# -> ilink_sdk::Result<()> {
 loop {
     match qr.poll(key).await? {
         PollOutcome::Continue => {

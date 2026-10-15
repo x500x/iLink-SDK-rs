@@ -191,7 +191,7 @@ on headers, bodies, timeouts, and cancellation without hitting the real backend.
 Example — a mock that records all requests (illustrative):
 
 ```rust
-use openclaw_weixin::api::{HttpTransport, ReqwestTransport, WeixinApiOptions, WeixinApiClient};
+use ilink_sdk::api::{HttpTransport, ReqwestTransport, WeixinApiOptions, WeixinApiClient};
 use std::sync::Arc;
 
 // Wrap the default impl; replace with your own mock in tests
@@ -329,8 +329,8 @@ impl SessionGuard {
 ### Driving the long poll directly
 
 ```rust,no_run
-use openclaw_weixin::api::{WeixinApiClient, WeixinApiOptions, GetUpdatesReq};
-use openclaw_weixin::error::{ErrorKind, Result};
+use ilink_sdk::api::{WeixinApiClient, WeixinApiOptions, GetUpdatesReq};
+use ilink_sdk::error::{ErrorKind, Result};
 
 async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
     loop {
@@ -338,7 +338,7 @@ async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
         let resp = api.get_updates(&req, None, None).await?;
         // Handle business errors (e.g. stale token -14) here
         if resp.is_stale_token(-14) {
-            return Err(openclaw_weixin::error::Error::new(
+            return Err(ilink_sdk::error::Error::new(
                 ErrorKind::Unknown, "token stale"));
         }
         if let Some(msgs) = resp.msgs.as_ref() {
@@ -354,7 +354,7 @@ async fn loop_updates(api: &WeixinApiClient, mut buf: String) -> Result<()> {
 ### Injecting a mock transport for assertions (illustrative)
 
 ```rust,no_run
-use openclaw_weixin::api::{HttpTransport, WeixinApiOptions, WeixinApiClient};
+use ilink_sdk::api::{HttpTransport, WeixinApiOptions, WeixinApiClient};
 use std::sync::Arc;
 
 // Implement HttpTransport::request to return (StatusCode, HeaderMap, Vec<u8>)

@@ -9,9 +9,9 @@ token。
 请求直到有消息到达，或达到长轮询超时（默认 35s，`DEFAULT_LONG_POLL_TIMEOUT_MS`）。
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::api::types::{GetUpdatesReq, MessageItemType};
-use openclaw_weixin::storage::sync_buf::load_for_account;
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
+use ilink_sdk::api::types::{GetUpdatesReq, MessageItemType};
+use ilink_sdk::storage::sync_buf::load_for_account;
 use tokio_util::sync::CancellationToken;
 
 let account_id = client.account_id().to_string();
@@ -30,7 +30,7 @@ loop {
 
     if let Some(buf) = resp.get_updates_buf {
         cursor = Some(buf);
-        openclaw_weixin::storage::sync_buf::save_for_account(&account_id, &cursor.clone().unwrap_or_default());
+        ilink_sdk::storage::sync_buf::save_for_account(&account_id, &cursor.clone().unwrap_or_default());
     }
 
     for msg in resp.msgs.unwrap_or_default() {
@@ -60,13 +60,13 @@ loop {
 ## 发送文本
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 let to = "someone@im.wechat";
 
 client.sender().send_text(
     to,
     "来自 Rust 的问候",
-    &openclaw_weixin::messaging::SendOpts {
+    &ilink_sdk::messaging::SendOpts {
         context_token: Some("ctx-abc".into()),   // 回显入站 token
         run_id: None,
     },
@@ -84,9 +84,9 @@ client.sender().send_text(
 消息。媒体类型（图片 / 视频 / 文件）根据文件扩展名自动判断。
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# async fn run(client: ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 use std::path::Path;
-use openclaw_weixin::storage::accounts::CDN_BASE_URL;
+use ilink_sdk::storage::accounts::CDN_BASE_URL;
 
 let to = "someone@im.wechat";
 let cdn_base_url = client.account().cdn_base_url.clone();
@@ -95,7 +95,7 @@ client.sender().send_file(
     to,
     Path::new("./photo.png"),
     "看这张图",            // 可选说明（作为单独文本项发送）
-    &openclaw_weixin::messaging::SendOpts::default(),
+    &ilink_sdk::messaging::SendOpts::default(),
     &cdn_base_url,
 ).await?;
 # Ok(())
@@ -117,16 +117,16 @@ client.sender().send_file(
 `send_typing`（或使用 [`TypingHelper`]）。
 
 ```rust,no_run
-# async fn run(client: openclaw_weixin::WeixinClient, user_id: &str) -> openclaw_weixin::Result<()> {
-use openclaw_weixin::messaging::Typing;
+# async fn run(client: ilink_sdk::WeixinClient, user_id: &str) -> ilink_sdk::Result<()> {
+use ilink_sdk::messaging::Typing;
 
 let cfg = client.api().get_config(user_id, None).await?;
 let ticket = cfg.typing_ticket.unwrap_or_default();
 
 // 空票据是空操作（该账户可能不支持输入状态）。
-openclaw_weixin::messaging::send_typing(client.api(), user_id, &ticket, Typing::Typing).await?;
+ilink_sdk::messaging::send_typing(client.api(), user_id, &ticket, Typing::Typing).await?;
 // ... 发送回复 ...
-openclaw_weixin::messaging::send_typing(client.api(), user_id, &ticket, Typing::Cancel).await?;
+ilink_sdk::messaging::send_typing(client.api(), user_id, &ticket, Typing::Cancel).await?;
 # Ok(())
 # }
 ```
@@ -143,7 +143,7 @@ openclaw_weixin::messaging::send_typing(client.api(), user_id, &ticket, Typing::
 
 ```rust,no_run
 # fn run() {
-use openclaw_weixin::messaging::context::ContextTokenStore;
+use ilink_sdk::messaging::context::ContextTokenStore;
 
 let mut store = ContextTokenStore::new();       // 默认指向 accounts 目录
 store.set("acct", "user@im.wechat", "ctx-xyz");  // 内存 + 磁盘
@@ -160,8 +160,8 @@ let _ = store.restore("acct");                   // 重新加载持久化的 tok
 的媒体路径，并把行内引用（`ref_msg`）元数据提取到 `reply_to_*` 字段中。
 
 ```rust,no_run
-# fn run(msg: openclaw_weixin::api::types::WeixinMessage, account_id: &str, media: openclaw_weixin::cdn::download::InboundMedia) {
-use openclaw_weixin::messaging::context::message_to_context;
+# fn run(msg: ilink_sdk::api::types::WeixinMessage, account_id: &str, media: ilink_sdk::cdn::download::InboundMedia) {
+use ilink_sdk::messaging::context::message_to_context;
 
 let ctx = message_to_context(&msg, account_id, &media);
 println!("正文 = {}", ctx.body);
@@ -180,7 +180,7 @@ println!("context_token = {:?}", ctx.context_token);
 文本/媒体，请开启本地引用缓存：
 
 ```rust,no_run
-# fn run(client: &mut openclaw_weixin::WeixinClient) -> openclaw_weixin::Result<()> {
+# fn run(client: &mut ilink_sdk::WeixinClient) -> ilink_sdk::Result<()> {
 client.enable_quote_cache()?;        // 打开 ref-messages.sqlite
 # Ok(())
 # }

@@ -1,6 +1,6 @@
 # 错误处理 API
 
-`openclaw_weixin` 的所有可能失败的操作都返回 `Result<T>`（即
+`ilink_sdk` 的所有可能失败的操作都返回 `Result<T>`（即
 `std::result::Result<T, Error>`）。错误处理模块位于 [`../../src/error.rs`](../../src/error.rs)，
 它把传输层失败统一分类成 `ErrorKind`，让调用方可以基于错误类别做分支，而不必
 对错误字符串做匹配。
@@ -43,7 +43,7 @@ impl std::fmt::Display for ErrorKind { /* 委托给 as_str */ }
 示例：
 
 ```rust
-use openclaw_weixin::error::ErrorKind;
+use ilink_sdk::error::ErrorKind;
 assert_eq!(ErrorKind::Dns.as_str(), "dns");
 assert_eq!(ErrorKind::Tls.description(), "TLS handshake error");
 ```
