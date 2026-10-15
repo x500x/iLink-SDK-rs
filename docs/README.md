@@ -23,9 +23,12 @@ practical guides and a module reference.
 | [CLI](reference/cli.md) | The bundled `weixin` binary. |
 | [API client reference](reference/api-client.md) | The low-level `WeixinApiClient`. |
 | [API handbook](reference/api.md) | Exhaustive catalog of every public type, function, and constant. |
+| [API by board](apis/README.md) | Detailed, per-area guides for each API surface. |
 
 > Prefer the [API handbook](reference/api.md) when you need the exact signature
-> of a specific public item; it mirrors `src/lib.rs` and every module file.
+> of a specific public item; it mirrors `src/lib.rs` and every module file. For
+> narrative, usage-first explanations, see the [API by board](apis/README.md)
+> guides.
 
 ## Crate layout
 
