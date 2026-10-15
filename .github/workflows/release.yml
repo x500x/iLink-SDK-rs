@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  libraries:
+    name: Libraries (${{ matrix.artifact }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: linux-x86_64
+          - os: macos-latest
+            artifact: macos-aarch64
+          - os: windows-latest
+            artifact: windows-x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release libraries
+        run: cargo build --release
+
+      - name: Stage artifacts (unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            install_name_tool -id "@rpath/libilink_sdk.dylib" \
+              target/release/libilink_sdk.dylib
+            cp target/release/libilink_sdk.dylib dist/
+            cp target/release/libilink_sdk.a dist/
+          else
+            cp target/release/libilink_sdk.so dist/
+            cp target/release/libilink_sdk.a dist/
+          fi
+          cp include/ilink_sdk.h dist/
+
+      - name: Stage artifacts (windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Copy-Item target/release/ilink_sdk.dll dist/
+          Copy-Item target/release/ilink_sdk.dll.lib dist/
+          Copy-Item target/release/ilink_sdk.lib dist/
+          Copy-Item include/ilink_sdk.h dist/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ilink-sdk-${{ matrix.artifact }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: libraries
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Package archives
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          for dir in artifacts/*/; do
+            name="$(basename "$dir")"
+            (cd "$dir" && zip -r "../../release/ilink-sdk-${name}.zip" .)
+          done
+          ls -la release
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
+          generate_release_notes: true

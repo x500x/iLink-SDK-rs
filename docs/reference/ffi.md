@@ -16,6 +16,16 @@ ls target/release/ilink_sdk.dll        # Windows
 ls target/release/libilink_sdk.so      # Linux
 ```
 
+CI builds these on Linux, macOS and Windows and attaches them to each GitHub
+release (see [`.github/workflows/release.yml`](../../.github/workflows/release.yml)).
+On macOS the dylib's install name is rewritten to
+`@rpath/libilink_sdk.dylib`, so it is relocatable and can be embedded in an
+app bundle; if you build locally and plan to ship the dylib, do the same:
+
+```bash
+install_name_tool -id @rpath/libilink_sdk.dylib target/release/libilink_sdk.dylib
+```
+
 The public header is [`include/ilink_sdk.h`](../../include/ilink_sdk.h).
 
 ## One entry point

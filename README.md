@@ -1,6 +1,7 @@
 # iLink SDK (ilink-sdk)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
+[![CI](https://github.com/x500x/iLink-SDK-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/x500x/iLink-SDK-rs/actions/workflows/ci.yml)
 
 A Rust SDK for the Tencent **Weixin (iLink)** backend protocol.
 
@@ -202,6 +203,12 @@ ilink_string_free(out);
 A runnable example lives in
 [`examples/c/ilink_demo.c`](examples/c/ilink_demo.c); the operation catalogue is
 in [docs/reference/ffi.md](docs/reference/ffi.md).
+
+CI builds and tests on Linux, macOS and Windows, and publishes the libraries as
+release artifacts (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+and [`.github/workflows/release.yml`](.github/workflows/release.yml)). On macOS
+the dylib's install name is rewritten to `@rpath/libilink_sdk.dylib` so it can
+be bundled into an app bundle.
 
 ## Configuration
 
