@@ -118,9 +118,9 @@ Status codes: `ILINK_OK`, `ILINK_ERR_INVALID_ARG`, `ILINK_ERR_NOT_FOUND`,
 
 ### The JSON escape hatch
 
-Operations without a typed wrapper (QR login, quote cache, `config.load`,
-`send.item`, `media.download_item`, ...) are still reachable through one
-JSON-in / JSON-out call:
+**Every** operation now has a typed function, so this layer is only needed for
+forward compatibility (an operation added to the library before its wrapper
+lands) or when you would rather work with JSON directly:
 
 ```c
 char *ilink_call(const char *op, const char *params_json);
@@ -144,6 +144,10 @@ must be released with `ilink_string_free`.
 See [`examples/c/ilink_demo.c`](../../examples/c/ilink_demo.c) for a runnable
 program that uses the typed API and finishes with the escape hatch.
 
+`send.item` is the one function whose argument is still JSON: the message item
+is an irregular union of text/image/voice/file/video shapes that would be
+awkward as a C struct. Everything else about that call is typed.
+
 ## Operations
 
 The `op` column is the name for `ilink_call`; the **Typed function** column
@@ -157,32 +161,32 @@ names the C function that wraps it (empty when only `ilink_call` reaches it).
 | Accounts | `account.resolve` | `ilink_account_resolve` | `account_id` | resolved account |
 | Accounts | `account.save` | `ilink_account_save` | `account_id`, `token?`, `base_url?`, `user_id?` | resolved account |
 | Accounts | `account.clear` | `ilink_account_clear` | `account_id` | `{account_id}` |
-| Login | `login.start` | | `base_url?`, `bot_type?`, `session_key?` | `{qrcode, qrcode_url, session_key}` |
-| Login | `login.poll` | | `session_key` | `{kind, ...}` |
-| Login | `login.submit_verify_code` | | `session_key`, `code` | `{submitted}` |
-| Login | `login.refresh` | | `session_key` | `{qrcode, qrcode_url, session_key}` |
-| Login | `login.wait` | | `session_key`, `timeout_secs?`, `verify_code?` | wait result |
-| Login | `login.complete` | | `session_key`, `timeout_secs?`, `verify_code?` | wait result + saved `account_id` |
+| Login | `login.start` | `ilink_login_start` | `base_url?`, `bot_type?`, `session_key?` | `{qrcode, qrcode_url, session_key}` |
+| Login | `login.poll` | `ilink_login_poll` | `session_key` | `{kind, ...}` |
+| Login | `login.submit_verify_code` | `ilink_login_submit_verify_code` | `session_key`, `code` | `{submitted}` |
+| Login | `login.refresh` | `ilink_login_refresh` | `session_key` | `{qrcode, qrcode_url, session_key}` |
+| Login | `login.wait` | `ilink_login_wait` | `session_key`, `timeout_secs?`, `verify_code?` | wait result |
+| Login | `login.complete` | `ilink_login_complete` | `session_key`, `timeout_secs?`, `verify_code?` | wait result + saved `account_id` |
 | Send | `send.text` | `ilink_send_text` | `to`, `text`, `context_token?`, `run_id?` | `{message_id, server_message_id}` |
 | Send | `send.file` | `ilink_send_file` | `to`, `path`, `caption?`, `context_token?` | `{message_id, server_message_id}` |
-| Send | `send.item` | | `to`, `item`, `context_token?` | `{message_id, server_message_id}` |
+| Send | `send.item` | `ilink_send_item` | `to`, `item`, `context_token?` | `{message_id, server_message_id}` |
 | Send | `send.bytes` | `ilink_send_bytes` | `to`, `file_name`, `data_base64`, `caption?` | `{message_id, server_message_id}` |
 | API | `get_updates` | `ilink_get_updates` | `get_updates_buf?`, `timeout_ms?` | `GetUpdatesResp` |
 | API | `get_config` | `ilink_get_config` | `user_id`, `context_token?` | `GetConfigResp` |
 | API | `send_typing` | `ilink_send_typing` | `user_id`, `typing_ticket`, `status?` | `{sent}` |
 | API | `notify` | `ilink_notify` | `action` (`start`\|`stop`) | `{notified}` |
-| API | `context.to_message` | | `message`, `account_id?` | `MsgContext` |
+| API | `context.to_message` | `ilink_context_to_message` | `message`, `account_id?` | `MsgContext` |
 | API | `message.body` | `ilink_message_body` | `items` | `{body}` |
 | Media | `media.fetch` | `ilink_fetch` | `url`, `dest_path?` | `{bytes, path?}` or `{bytes, data_base64}` |
 | Media | `media.download` | `ilink_download` | `media`, `aes_key?`, `cdn_base_url?`, `dest_path?` | `{bytes, path?}` |
-| Media | `media.download_item` | | `item`, `cdn_base_url?`, `dest_dir?` | `InboundMedia` |
+| Media | `media.download_item` | `ilink_download_item` | `item`, `cdn_base_url?`, `dest_dir?` | `InboundMedia` |
 | Media | `media.upload` | `ilink_upload` | `to`, `path`, `media_type?`, `cdn_base_url?` | `UploadedFile` |
-| Quote | `quote.policy` | | — | effective policy |
-| Quote | `quote.find` | | `account_id`, `conversation_id`, `message_id` | record or `null` |
-| Quote | `quote.put` | | `account_id`, `conversation_id`, `message_id`, `body?`, ... | `{stored}` |
-| Quote | `quote.gc` | | — | `{gc}` |
-| Quote | `quote.delete_account` | | `account_id` | `{deleted}` |
-| Quote | `quote.media_dir` | | `account_id` | `{path}` |
+| Quote | `quote.policy` | `ilink_quote_policy` | — | effective policy |
+| Quote | `quote.find` | `ilink_quote_find` | `account_id`, `conversation_id`, `message_id` | record or `null` |
+| Quote | `quote.put` | `ilink_quote_put` | `account_id`, `conversation_id`, `message_id`, `body?`, ... | `{stored}` |
+| Quote | `quote.gc` | `ilink_quote_gc` | — | `{gc}` |
+| Quote | `quote.delete_account` | `ilink_quote_delete_account` | `account_id` | `{deleted}` |
+| Quote | `quote.media_dir` | `ilink_quote_media_dir` | `account_id` | `{path}` |
 | Context | `context.get` | `ilink_context_get` | `account_id`, `user_id` | `{token}` or `null` |
 | Context | `context.set` | `ilink_context_set` | `account_id`, `user_id`, `token` | `{stored}` |
 | Context | `context.clear` | `ilink_context_clear` | `account_id` | `{cleared}` |
@@ -195,7 +199,7 @@ names the C function that wraps it (empty when only `ilink_call` reaches it).
 | Session | `session.assert` | `ilink_session_assert` | `account_id` | `{active}` or error |
 | Helpers | `mime.info` | `ilink_mime_info` | `path` | `{mime, kind, extension, ...}` |
 | Helpers | `mime.extension` | `ilink_mime_extension` | `mime` | `{extension}` |
-| Helpers | `config.load` | | — | `{config, quote_cache_policy}` |
+| Helpers | `config.load` | `ilink_config_load` | — | `{config, quote_cache_policy}` |
 | Helpers | `util.generate_id` | `ilink_generate_id` | `prefix?` | `{id}` |
 | Helpers | `util.file_key` | `ilink_file_key` | — | `{file_key}` |
 | Helpers | `util.temp_name` | `ilink_temp_name` | `prefix?`, `ext?` | `{name}` |

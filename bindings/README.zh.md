@@ -7,7 +7,7 @@ Rust crate 会产出一个原生库（`ilink_sdk.dll` / `libilink_sdk.so` /
 
 - **类型化 C 函数** —— 每个操作一个函数，结果用 C 结构体（无需 JSON），
   另有 `IlinkConfig` 携带路由默认值；以及
-- 一个万能的 JSON 进 / JSON 出调用，用于其余操作：
+- 一个万能的 JSON 进 / JSON 出调用，用于向前兼容：
 
 ```c
 IlinkMimeInfo info;
@@ -16,7 +16,7 @@ if (ilink_mime_info("photo.png", &info) == ILINK_OK) {
     ilink_mime_info_free(&info);
 }
 
-char *out = ilink_call("login.start", "{}");   /* 逃生通道 */
+char *out = ilink_call("login.start", "{}");   /* JSON 逃生通道 */
 ```
 
 下面每个绑定都是这套 ABI 的薄封装：加载库、调用它（用到 JSON 层时）拆开

@@ -7,7 +7,7 @@ The Rust crate builds a native library (`ilink_sdk.dll` / `libilink_sdk.so` /
 
 - **typed C functions** — one per operation, with C structs for the results
   (no JSON), plus an `IlinkConfig` for routing defaults; and
-- a universal JSON-in / JSON-out call for everything else:
+- a universal JSON-in / JSON-out call, kept for forward compatibility:
 
 ```c
 IlinkMimeInfo info;
@@ -16,7 +16,7 @@ if (ilink_mime_info("photo.png", &info) == ILINK_OK) {
     ilink_mime_info_free(&info);
 }
 
-char *out = ilink_call("login.start", "{}");   /* escape hatch */
+char *out = ilink_call("login.start", "{}");   /* JSON escape hatch */
 ```
 
 Every binding below is a thin wrapper over that ABI: it loads the library, calls

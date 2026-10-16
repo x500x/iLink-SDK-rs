@@ -99,8 +99,8 @@ if (ilink_send_text(&config, "u@im.wechat", "hi", NULL, NULL, &sent) == ILINK_OK
 
 ### JSON 逃生通道
 
-没有类型化封装的操作（二维码登录、引用缓存、`config.load`、`send.item`、
-`media.download_item` 等）仍可通过这一个 JSON 进 / JSON 出的调用触达：
+**所有**操作现在都有类型化函数，因此这一层只用于向前兼容（库中新增了操作、但其封装还
+没跟上），或你更愿意直接处理 JSON 时：
 
 ```c
 char *ilink_call(const char *op, const char *params_json);
@@ -123,6 +123,9 @@ void  ilink_string_free(char *ptr);
 见 [`examples/c/ilink_demo.c`](../../../examples/c/ilink_demo.c)，其中使用了类型化
 API，并在末尾演示逃生通道。
 
+`send.item` 是唯一参数仍为 JSON 的函数：消息 item 是 text/image/voice/file/video
+的不规则联合体，做成 C 结构体会很别扭。该调用的其余部分都是类型化的。
+
 ## 操作列表
 
 `op` 列是 `ilink_call` 使用的名称；**类型化函数**列是对应的 C 函数（空白表示只能通过
@@ -136,32 +139,32 @@ API，并在末尾演示逃生通道。
 | 账户 | `account.resolve` | `ilink_account_resolve` | `account_id` | 已解析账户 |
 | 账户 | `account.save` | `ilink_account_save` | `account_id`, `token?`, `base_url?`, `user_id?` | 已解析账户 |
 | 账户 | `account.clear` | `ilink_account_clear` | `account_id` | `{account_id}` |
-| 登录 | `login.start` | | `base_url?`, `bot_type?`, `session_key?` | `{qrcode, qrcode_url, session_key}` |
-| 登录 | `login.poll` | | `session_key` | `{kind, ...}` |
-| 登录 | `login.submit_verify_code` | | `session_key`, `code` | `{submitted}` |
-| 登录 | `login.refresh` | | `session_key` | `{qrcode, qrcode_url, session_key}` |
-| 登录 | `login.wait` | | `session_key`, `timeout_secs?`, `verify_code?` | 等待结果 |
-| 登录 | `login.complete` | | `session_key`, `timeout_secs?`, `verify_code?` | 等待结果 + 已保存的 `account_id` |
+| 登录 | `login.start` | `ilink_login_start` | `base_url?`, `bot_type?`, `session_key?` | `{qrcode, qrcode_url, session_key}` |
+| 登录 | `login.poll` | `ilink_login_poll` | `session_key` | `{kind, ...}` |
+| 登录 | `login.submit_verify_code` | `ilink_login_submit_verify_code` | `session_key`, `code` | `{submitted}` |
+| 登录 | `login.refresh` | `ilink_login_refresh` | `session_key` | `{qrcode, qrcode_url, session_key}` |
+| 登录 | `login.wait` | `ilink_login_wait` | `session_key`, `timeout_secs?`, `verify_code?` | 等待结果 |
+| 登录 | `login.complete` | `ilink_login_complete` | `session_key`, `timeout_secs?`, `verify_code?` | 等待结果 + 已保存的 `account_id` |
 | 发送 | `send.text` | `ilink_send_text` | `to`, `text`, `context_token?`, `run_id?` | `{message_id, server_message_id}` |
 | 发送 | `send.file` | `ilink_send_file` | `to`, `path`, `caption?`, `context_token?` | `{message_id, server_message_id}` |
-| 发送 | `send.item` | | `to`, `item`, `context_token?` | `{message_id, server_message_id}` |
+| 发送 | `send.item` | `ilink_send_item` | `to`, `item`, `context_token?` | `{message_id, server_message_id}` |
 | 发送 | `send.bytes` | `ilink_send_bytes` | `to`, `file_name`, `data_base64`, `caption?` | `{message_id, server_message_id}` |
 | API | `get_updates` | `ilink_get_updates` | `get_updates_buf?`, `timeout_ms?` | `GetUpdatesResp` |
 | API | `get_config` | `ilink_get_config` | `user_id`, `context_token?` | `GetConfigResp` |
 | API | `send_typing` | `ilink_send_typing` | `user_id`, `typing_ticket`, `status?` | `{sent}` |
 | API | `notify` | `ilink_notify` | `action`（`start`\|`stop`） | `{notified}` |
-| API | `context.to_message` | | `message`, `account_id?` | `MsgContext` |
+| API | `context.to_message` | `ilink_context_to_message` | `message`, `account_id?` | `MsgContext` |
 | API | `message.body` | `ilink_message_body` | `items` | `{body}` |
 | 媒体 | `media.fetch` | `ilink_fetch` | `url`, `dest_path?` | `{bytes, path?}` 或 `{bytes, data_base64}` |
 | 媒体 | `media.download` | `ilink_download` | `media`, `aes_key?`, `cdn_base_url?`, `dest_path?` | `{bytes, path?}` |
-| 媒体 | `media.download_item` | | `item`, `cdn_base_url?`, `dest_dir?` | `InboundMedia` |
+| 媒体 | `media.download_item` | `ilink_download_item` | `item`, `cdn_base_url?`, `dest_dir?` | `InboundMedia` |
 | 媒体 | `media.upload` | `ilink_upload` | `to`, `path`, `media_type?`, `cdn_base_url?` | `UploadedFile` |
-| 引用 | `quote.policy` | | — | 生效策略 |
-| 引用 | `quote.find` | | `account_id`, `conversation_id`, `message_id` | 记录或 `null` |
-| 引用 | `quote.put` | | `account_id`, `conversation_id`, `message_id`, `body?`, ... | `{stored}` |
-| 引用 | `quote.gc` | | — | `{gc}` |
-| 引用 | `quote.delete_account` | | `account_id` | `{deleted}` |
-| 引用 | `quote.media_dir` | | `account_id` | `{path}` |
+| 引用 | `quote.policy` | `ilink_quote_policy` | — | 生效策略 |
+| 引用 | `quote.find` | `ilink_quote_find` | `account_id`, `conversation_id`, `message_id` | 记录或 `null` |
+| 引用 | `quote.put` | `ilink_quote_put` | `account_id`, `conversation_id`, `message_id`, `body?`, ... | `{stored}` |
+| 引用 | `quote.gc` | `ilink_quote_gc` | — | `{gc}` |
+| 引用 | `quote.delete_account` | `ilink_quote_delete_account` | `account_id` | `{deleted}` |
+| 引用 | `quote.media_dir` | `ilink_quote_media_dir` | `account_id` | `{path}` |
 | 上下文 | `context.get` | `ilink_context_get` | `account_id`, `user_id` | `{token}` 或 `null` |
 | 上下文 | `context.set` | `ilink_context_set` | `account_id`, `user_id`, `token` | `{stored}` |
 | 上下文 | `context.clear` | `ilink_context_clear` | `account_id` | `{cleared}` |
@@ -174,7 +177,7 @@ API，并在末尾演示逃生通道。
 | 会话 | `session.assert` | `ilink_session_assert` | `account_id` | `{active}` 或错误 |
 | 辅助 | `mime.info` | `ilink_mime_info` | `path` | `{mime, kind, extension, ...}` |
 | 辅助 | `mime.extension` | `ilink_mime_extension` | `mime` | `{extension}` |
-| 辅助 | `config.load` | | — | `{config, quote_cache_policy}` |
+| 辅助 | `config.load` | `ilink_config_load` | — | `{config, quote_cache_policy}` |
 | 辅助 | `util.generate_id` | `ilink_generate_id` | `prefix?` | `{id}` |
 | 辅助 | `util.file_key` | `ilink_file_key` | — | `{file_key}` |
 | 辅助 | `util.temp_name` | `ilink_temp_name` | `prefix?`, `ext?` | `{name}` |

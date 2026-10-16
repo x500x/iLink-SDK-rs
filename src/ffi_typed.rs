@@ -244,6 +244,136 @@ pub struct IlinkUpdates {
     pub is_error: c_int,
 }
 
+#[repr(C)]
+pub struct IlinkQrSession {
+    pub token: *mut c_char,
+    pub bot_id: *mut c_char,
+    pub base_url: *mut c_char,
+    pub user_id: *mut c_char,
+}
+
+#[repr(C)]
+pub struct IlinkLoginStart {
+    pub qrcode: *mut c_char,
+    pub qrcode_url: *mut c_char,
+    pub session_key: *mut c_char,
+}
+
+#[repr(C)]
+pub struct IlinkLoginPoll {
+    pub kind: *mut c_char,
+    pub retry: c_int,
+    pub session: *mut IlinkQrSession,
+}
+
+#[repr(C)]
+pub struct IlinkLoginResult {
+    pub connected: c_int,
+    pub already_connected: c_int,
+    pub message: *mut c_char,
+    pub account_id: *mut c_char,
+    pub session: *mut IlinkQrSession,
+}
+
+#[repr(C)]
+pub struct IlinkMediaEntry {
+    pub path: *mut c_char,
+    pub content_type: *mut c_char,
+    pub file_name: *mut c_char,
+    pub message_id: *mut c_char,
+}
+
+#[repr(C)]
+pub struct IlinkMsgContext {
+    pub body: *mut c_char,
+    pub from: *mut c_char,
+    pub to: *mut c_char,
+    pub account_id: *mut c_char,
+    pub originating_channel: *mut c_char,
+    pub originating_to: *mut c_char,
+    pub message_sid: *mut c_char,
+    pub message_sid_full: *mut c_char,
+    pub timestamp: i64,
+    pub provider: *mut c_char,
+    pub chat_type: *mut c_char,
+    pub session_key: *mut c_char,
+    pub context_token: *mut c_char,
+    pub media_path: *mut c_char,
+    pub media_type: *mut c_char,
+    pub media_paths: *mut *mut c_char,
+    pub media_paths_count: usize,
+    pub media_types: *mut *mut c_char,
+    pub media_types_count: usize,
+    pub media: *mut IlinkMediaEntry,
+    pub media_count: usize,
+    pub channel_prompt_context: *mut *mut c_char,
+    pub channel_prompt_context_count: usize,
+    pub reply_to_id: *mut c_char,
+    pub reply_to_body: *mut c_char,
+    pub reply_to_quote_text: *mut c_char,
+    pub reply_to_is_quote: c_int,
+    pub reply_to_is_quote_set: c_int,
+}
+
+#[repr(C)]
+pub struct IlinkInboundMedia {
+    pub image_path: *mut c_char,
+    pub voice_path: *mut c_char,
+    pub voice_mime: *mut c_char,
+    pub file_path: *mut c_char,
+    pub file_mime: *mut c_char,
+    pub video_path: *mut c_char,
+    pub referenced: c_int,
+    pub is_empty: c_int,
+}
+
+#[repr(C)]
+pub struct IlinkQuotePolicy {
+    pub enabled: c_int,
+    pub retention_ms: u64,
+    pub max_messages_per_account: u64,
+    pub media_retention_ms: u64,
+    pub max_media_bytes_per_account: u64,
+    pub max_single_media_bytes: u64,
+}
+
+#[repr(C)]
+pub struct IlinkQuoteRecord {
+    pub account_id: *mut c_char,
+    pub conversation_id: *mut c_char,
+    pub message_id: *mut c_char,
+    pub direction: *mut c_char,
+    pub body: *mut c_char,
+    pub media_path: *mut c_char,
+    pub media_mime: *mut c_char,
+    pub media_name: *mut c_char,
+    pub media_size: i64,
+    pub created_at: i64,
+}
+
+#[repr(C)]
+pub struct IlinkQuoteInput {
+    pub account_id: *const c_char,
+    pub conversation_id: *const c_char,
+    pub message_id: *const c_char,
+    pub direction: *const c_char,
+    pub body: *const c_char,
+    pub source_media_path: *const c_char,
+    pub media_mime: *const c_char,
+    pub media_name: *const c_char,
+    pub created_at: i64,
+}
+
+#[repr(C)]
+pub struct IlinkLocalConfig {
+    pub reply_progress_messages: c_int,
+    pub accounts_json: *mut c_char,
+    pub route_tag_json: *mut c_char,
+    pub bot_agent: *mut c_char,
+    pub channel_config_updated_at: *mut c_char,
+    pub quote_cache_policy: IlinkQuotePolicy,
+}
+
 // ---------------------------------------------------------------------------
 // Internal helpers
 // ---------------------------------------------------------------------------
@@ -635,6 +765,232 @@ pub extern "C" fn ilink_crypto_result_free(result: *mut IlinkCryptoResult) {
 }
 
 // ---------------------------------------------------------------------------
+// QR login
+// ---------------------------------------------------------------------------
+
+fn qr_session_from_json(value: &Value) -> IlinkQrSession {
+    IlinkQrSession {
+        token: into_c_string(string_field(value, "token")),
+        bot_id: into_c_string(string_field(value, "bot_id")),
+        base_url: into_c_string(string_field(value, "base_url")),
+        user_id: into_c_string(string_field(value, "user_id")),
+    }
+}
+
+fn boxed_qr_session(value: &Value) -> *mut IlinkQrSession {
+    Box::into_raw(Box::new(qr_session_from_json(value)))
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_qr_session_free(session: *mut IlinkQrSession) {
+    if session.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*session).token);
+        free_c_string((*session).bot_id);
+        free_c_string((*session).base_url);
+        free_c_string((*session).user_id);
+        drop(Box::from_raw(session));
+    }
+}
+
+fn login_start_into(out: *mut IlinkLoginStart, value: &Value) {
+    unsafe {
+        *out = IlinkLoginStart {
+            qrcode: into_c_string(string_field(value, "qrcode")),
+            qrcode_url: into_c_string(string_field(value, "qrcode_url")),
+            session_key: into_c_string(string_field(value, "session_key")),
+        };
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_start_free(start: *mut IlinkLoginStart) {
+    if start.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*start).qrcode);
+        free_c_string((*start).qrcode_url);
+        free_c_string((*start).session_key);
+        *start = std::mem::zeroed();
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_start(
+    config: *const IlinkConfig,
+    base_url: *const c_char,
+    bot_type: *const c_char,
+    session_key: *const c_char,
+    out: *mut IlinkLoginStart,
+) -> c_int {
+    guard(out, || {
+        let mut params = json!({});
+        if let Some(value) = opt_str(base_url) {
+            params["base_url"] = json!(value);
+        }
+        if let Some(value) = opt_str(bot_type) {
+            params["bot_type"] = json!(value);
+        }
+        if let Some(value) = opt_str(session_key) {
+            params["session_key"] = json!(value);
+        }
+        let value = call("login.start", unsafe { params_with(config, params) })?;
+        login_start_into(out, &value);
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_refresh(
+    config: *const IlinkConfig,
+    session_key: *const c_char,
+    out: *mut IlinkLoginStart,
+) -> c_int {
+    guard(out, || {
+        let params = json!({ "session_key": req_str(session_key, "session_key")? });
+        let value = call("login.refresh", unsafe { params_with(config, params) })?;
+        login_start_into(out, &value);
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_poll(
+    config: *const IlinkConfig,
+    session_key: *const c_char,
+    out: *mut IlinkLoginPoll,
+) -> c_int {
+    guard(out, || {
+        let params = json!({ "session_key": req_str(session_key, "session_key")? });
+        let value = call("login.poll", unsafe { params_with(config, params) })?;
+        let session = value
+            .get("session")
+            .filter(|v| v.is_object())
+            .map(boxed_qr_session)
+            .unwrap_or(std::ptr::null_mut());
+        unsafe {
+            *out = IlinkLoginPoll {
+                kind: into_c_string(string_field(&value, "kind")),
+                retry: bool_field(&value, "retry") as c_int,
+                session,
+            };
+        }
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_poll_free(poll: *mut IlinkLoginPoll) {
+    if poll.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*poll).kind);
+        ilink_qr_session_free((*poll).session);
+        *poll = std::mem::zeroed();
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_submit_verify_code(
+    config: *const IlinkConfig,
+    session_key: *const c_char,
+    code: *const c_char,
+) -> c_int {
+    let mut dummy: c_int = 0;
+    guard(&mut dummy, || {
+        let params = json!({
+            "session_key": req_str(session_key, "session_key")?,
+            "code": req_str(code, "code")?,
+        });
+        call("login.submit_verify_code", unsafe {
+            params_with(config, params)
+        })?;
+        Ok(())
+    })
+}
+
+fn login_wait_params(
+    session_key: *const c_char,
+    timeout_secs: u64,
+    verify_code: *const c_char,
+) -> Result<Value> {
+    let mut params = json!({ "session_key": req_str(session_key, "session_key")? });
+    if timeout_secs > 0 {
+        params["timeout_secs"] = json!(timeout_secs);
+    }
+    if let Some(value) = opt_str(verify_code) {
+        params["verify_code"] = json!(value);
+    }
+    Ok(params)
+}
+
+fn login_result_into(out: *mut IlinkLoginResult, value: &Value) {
+    let session = value
+        .get("session")
+        .filter(|v| v.is_object())
+        .map(boxed_qr_session)
+        .unwrap_or(std::ptr::null_mut());
+    unsafe {
+        *out = IlinkLoginResult {
+            connected: bool_field(value, "connected") as c_int,
+            already_connected: bool_field(value, "already_connected") as c_int,
+            message: into_c_string(string_field(value, "message")),
+            account_id: opt_c_string(optional_field(value, "account_id")),
+            session,
+        };
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_wait(
+    config: *const IlinkConfig,
+    session_key: *const c_char,
+    timeout_secs: u64,
+    verify_code: *const c_char,
+    out: *mut IlinkLoginResult,
+) -> c_int {
+    guard(out, || {
+        let params = login_wait_params(session_key, timeout_secs, verify_code)?;
+        let value = call("login.wait", unsafe { params_with(config, params) })?;
+        login_result_into(out, &value);
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_complete(
+    config: *const IlinkConfig,
+    session_key: *const c_char,
+    timeout_secs: u64,
+    verify_code: *const c_char,
+    out: *mut IlinkLoginResult,
+) -> c_int {
+    guard(out, || {
+        let params = login_wait_params(session_key, timeout_secs, verify_code)?;
+        let value = call("login.complete", unsafe { params_with(config, params) })?;
+        login_result_into(out, &value);
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_login_result_free(result: *mut IlinkLoginResult) {
+    if result.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*result).message);
+        free_c_string((*result).account_id);
+        ilink_qr_session_free((*result).session);
+        *result = std::mem::zeroed();
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Accounts
 // ---------------------------------------------------------------------------
 
@@ -903,6 +1259,31 @@ pub extern "C" fn ilink_send_bytes(
     })
 }
 
+#[no_mangle]
+pub extern "C" fn ilink_send_item(
+    config: *const IlinkConfig,
+    to: *const c_char,
+    item_json: *const c_char,
+    context_token: *const c_char,
+    out: *mut IlinkSendResult,
+) -> c_int {
+    guard(out, || {
+        let raw = req_str(item_json, "item_json")?;
+        let item: Value = serde_json::from_str(&raw)
+            .map_err(|e| Error::unknown(format!("item_json is not valid JSON: {e}")))?;
+        let mut params = json!({
+            "to": req_str(to, "to")?,
+            "item": item,
+        });
+        if let Some(value) = opt_str(context_token) {
+            params["context_token"] = json!(value);
+        }
+        let value = call("send.item", unsafe { params_with(config, params) })?;
+        unsafe { *out = send_result_from_json(&value) };
+        Ok(())
+    })
+}
+
 // ---------------------------------------------------------------------------
 // Receiving
 // ---------------------------------------------------------------------------
@@ -1006,6 +1387,170 @@ pub extern "C" fn ilink_message_body(items_json: *const c_char, out: *mut *mut c
         let value = call("message.body", json!({ "items": items }))?;
         Ok(string_field(&value, "body"))
     })
+}
+
+/// Build a [`IlinkMsgContext`] from the parsed JSON `value`.
+fn msg_context_from_json(value: &Value) -> IlinkMsgContext {
+    let mut paths: Vec<*mut c_char> = Vec::new();
+    if let Some(list) = value.get("media_paths").and_then(Value::as_array) {
+        paths = list
+            .iter()
+            .map(|item| into_c_string(item.as_str().unwrap_or_default().to_string()))
+            .collect();
+    }
+    let mut types: Vec<*mut c_char> = Vec::new();
+    if let Some(list) = value.get("media_types").and_then(Value::as_array) {
+        types = list
+            .iter()
+            .map(|item| into_c_string(item.as_str().unwrap_or_default().to_string()))
+            .collect();
+    }
+    let mut media: Vec<IlinkMediaEntry> = Vec::new();
+    if let Some(list) = value.get("media").and_then(Value::as_array) {
+        media = list
+            .iter()
+            .map(|entry| IlinkMediaEntry {
+                path: into_c_string(string_field(entry, "path")),
+                content_type: opt_c_string(optional_field(entry, "content_type")),
+                file_name: opt_c_string(optional_field(entry, "file_name")),
+                message_id: opt_c_string(optional_field(entry, "message_id")),
+            })
+            .collect();
+    }
+    let mut prompts: Vec<*mut c_char> = Vec::new();
+    if let Some(list) = value
+        .get("channel_prompt_context")
+        .and_then(Value::as_array)
+    {
+        prompts = list
+            .iter()
+            .map(|item| into_c_string(item.as_str().unwrap_or_default().to_string()))
+            .collect();
+    }
+
+    let (paths_ptr, paths_count) = leak_vec(paths);
+    let (types_ptr, types_count) = leak_vec(types);
+    let (media_ptr, media_count) = leak_vec(media);
+    let (prompts_ptr, prompts_count) = leak_vec(prompts);
+
+    IlinkMsgContext {
+        body: into_c_string(string_field(value, "body")),
+        from: into_c_string(string_field(value, "from")),
+        to: into_c_string(string_field(value, "to")),
+        account_id: into_c_string(string_field(value, "account_id")),
+        originating_channel: into_c_string(string_field(value, "originating_channel")),
+        originating_to: into_c_string(string_field(value, "originating_to")),
+        message_sid: into_c_string(string_field(value, "message_sid")),
+        message_sid_full: opt_c_string(optional_field(value, "message_sid_full")),
+        timestamp: int_field(value, "timestamp"),
+        provider: into_c_string(string_field(value, "provider")),
+        chat_type: into_c_string(string_field(value, "chat_type")),
+        session_key: opt_c_string(optional_field(value, "session_key")),
+        context_token: opt_c_string(optional_field(value, "context_token")),
+        media_path: opt_c_string(optional_field(value, "media_path")),
+        media_type: opt_c_string(optional_field(value, "media_type")),
+        media_paths: paths_ptr,
+        media_paths_count: paths_count,
+        media_types: types_ptr,
+        media_types_count: types_count,
+        media: media_ptr,
+        media_count,
+        channel_prompt_context: prompts_ptr,
+        channel_prompt_context_count: prompts_count,
+        reply_to_id: opt_c_string(optional_field(value, "reply_to_id")),
+        reply_to_body: opt_c_string(optional_field(value, "reply_to_body")),
+        reply_to_quote_text: opt_c_string(optional_field(value, "reply_to_quote_text")),
+        reply_to_is_quote: bool_field(value, "reply_to_is_quote") as c_int,
+        reply_to_is_quote_set: value
+            .get("reply_to_is_quote")
+            .map(|v| !v.is_null())
+            .unwrap_or(false) as c_int,
+    }
+}
+
+/// Hand a `Vec<T>` to C as a `ptr`/`len` pair, keeping the allocation alive.
+fn leak_vec<T>(mut values: Vec<T>) -> (*mut T, usize) {
+    let count = values.len();
+    let ptr = values.as_mut_ptr();
+    std::mem::forget(values);
+    (ptr, count)
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_context_to_message(
+    config: *const IlinkConfig,
+    message_json: *const c_char,
+    out: *mut IlinkMsgContext,
+) -> c_int {
+    guard(out, || {
+        let raw = req_str(message_json, "message_json")?;
+        let message: Value = serde_json::from_str(&raw)
+            .map_err(|e| Error::unknown(format!("message_json is not valid JSON: {e}")))?;
+        let params = json!({ "message": message });
+        let value = call("context.to_message", unsafe { params_with(config, params) })?;
+        unsafe { *out = msg_context_from_json(&value) };
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_msg_context_free(context: *mut IlinkMsgContext) {
+    if context.is_null() {
+        return;
+    }
+    unsafe {
+        let ctx = &mut *context;
+        for ptr in [
+            ctx.body,
+            ctx.from,
+            ctx.to,
+            ctx.account_id,
+            ctx.originating_channel,
+            ctx.originating_to,
+            ctx.message_sid,
+            ctx.message_sid_full,
+            ctx.provider,
+            ctx.chat_type,
+            ctx.session_key,
+            ctx.context_token,
+            ctx.media_path,
+            ctx.media_type,
+            ctx.reply_to_id,
+            ctx.reply_to_body,
+            ctx.reply_to_quote_text,
+        ] {
+            free_c_string(ptr);
+        }
+        free_string_vec(ctx.media_paths, ctx.media_paths_count);
+        free_string_vec(ctx.media_types, ctx.media_types_count);
+        free_string_vec(ctx.channel_prompt_context, ctx.channel_prompt_context_count);
+        if !ctx.media.is_null() {
+            for index in 0..ctx.media_count {
+                let entry = ctx.media.add(index);
+                free_c_string((*entry).path);
+                free_c_string((*entry).content_type);
+                free_c_string((*entry).file_name);
+                free_c_string((*entry).message_id);
+            }
+            drop(Vec::from_raw_parts(
+                ctx.media,
+                ctx.media_count,
+                ctx.media_count,
+            ));
+        }
+        *context = std::mem::zeroed();
+    }
+}
+
+/// Free a `char **` array produced by [`leak_vec`].
+unsafe fn free_string_vec(ptr: *mut *mut c_char, count: usize) {
+    if ptr.is_null() {
+        return;
+    }
+    for index in 0..count {
+        free_c_string(*ptr.add(index));
+    }
+    drop(Vec::from_raw_parts(ptr, count, count));
 }
 
 #[no_mangle]
@@ -1198,6 +1743,56 @@ pub extern "C" fn ilink_upload(
     })
 }
 
+#[no_mangle]
+pub extern "C" fn ilink_download_item(
+    config: *const IlinkConfig,
+    item_json: *const c_char,
+    dest_dir: *const c_char,
+    out: *mut IlinkInboundMedia,
+) -> c_int {
+    guard(out, || {
+        let raw = req_str(item_json, "item_json")?;
+        let item: Value = serde_json::from_str(&raw)
+            .map_err(|e| Error::unknown(format!("item_json is not valid JSON: {e}")))?;
+        let mut params = json!({ "item": item });
+        if let Some(value) = opt_str(dest_dir) {
+            params["dest_dir"] = json!(value);
+        }
+        let value = call("media.download_item", unsafe {
+            params_with(config, params)
+        })?;
+        unsafe {
+            *out = IlinkInboundMedia {
+                image_path: opt_c_string(optional_field(&value, "image_path")),
+                voice_path: opt_c_string(optional_field(&value, "voice_path")),
+                voice_mime: opt_c_string(optional_field(&value, "voice_mime")),
+                file_path: opt_c_string(optional_field(&value, "file_path")),
+                file_mime: opt_c_string(optional_field(&value, "file_mime")),
+                video_path: opt_c_string(optional_field(&value, "video_path")),
+                referenced: bool_field(&value, "referenced") as c_int,
+                is_empty: bool_field(&value, "is_empty") as c_int,
+            };
+        }
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_inbound_media_free(media: *mut IlinkInboundMedia) {
+    if media.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*media).image_path);
+        free_c_string((*media).voice_path);
+        free_c_string((*media).voice_mime);
+        free_c_string((*media).file_path);
+        free_c_string((*media).file_mime);
+        free_c_string((*media).video_path);
+        *media = std::mem::zeroed();
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Context tokens / sync cursor
 // ---------------------------------------------------------------------------
@@ -1280,6 +1875,214 @@ pub extern "C" fn ilink_sync_clear(config: *const IlinkConfig) -> c_int {
         call("sync.clear", unsafe { config_params(config) })?;
         Ok(())
     })
+}
+
+// ---------------------------------------------------------------------------
+// Quote cache
+// ---------------------------------------------------------------------------
+
+fn quote_policy_from_json(value: &Value) -> IlinkQuotePolicy {
+    let unsigned = |key: &str| int_field(value, key).max(0) as u64;
+    IlinkQuotePolicy {
+        enabled: bool_field(value, "enabled") as c_int,
+        retention_ms: unsigned("retention_ms"),
+        max_messages_per_account: unsigned("max_messages_per_account"),
+        media_retention_ms: unsigned("media_retention_ms"),
+        max_media_bytes_per_account: unsigned("max_media_bytes_per_account"),
+        max_single_media_bytes: unsigned("max_single_media_bytes"),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_policy(out: *mut IlinkQuotePolicy) -> c_int {
+    guard(out, || {
+        let value = call("quote.policy", Value::Null)?;
+        unsafe { *out = quote_policy_from_json(&value) };
+        Ok(())
+    })
+}
+
+fn quote_record_from_json(value: &Value) -> IlinkQuoteRecord {
+    IlinkQuoteRecord {
+        account_id: into_c_string(string_field(value, "account_id")),
+        conversation_id: into_c_string(string_field(value, "conversation_id")),
+        message_id: into_c_string(string_field(value, "message_id")),
+        direction: into_c_string(string_field(value, "direction")),
+        body: into_c_string(string_field(value, "body")),
+        media_path: opt_c_string(optional_field(value, "media_path")),
+        media_mime: opt_c_string(optional_field(value, "media_mime")),
+        media_name: opt_c_string(optional_field(value, "media_name")),
+        media_size: int_field(value, "media_size"),
+        created_at: int_field(value, "created_at"),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_record_free(record: *mut IlinkQuoteRecord) {
+    if record.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*record).account_id);
+        free_c_string((*record).conversation_id);
+        free_c_string((*record).message_id);
+        free_c_string((*record).direction);
+        free_c_string((*record).body);
+        free_c_string((*record).media_path);
+        free_c_string((*record).media_mime);
+        free_c_string((*record).media_name);
+        *record = std::mem::zeroed();
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_find(
+    account_id: *const c_char,
+    conversation_id: *const c_char,
+    message_id: *const c_char,
+    out: *mut IlinkQuoteRecord,
+    found: *mut c_int,
+) -> c_int {
+    if found.is_null() {
+        set_last_error("null `found` pointer");
+        return ILINK_ERR_INVALID_ARG;
+    }
+    guard(out, || {
+        let params = json!({
+            "account_id": req_str(account_id, "account_id")?,
+            "conversation_id": req_str(conversation_id, "conversation_id")?,
+            "message_id": req_str(message_id, "message_id")?,
+        });
+        let value = call("quote.find", params)?;
+        unsafe {
+            if value.is_null() {
+                *found = 0;
+                *out = std::mem::zeroed();
+            } else {
+                *found = 1;
+                *out = quote_record_from_json(&value);
+            }
+        }
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_put(input: *const IlinkQuoteInput) -> c_int {
+    let mut dummy: c_int = 0;
+    guard(&mut dummy, || {
+        if input.is_null() {
+            return Err(Error::unknown("`input` must not be NULL"));
+        }
+        let input = unsafe { &*input };
+        let mut params = json!({
+            "account_id": req_str(input.account_id, "account_id")?,
+            "conversation_id": req_str(input.conversation_id, "conversation_id")?,
+            "message_id": req_str(input.message_id, "message_id")?,
+        });
+        if let Some(value) = opt_str(input.direction) {
+            params["direction"] = json!(value);
+        }
+        if let Some(value) = opt_str(input.body) {
+            params["body"] = json!(value);
+        }
+        if let Some(value) = opt_str(input.source_media_path) {
+            params["source_media_path"] = json!(value);
+        }
+        if let Some(value) = opt_str(input.media_mime) {
+            params["media_mime"] = json!(value);
+        }
+        if let Some(value) = opt_str(input.media_name) {
+            params["media_name"] = json!(value);
+        }
+        if input.created_at > 0 {
+            params["created_at"] = json!(input.created_at);
+        }
+        call("quote.put", params)?;
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_gc() -> c_int {
+    let mut dummy: c_int = 0;
+    guard(&mut dummy, || {
+        call("quote.gc", Value::Null)?;
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_delete_account(account_id: *const c_char) -> c_int {
+    let mut dummy: c_int = 0;
+    guard(&mut dummy, || {
+        let params = json!({ "account_id": req_str(account_id, "account_id")? });
+        call("quote.delete_account", params)?;
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_quote_media_dir(account_id: *const c_char, out: *mut *mut c_char) -> c_int {
+    guard_str(out, || {
+        let params = json!({ "account_id": req_str(account_id, "account_id")? });
+        let value = call("quote.media_dir", params)?;
+        Ok(string_field(&value, "path"))
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Local config
+// ---------------------------------------------------------------------------
+
+#[no_mangle]
+pub extern "C" fn ilink_config_load(out: *mut IlinkLocalConfig) -> c_int {
+    guard(out, || {
+        let value = call("config.load", Value::Null)?;
+        let config = value.get("config").cloned().unwrap_or(Value::Null);
+        let policy = value
+            .get("quote_cache_policy")
+            .map(quote_policy_from_json)
+            .unwrap_or_else(|| quote_policy_from_json(&Value::Null));
+        // The config JSON is camelCase on the wire (it mirrors openclaw.json).
+        unsafe {
+            *out = IlinkLocalConfig {
+                reply_progress_messages: bool_field(&config, "replyProgressMessages") as c_int,
+                accounts_json: into_c_string(
+                    config
+                        .get("accounts")
+                        .map(|v| v.to_string())
+                        .unwrap_or_else(|| "{}".to_string()),
+                ),
+                route_tag_json: config
+                    .get("routeTag")
+                    .filter(|v| !v.is_null())
+                    .map(|v| into_c_string(v.to_string()))
+                    .unwrap_or(std::ptr::null_mut()),
+                bot_agent: opt_c_string(optional_field(&config, "botAgent")),
+                channel_config_updated_at: opt_c_string(optional_field(
+                    &config,
+                    "channelConfigUpdatedAt",
+                )),
+                quote_cache_policy: policy,
+            };
+        }
+        Ok(())
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn ilink_local_config_free(config: *mut IlinkLocalConfig) {
+    if config.is_null() {
+        return;
+    }
+    unsafe {
+        free_c_string((*config).accounts_json);
+        free_c_string((*config).route_tag_json);
+        free_c_string((*config).bot_agent);
+        free_c_string((*config).channel_config_updated_at);
+        *config = std::mem::zeroed();
+    }
 }
 
 #[cfg(test)]
@@ -1400,5 +2203,115 @@ mod tests {
         // Freeing an empty list must be safe.
         ilink_account_list_free(&mut list);
         assert_eq!(list.count, 0);
+    }
+
+    #[test]
+    fn login_start_returns_qr_without_network() {
+        // login.start reaches the network, so it is expected to fail here; the
+        // point is that it fails cleanly (status + message) and does not panic.
+        let mut start: IlinkLoginStart = unsafe { std::mem::zeroed() };
+        let status = ilink_login_start(
+            std::ptr::null(),
+            std::ptr::null(),
+            std::ptr::null(),
+            std::ptr::null(),
+            &mut start,
+        );
+        assert_ne!(status, ILINK_ERR_PANIC);
+        ilink_login_start_free(&mut start);
+    }
+
+    #[test]
+    fn login_poll_and_result_free_are_null_safe() {
+        ilink_login_start_free(std::ptr::null_mut());
+        ilink_login_poll_free(std::ptr::null_mut());
+        ilink_login_result_free(std::ptr::null_mut());
+        ilink_qr_session_free(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn quote_policy_and_config_load() {
+        let mut policy: IlinkQuotePolicy = unsafe { std::mem::zeroed() };
+        assert_eq!(ilink_quote_policy(&mut policy), ILINK_OK);
+        assert_ne!(policy.retention_ms, 0);
+
+        let mut config: IlinkLocalConfig = unsafe { std::mem::zeroed() };
+        assert_eq!(ilink_config_load(&mut config), ILINK_OK);
+        assert!(!config.accounts_json.is_null());
+        ilink_local_config_free(&mut config);
+    }
+
+    #[test]
+    fn quote_find_missing_returns_not_found_flag() {
+        let account = c("ffi-quote-missing");
+        let conversation = c("c1");
+        let message = c("m1");
+        let mut record: IlinkQuoteRecord = unsafe { std::mem::zeroed() };
+        let mut found: c_int = -1;
+        let status = ilink_quote_find(
+            account.as_ptr(),
+            conversation.as_ptr(),
+            message.as_ptr(),
+            &mut record,
+            &mut found,
+        );
+        assert_eq!(status, ILINK_OK);
+        assert_eq!(found, 0);
+        ilink_quote_record_free(&mut record);
+    }
+
+    #[test]
+    fn quote_find_null_found_pointer_is_invalid_arg() {
+        let account = c("a");
+        let conversation = c("c");
+        let message = c("m");
+        let mut record: IlinkQuoteRecord = unsafe { std::mem::zeroed() };
+        assert_eq!(
+            ilink_quote_find(
+                account.as_ptr(),
+                conversation.as_ptr(),
+                message.as_ptr(),
+                &mut record,
+                std::ptr::null_mut(),
+            ),
+            ILINK_ERR_INVALID_ARG
+        );
+    }
+
+    #[test]
+    fn quote_media_dir_and_free() {
+        let account = c("ffi-quote-dir");
+        let mut out: *mut c_char = std::ptr::null_mut();
+        assert_eq!(ilink_quote_media_dir(account.as_ptr(), &mut out), ILINK_OK);
+        assert!(!out.is_null());
+        free_c_string(out);
+    }
+
+    #[test]
+    fn msg_context_free_is_null_safe() {
+        ilink_msg_context_free(std::ptr::null_mut());
+        ilink_inbound_media_free(std::ptr::null_mut());
+    }
+
+    #[test]
+    fn context_to_message_rejects_bad_json() {
+        let bad = c("{not json");
+        let mut ctx: IlinkMsgContext = unsafe { std::mem::zeroed() };
+        assert_eq!(
+            ilink_context_to_message(std::ptr::null(), bad.as_ptr(), &mut ctx),
+            ILINK_ERR_UNKNOWN
+        );
+    }
+
+    #[test]
+    fn message_body_from_items_json() {
+        // An empty item list yields an empty body.
+        let items = c("[]");
+        let mut out: *mut c_char = std::ptr::null_mut();
+        assert_eq!(ilink_message_body(items.as_ptr(), &mut out), ILINK_OK);
+        unsafe {
+            assert_eq!(CStr::from_ptr(out).to_str().unwrap(), "");
+            free_c_string(out);
+        }
     }
 }

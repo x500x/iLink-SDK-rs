@@ -96,7 +96,7 @@ if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == IL
     ilink_send_result_free(&sent);
 }
 
-/* Escape hatch for operations without a typed wrapper. */
+/* Escape hatch for forward compatibility (see ilink_sdk.h). */
 char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);

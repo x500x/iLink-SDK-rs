@@ -111,13 +111,14 @@ static void demo_crypto(void) {
 }
 
 static void demo_accounts(void) {
+    size_t i;
     printf("\n== accounts ==\n");
 
     IlinkAccountList list;
     if (!check(ilink_accounts_list(NULL, &list), "ilink_accounts_list")) return;
 
     printf("%lu account(s)\n", (unsigned long)list.count);
-    for (size_t i = 0; i < list.count; ++i) {
+    for (i = 0; i < list.count; ++i) {
         const IlinkAccount *a = &list.accounts[i];
         printf("  [%lu] %s user=%s enabled=%d\n", (unsigned long)i, a->account_id,
                a->user_id ? a->user_id : "(unknown)", a->enabled);
@@ -140,10 +141,61 @@ static void demo_config(void) {
     }
 }
 
-static void demo_escape_hatch(void) {
-    printf("\n== ilink_call (operations without a typed wrapper) ==\n");
+static void demo_local_config(void) {
+    printf("\n== local config ==\n");
 
-    /* Everything else is still reachable, e.g. quote cache or QR login. */
+    IlinkLocalConfig config;
+    if (check(ilink_config_load(&config), "ilink_config_load")) {
+        printf("reply progress: %d\n", config.reply_progress_messages);
+        printf("bot agent     : %s\n", config.bot_agent ? config.bot_agent : "(unset)");
+        printf("quote enabled : %d\n", config.quote_cache_policy.enabled);
+        ilink_local_config_free(&config);
+    }
+}
+
+static void demo_quote(void) {
+    printf("\n== quote cache ==\n");
+
+    IlinkQuotePolicy policy;
+    if (check(ilink_quote_policy(&policy), "ilink_quote_policy")) {
+        printf("enabled   : %d, retention %llu ms, max %llu msgs\n", policy.enabled,
+               (unsigned long long)policy.retention_ms,
+               (unsigned long long)policy.max_messages_per_account);
+    }
+
+    IlinkQuoteRecord record;
+    int found = 0;
+    if (check(ilink_quote_find("demo", "conv-1", "msg-1", &record, &found),
+              "ilink_quote_find")) {
+        printf("find      : found=%d\n", found);
+        if (found) ilink_quote_record_free(&record);
+    }
+
+    char *dir = NULL;
+    if (check(ilink_quote_media_dir("demo", &dir), "ilink_quote_media_dir")) {
+        printf("media dir : %s\n", dir);
+        ilink_string_free(dir);
+    }
+}
+
+static void demo_login(void) {
+    printf("\n== QR login ==\n");
+
+    /* login.start reaches the network, so it needs a live backend. This shows
+     * the call shape and how failures are reported. */
+    IlinkLoginStart start;
+    IlinkStatus status = ilink_login_start(NULL, NULL, NULL, NULL, &start);
+    if (status == ILINK_OK) {
+        printf("qrcode url: %s\n", start.qrcode_url);
+        ilink_login_start_free(&start);
+    } else {
+        printf("login.start: %s (expected without a backend)\n", ilink_last_error());
+    }
+}
+
+static void demo_escape_hatch(void) {
+    printf("\n== ilink_call (the universal escape hatch) ==\n");
+
     char *out = ilink_call("quote.policy", "{}");
     if (out) {
         printf("quote.policy -> %s\n", out);
@@ -163,6 +215,9 @@ int main(void) {
     demo_crypto();
     demo_accounts();
     demo_config();
+    demo_local_config();
+    demo_quote();
+    demo_login();
     demo_escape_hatch();
     printf("\nall C checks passed\n");
     return 0;

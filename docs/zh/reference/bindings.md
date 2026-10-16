@@ -88,7 +88,7 @@ if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == IL
     ilink_send_result_free(&sent);
 }
 
-/* 没有类型化封装的操作走逃生通道。 */
+/* 向前兼容用的逃生通道（见 ilink_sdk.h）。 */
 char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);
