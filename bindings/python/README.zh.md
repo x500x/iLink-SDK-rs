@@ -39,7 +39,7 @@ wheel，就在对应 OS/arch 上各跑一次（CI 就是这么做的）。
 ```python
 import ilink_sdk
 
-print(ilink_sdk.version())                              # '2.4.10'
+print(ilink_sdk.version())                              # '2.4.11'
 print(ilink_sdk.call("mime.info", {"path": "a.png"}))   # 已解析的结果对象
 
 client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")

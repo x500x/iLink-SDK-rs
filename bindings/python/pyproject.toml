@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ilink-sdk"
-version = "2.4.10"
+version = "2.4.11"
 description = "Python bindings for the iLink (Weixin) SDK, with the native library bundled"
 readme = "README.md"
 requires-python = ">=3.8"

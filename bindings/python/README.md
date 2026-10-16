@@ -43,7 +43,7 @@ OS/arch (which is what CI does).
 ```python
 import ilink_sdk
 
-print(ilink_sdk.version())                              # '2.4.10'
+print(ilink_sdk.version())                              # '2.4.11'
 print(ilink_sdk.call("mime.info", {"path": "a.png"}))   # decoded result object
 
 client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")

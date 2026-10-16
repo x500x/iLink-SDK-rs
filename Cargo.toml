@@ -1,6 +1,6 @@
 [package]
 name = "ilink-sdk"
-version = "2.4.10"
+version = "2.4.11"
 edition = "2021"
 rust-version = "1.82"
 description = "Rust SDK for the Tencent Weixin (iLink) backend protocol: QR-code login, long-poll messaging, CDN media upload/download."

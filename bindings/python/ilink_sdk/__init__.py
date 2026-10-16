@@ -7,7 +7,7 @@ default routing parameters for every call:
 
 >>> import ilink_sdk
 >>> ilink_sdk.version()
-'2.4.10'
+'2.4.11'
 >>> ilink_sdk.call("mime.info", {"path": "photo.png"})["mime"]
 'image/png'
 >>> client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")
@@ -53,4 +53,4 @@ __all__ = [
     "models",
     "version",
 ]
-__version__ = "2.4.10"
+__version__ = "2.4.11"

@@ -12,7 +12,7 @@ right one at runtime, so no manual library setup is required.
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("io.github.x500x:ilink-sdk-kotlin:2.4.10")
+    implementation("io.github.x500x:ilink-sdk-kotlin:2.4.11")
 }
 ```
 

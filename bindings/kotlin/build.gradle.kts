@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.x500x"
-version = "2.4.10"
+version = "2.4.11"
 
 repositories {
     mavenCentral()
@@ -25,6 +25,17 @@ java {
     // The JAR bundles the native library, so it is platform-specific even though
     // the bytecode targets a fixed Java version.
     withSourcesJar()
+    // Maven Central rejects a publication without a javadoc JAR
+    // ("Javadocs must be provided but not found in entries"). There are no Java
+    // sources here, so this produces an essentially empty JAR, which Central
+    // accepts.
+    withJavadocJar()
+}
+
+tasks.named<org.gradle.api.tasks.javadoc.Javadoc>("javadoc") {
+    // There are no Java sources here, so javadoc would otherwise fail with
+    // "no source files"; Maven Central only requires that a javadoc JAR exist.
+    isFailOnError = false
 }
 
 application {
