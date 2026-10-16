@@ -1,5 +1,7 @@
 # 认证（二维码登录）
 
+> English: [English](../../guides/authentication.md)
+
 所有已认证的调用都需要一个 **bot token**，它通过微信 App 扫码获得。该流程实现于
 [`messaging::auth`](../../../src/messaging/auth.rs)，并通过 [`QrLogin`] 暴露。
 

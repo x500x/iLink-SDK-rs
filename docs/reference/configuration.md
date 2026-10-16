@@ -1,5 +1,7 @@
 # Configuration
 
+> 中文版: [中文文档](../zh/reference/configuration.md)
+
 The SDK reads optional configuration from `openclaw.json` (the same file the
 TypeScript plugin uses) plus a few environment variables. There is no required
 configuration — sensible defaults cover the common case.

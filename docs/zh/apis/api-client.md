@@ -1,5 +1,7 @@
 # 底层 API 客户端 API
 
+> English: [English](../../apis/api-client.md)
+
 底层 API 客户端是 SDK 与微信（iLink）后端通信的核心，位于 [`../../src/api/`](../../../src/api/) 目录。
 它把每个 SDK 操作映射到一个 CGI 端点。绝大多数应用直接使用高层
 [`WeixinClient`](../apis/client.md)，但底层客户端在以下场景更有价值：

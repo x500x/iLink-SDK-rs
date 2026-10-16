@@ -1,5 +1,7 @@
 # 媒体传输（CDN）API
 
+> English: [English](../../apis/cdn.md)
+
 CDN 模块 [`../../src/cdn/`](../../../src/cdn/) 负责媒体（图片、视频、文件、语音）的加密上传与
 下载，密码学核心是 **逐块 AES-128-ECB**（真正的 ECB，而非零 IV 的 CBC）。
 

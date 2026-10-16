@@ -1,5 +1,7 @@
 # Media transport (CDN) API
 
+> 中文版: [中文文档](../zh/apis/cdn.md)
+
 The CDN module ([`../../src/cdn/`](../../src/cdn/)) handles encrypted upload and
 download of media (images, videos, files, voice). The crypto core is **per-block
 AES-128-ECB** — true ECB, not zero-IV CBC.

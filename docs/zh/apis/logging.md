@@ -1,5 +1,7 @@
 # 日志 API
 
+> English: [English](../../apis/logging.md)
+
 日志模块 [`../../src/logging.rs`](../../../src/logging.rs) 基于 `tracing`。SDK 内部大量使用
 `tracing` 记录 span 与事件，但**未安装全局 subscriber 时这些记录会被静默丢弃**——
 因此下游应用可以自行选择 `env_logger`、`tracing_subscriber` 或完全不接入。

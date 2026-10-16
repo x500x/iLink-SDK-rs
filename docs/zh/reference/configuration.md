@@ -1,5 +1,7 @@
 # 配置
 
+> English: [English](../../reference/configuration.md)
+
 SDK 从 `openclaw.json`（与 TypeScript 插件相同的文件）以及若干环境变量读取可选配置。
 没有必需的配置——合理的默认值覆盖了常见情况。
 

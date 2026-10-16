@@ -1,5 +1,7 @@
 # 工具函数 API
 
+> English: [English](../../apis/util.md)
+
 工具函数模块 [`../../src/util/`](../../../src/util/) 提供 ID 生成、日志脱敏与时间辅助，供
 SDK 内部与调用方共用。
 

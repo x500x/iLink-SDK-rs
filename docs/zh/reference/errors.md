@@ -1,5 +1,7 @@
 # 错误与重试
 
+> English: [English](../../reference/errors.md)
+
 SDK 中每个可能失败的操作都返回
 [`ilink_sdk::Result<T>`](../../../src/error.rs)，参数化为 [`Error`]。传输层失败
 会带有一个分类后的 [`ErrorKind`]，以便调用方按失败原因分支处理，而不是字符串匹配——

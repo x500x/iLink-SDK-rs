@@ -1,5 +1,7 @@
 # MIME detection API
 
+> 中文版: [中文文档](../zh/apis/media.md)
+
 The MIME module ([`../../src/media/mime.rs`](../../src/media/mime.rs)) provides media
 type sniffing, the basis for outbound upload routing and inbound download
 extension inference. It corresponds to TypeScript's `src/media/mime.ts`.

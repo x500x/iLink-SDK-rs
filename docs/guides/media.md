@@ -1,5 +1,7 @@
 # Media (CDN)
 
+> 中文版: [中文文档](../zh/guides/media.md)
+
 Weixin media (images, video, files, voice) is never sent inline. Outbound media
 is uploaded to a CDN encrypted with **AES-128-ECB**; inbound media is downloaded
 from the CDN and decrypted with the same cipher. All of this lives in the

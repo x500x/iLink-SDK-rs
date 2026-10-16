@@ -1,5 +1,7 @@
 # Messaging
 
+> 中文版: [中文文档](../zh/guides/messaging.md)
+
 This guide covers receiving messages (long poll), sending text and media,
 typing indicators, and the conversation context token.
 

@@ -1,5 +1,7 @@
 # 引用缓存 API
 
+> English: [English](../../apis/quote-cache.md)
+
 新版微信客户端在引用消息时只发送服务器消息 id，因此所需的文本与媒体元数据需要
 本地保存，以便后续引用能还原上下文。引用缓存位于
 [`../../src/messaging/quote_cache.rs`](../../../src/messaging/quote_cache.rs)，使用 SQLite

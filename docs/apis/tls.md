@@ -1,5 +1,7 @@
 # TLS config API
 
+> 中文版: [中文文档](../zh/apis/tls.md)
+
 The TLS module ([`../../src/tls.rs`](../../src/tls.rs)) handles the transport-layer
 security config used by the HTTP client. Server certificates are verified by
 `rustls-platform-verifier` against the **operating system trust store**, so it

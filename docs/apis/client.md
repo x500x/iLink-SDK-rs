@@ -1,5 +1,7 @@
 # High-level client API
 
+> 中文版: [中文文档](../zh/apis/client.md)
+
 [`WeixinClient`](../../src/client/mod.rs) is the batteries-included entry point for a
 logged-in account. It wraps account resolution, the low-level
 [`WeixinApiClient`](api-client.md), QR login, message delivery, typing heartbeats,

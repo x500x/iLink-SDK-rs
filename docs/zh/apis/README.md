@@ -1,5 +1,7 @@
 # 分板块 API 手册
 
+> English: [English](../../apis/README.md)
+
 本目录把 `ilink_sdk` crate 对外公开的 API 按职责拆成若干板块，逐板块
 详细介绍每个 API 的**作用、参数、返回值、错误、用法示例与注意事项**。
 

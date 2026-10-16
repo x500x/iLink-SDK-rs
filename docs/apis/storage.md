@@ -1,5 +1,7 @@
 # Storage & config API
 
+> 中文版: [中文文档](../zh/apis/storage.md)
+
 The storage and config module ([`../../src/storage/`](../../src/storage/)) handles
 local persistence: account credentials, the state directory, long-poll cursors,
 and the `openclaw.json` `channels.openclaw-weixin` config section. It corresponds

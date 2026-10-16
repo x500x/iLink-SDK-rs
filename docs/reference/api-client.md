@@ -1,5 +1,7 @@
 # API client reference
 
+> 中文版: [中文文档](../zh/reference/api-client.md)
+
 [`WeixinApiClient`](../../src/api/client.rs) is the low-level async HTTP client
 that maps each SDK operation to one iLink CGI endpoint. Most applications use
 [`WeixinClient`](../../src/client/mod.rs) instead, but the raw client is

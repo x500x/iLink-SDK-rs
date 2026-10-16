@@ -1,5 +1,7 @@
 # Language bindings
 
+> 中文版: [中文文档](../zh/reference/bindings.md)
+
 The crate is a Rust library, but its functionality is also reachable from C,
 C++, Go, Python, Java and Kotlin. All of them go through the same JSON-in /
 JSON-out C ABI described in [C ABI (dll / so / dylib)](ffi.md), so nothing is

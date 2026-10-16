@@ -1,5 +1,7 @@
 # API by board
 
+> 中文版: [中文文档](../zh/apis/README.md)
+
 This directory splits the `ilink_sdk` crate's public API into focused
 boards, each explaining in depth the **purpose, parameters, return values,
 errors, usage examples, and caveats** of every API in that area.

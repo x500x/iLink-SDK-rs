@@ -1,5 +1,7 @@
 # Error handling API
 
+> 中文版: [中文文档](../zh/apis/error.md)
+
 Every fallible operation in `ilink_sdk` returns `Result<T>` (i.e.
 `std::result::Result<T, Error>`). The error-handling module lives in
 [`../../src/error.rs`](../../src/error.rs). It classifies transport failures into

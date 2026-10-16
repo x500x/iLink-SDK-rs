@@ -1,5 +1,7 @@
 # 存储与配置 API
 
+> English: [English](../../apis/storage.md)
+
 存储与配置模块 [`../../src/storage/`](../../../src/storage/) 负责本地持久化：账户凭据、状态
 目录、长轮询游标，以及 `openclaw.json` 中的 `channels.openclaw-weixin` 配置段。
 对应 TypeScript 的 `src/auth/accounts.ts`、`src/storage/state-dir.ts`、

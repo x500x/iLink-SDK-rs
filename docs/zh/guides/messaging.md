@@ -1,5 +1,7 @@
 # 消息收发
 
+> English: [English](../../guides/messaging.md)
+
 本指南涵盖接收消息（长轮询）、发送文本与媒体、输入状态指示器，以及会话上下文
 token。
 

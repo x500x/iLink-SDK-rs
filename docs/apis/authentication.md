@@ -1,5 +1,7 @@
 # QR login API
 
+> 中文版: [中文文档](../zh/apis/authentication.md)
+
 QR login lives in [`../../src/messaging/auth.rs`](../../src/messaging/auth.rs). It is
 how the SDK obtains a `token` and `base_url` from the Weixin (iLink) backend. The
 flow mirrors the TypeScript `QrLogin`: fetch a QR code, poll until scanned, submit

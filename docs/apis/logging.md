@@ -1,5 +1,7 @@
 # Logging API
 
+> 中文版: [中文文档](../zh/apis/logging.md)
+
 The logging module ([`../../src/logging.rs`](../../src/logging.rs)) is built on
 `tracing`. The SDK emits `tracing` spans and events internally, but **without an
 installed global subscriber these are silently dropped** — so a downstream app can

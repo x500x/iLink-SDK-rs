@@ -1,5 +1,7 @@
 # API handbook
 
+> 中文版: [中文文档](../zh/reference/api.md)
+
 This page is the authoritative reference for everything the `ilink_sdk`
 crate exposes publicly. It is generated from the crate's module structure and
 is intended to be read alongside the source files it links to.

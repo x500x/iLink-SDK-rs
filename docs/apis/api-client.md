@@ -1,5 +1,7 @@
 # Low-level API client API
 
+> 中文版: [中文文档](../zh/apis/api-client.md)
+
 The low-level API client is the core of the SDK's communication with the Weixin
 (iLink) backend, in [`../../src/api/`](../../src/api/). It maps each SDK operation
 to one CGI endpoint. Most applications use the high-level

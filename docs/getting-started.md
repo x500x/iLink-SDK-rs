@@ -1,5 +1,7 @@
 # Getting started
 
+> 中文版: [中文文档](zh/getting-started.md)
+
 This guide takes you from an empty project to a running Weixin bot that can log
 in with a QR code and send messages.
 

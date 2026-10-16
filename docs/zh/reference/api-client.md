@@ -1,5 +1,7 @@
 # API 客户端参考
 
+> English: [English](../../reference/api-client.md)
+
 [`WeixinApiClient`](../../../src/api/client.rs) 是底层异步 HTTP 客户端，把 SDK 的每一次
 操作映射到一个 iLink CGI 端点。大多数应用改用 [`WeixinClient`](../../../src/client/mod.rs)，
 但原始客户端可用于自定义流程、测试以及高级插桩。

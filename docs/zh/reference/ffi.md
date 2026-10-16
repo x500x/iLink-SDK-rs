@@ -1,5 +1,7 @@
 # C ABI（dll / so / dylib）
 
+> English: [English](../../reference/ffi.md)
+
 > Go、Python、C++、Java、Kotlin 的绑定都封装同一套 ABI，见 [多语言绑定](bindings.md)。
 
 构建 `ilink-sdk` 时，除了 Rust `rlib` 之外还会产出：

@@ -1,5 +1,7 @@
 # Errors & retries
 
+> 中文版: [中文文档](../zh/reference/errors.md)
+
 Every fallible operation in the SDK returns
 [`ilink_sdk::Result<T>`](../../src/error.rs), parameterised by [`Error`].
 Transport-level failures carry a classified [`ErrorKind`] so callers can branch

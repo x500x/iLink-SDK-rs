@@ -1,5 +1,7 @@
 # 命令行工具
 
+> English: [English](../../reference/cli.md)
+
 `cli` feature（默认开启）会构建一个 `weixin` 二进制，它包装了本库的全部能力，这样
 你可以在写代码之前端到端地验证并脚本化整个 SDK。CLI 读取与库相同的状态目录与
 `openclaw.json`。

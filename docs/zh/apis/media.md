@@ -1,5 +1,7 @@
 # MIME 检测 API
 
+> English: [English](../../apis/media.md)
+
 MIME 模块 [`../../src/media/mime.rs`](../../../src/media/mime.rs) 提供媒体类型探测，是出站
 上传路由与入站下载落盘扩展名推断的基础。对应 TypeScript 的 `src/media/mime.ts`。
 

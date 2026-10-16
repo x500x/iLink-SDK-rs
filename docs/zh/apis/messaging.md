@@ -1,5 +1,7 @@
 # 消息收发 API
 
+> English: [English](../../apis/messaging.md)
+
 消息收发覆盖**发送**与**接收**两端。发送由 [`MessageSender`](../apis/messaging.md#messagesender)
 完成，接收通过底层 [`get_updates`](../apis/api-client.md) 长轮询拉取后再经上下文与
 媒体管线处理。本节还包含输入状态（`Typing` / `TypingHelper`）与入站上下文

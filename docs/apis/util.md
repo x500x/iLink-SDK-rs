@@ -1,5 +1,7 @@
 # Utilities API
 
+> 中文版: [中文文档](../zh/apis/util.md)
+
 The util module ([`../../src/util/`](../../src/util/)) provides ID generation,
 diagnostic redaction, and time helpers, used by the SDK internally and available to
 callers.

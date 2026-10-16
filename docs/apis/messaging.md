@@ -1,5 +1,7 @@
 # Messaging API
 
+> 中文版: [中文文档](../zh/apis/messaging.md)
+
 The messaging board covers how to **send** outbound messages and how to **receive
 and interpret** inbound ones. It spans three submodules of
 [`../../src/messaging/`](../../src/messaging/): `outbound` (sending), `context`

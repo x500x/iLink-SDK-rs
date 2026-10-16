@@ -1,5 +1,7 @@
 # Concepts & architecture
 
+> 中文版: [中文文档](zh/concepts.md)
+
 This page explains the pieces of the SDK and how data flows through them, so
 the per-module guides are easier to follow.
 

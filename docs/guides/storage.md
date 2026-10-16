@@ -1,5 +1,7 @@
 # Storage & state
 
+> 中文版: [中文文档](../zh/guides/storage.md)
+
 The SDK persists everything to a local state directory — no cloud or registry
 service. This page covers the layout, account storage, the sync cursor, and the
 quote cache.

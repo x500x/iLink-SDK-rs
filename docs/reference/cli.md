@@ -1,5 +1,7 @@
 # CLI
 
+> 中文版: [中文文档](../zh/reference/cli.md)
+
 The `cli` feature (enabled by default) builds a `weixin` binary that wraps the
 whole library, so you can exercise every capability of the SDK end to end —
 and script it — before writing code. The CLI reads the same state directory and

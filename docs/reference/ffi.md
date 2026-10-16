@@ -1,5 +1,7 @@
 # C ABI (dll / so / dylib)
 
+> 中文版: [中文文档](../zh/reference/ffi.md)
+
 > Language bindings for Go, Python, C++, Java and Kotlin wrap this same ABI; see
 > [Language bindings](bindings.md).
 

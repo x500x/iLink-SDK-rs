@@ -1,5 +1,7 @@
 # Authentication (QR login)
 
+> 中文版: [中文文档](../zh/guides/authentication.md)
+
 All authenticated calls need a **bot token**, which you obtain by scanning a
 QR code with the Weixin app. The flow is implemented in
 [`messaging::auth`](../../src/messaging/auth.rs) and exposed through

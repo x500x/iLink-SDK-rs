@@ -1,5 +1,7 @@
 # 多语言绑定
 
+> English: [English](../../reference/bindings.md)
+
 本 crate 是一个 Rust 库，但其功能同样可以从 C、C++、Go、Python、Java 和 Kotlin
 调用。它们都走同一个 JSON 进 / JSON 出的 C ABI（见 [C ABI（dll / so / dylib）](ffi.md)），
 因此**没有按语言重复实现协议**：每个绑定只负责加载共享库、调用 `ilink_call`、

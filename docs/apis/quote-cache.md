@@ -1,5 +1,7 @@
 # Quote cache API
 
+> 中文版: [中文文档](../zh/apis/quote-cache.md)
+
 The quote cache ([`../../src/messaging/quote_cache.rs`](../../src/messaging/quote_cache.rs))
 is a local SQLite store of recent messages so the SDK (and the host) can attach
 proper reply context: `@-mention` text, quoted message text, and inline media
