@@ -15,7 +15,7 @@
 | Python | `ilink-sdk` wheel | PyPI | <https://pypi.org/project/ilink-sdk/> |
 | Java | `io.github.x500x:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
 | Kotlin | `io.github.x500x:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
-| Go | `…/bindings/go/ilink` 模块 | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| Go | `…/bindings/go/v2/ilink` 模块 | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink> |
 | C / C++ | 原生库 + 头文件 | GitHub Releases | <https://github.com/x500x/iLink-SDK-rs/releases> |
 
 Maven 的 `groupId` 用 `io.github.x500x`，这是 GitHub 自动验证的命名空间。Java 包名仍为
@@ -62,8 +62,12 @@ python bindings/scripts/set_version.py           # 采用 Cargo.toml 中的版�
 
    - 把所有清单同步为 `2.5.0` 并校验 tag 一致；
    - 为六个平台构建原生库；
-   - 为各平台构建 Python wheel 并发布到 PyPI；
-   - 把各平台打进同一个 Java JAR 与 Kotlin JAR，部署到 Maven Central；
+   - 为各平台构建 Python wheel（每个 wheel 的标签由**内附的原生库**推导：Linux 上是
+     PEP 600 的 `manylinux_x_y`，macOS 上是真实架构而非 `universal2`）；
+   - 在**单个 Linux 任务**里把所有 wheel 上传到 PyPI（PyPI 的发布 action 拒绝在
+     其它系统上运行）；
+   - 把各平台打进同一个 Java JAR 与 Kotlin JAR，部署到 Maven Central（分别用 Maven
+     插件与 nmcp，两者都走 Central Portal 的 publisher API）；
    - 把 crate 发布到 crates.io；
    - 把全部原生包、wheel、JAR 附加到 GitHub Release；
    - 创建 `go get` 所需的 `bindings/go/v2.5.0` 标签。
@@ -73,7 +77,9 @@ python bindings/scripts/set_version.py           # 采用 Cargo.toml 中的版�
 
 注册表失败不会阻断 GitHub Release：PyPI、crates.io、Maven Central 的步骤都是
 `continue-on-error`，因此即使某个仓库拒绝了上传，Release 仍会产出原生库压缩包（Go 的
-下载回退依赖它）。
+下载回退依赖它）。但这样一来，发布失败也可能让流程显示为绿色，所以最后有一个
+**Verify published artifacts** 任务会重新检查 crates.io、PyPI 以及两个 Maven Central
+产物，**任一缺失就让流程失败**。
 
 ## 各仓库的一次性配置
 
@@ -151,7 +157,7 @@ dependencies {
 
 ```bash
 # Go（纯 Go，无需 cgo）
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink
 ```
 
 C 与 C++ 请从

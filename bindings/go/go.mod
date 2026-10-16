@@ -1,4 +1,4 @@
-module github.com/x500x/iLink-SDK-rs/bindings/go
+module github.com/x500x/iLink-SDK-rs/bindings/go/v2
 
 go 1.21
 

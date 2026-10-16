@@ -244,7 +244,7 @@ Every published artifact comes from the same `vX.Y.Z` tag:
 | Python | `pip install ilink-sdk` | <https://pypi.org/project/ilink-sdk/> |
 | Java | `io.github.x500x:ilink-sdk` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
 | Kotlin | `io.github.x500x:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
-| Go | `go get .../bindings/go/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| Go | `go get .../bindings/go/v2/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink> |
 | C / C++ | download the archive | <https://github.com/x500x/iLink-SDK-rs/releases> |
 
 See [Releases & distribution](docs/reference/distribution.md) for the release
@@ -263,7 +263,7 @@ binding is all that is needed (no Rust toolchain, no manual library setup):
 
 ```bash
 pip install ilink-sdk                    # Python
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go (pure Go, no cgo)
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink   # Go (pure Go, no cgo)
 ```
 
 | Language | Directory | Install | Notes |
@@ -272,7 +272,7 @@ go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go (pure Go, no cgo)
 | C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only, RAII, typed models |
 | Rust | crate root | `cargo add ilink-sdk` | native |
 | Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`, no dependencies, dataclasses |
-| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/ilink` | pure Go (purego), typed structs |
+| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/v2/ilink` | pure Go (purego), typed structs |
 | Java | [`bindings/java`](bindings/java) | Maven `io.github.x500x:ilink-sdk` | JNA, typed models |
 | Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.github.x500x:ilink-sdk` | JNA, typed data classes |
 

@@ -12,7 +12,7 @@
 // the current OS/CPU. You therefore do not need a C compiler or a hand-built
 // library to use the bindings:
 //
-//	import "github.com/x500x/iLink-SDK-rs/bindings/go/ilink"
+//	import "github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink"
 //
 //	version, _ := ilink.Version()
 //

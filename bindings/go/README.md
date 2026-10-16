@@ -8,11 +8,11 @@ over the shared library's JSON C ABI.
 ## Install
 
 ```bash
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink
 ```
 
 Published on the Go module proxy:
-<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink>.
+<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink>.
 
 That is all you need: the module loads the native library at runtime with
 [purego](https://github.com/ebitengine/purego), so **no C compiler and no
@@ -64,7 +64,7 @@ package main
 import (
     "fmt"
 
-    "github.com/x500x/iLink-SDK-rs/bindings/go/ilink"
+    "github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink"
 )
 
 func main() {

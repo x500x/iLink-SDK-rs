@@ -7,11 +7,11 @@
 ## 安装
 
 ```bash
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink
 ```
 
 发布于 Go module proxy：
-<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink>。
+<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink>。
 
 就这样，无需其它步骤：模块在运行时用
 [purego](https://github.com/ebitengine/purego) 加载原生库，因此**不需要 C 编译器，也不需要
@@ -58,7 +58,7 @@ package main
 import (
     "fmt"
 
-    "github.com/x500x/iLink-SDK-rs/bindings/go/ilink"
+    "github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink"
 )
 
 func main() {

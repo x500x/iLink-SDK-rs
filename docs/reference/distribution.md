@@ -16,7 +16,7 @@ Every published artifact is produced from a single git tag (`vX.Y.Z`).
 | Python | `ilink-sdk` wheel | PyPI | <https://pypi.org/project/ilink-sdk/> |
 | Java | `io.github.x500x:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
 | Kotlin | `io.github.x500x:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
-| Go | `…/bindings/go/ilink` module | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| Go | `…/bindings/go/v2/ilink` module | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink> |
 | C / C++ | native library + headers | GitHub Releases | <https://github.com/x500x/iLink-SDK-rs/releases> |
 
 The Maven `groupId` is `io.github.x500x`, the namespace GitHub verifies
@@ -67,9 +67,13 @@ if they disagree, and the release workflow refuses to publish when the tag and
 
    - syncs every manifest to `2.5.0` and verifies the tag matches;
    - builds the native library for all six platforms;
-   - builds a Python wheel per platform and publishes them to PyPI;
+   - builds a Python wheel per platform (each tagged from the bundled library:
+     a PEP 600 `manylinux_x_y` tag on Linux, the real architecture on macOS);
+   - uploads every wheel to PyPI from a single Linux job, because the PyPI
+     publishing action refuses to run elsewhere;
    - bundles every platform into one Java JAR and one Kotlin JAR, then deploys
-     them to Maven Central;
+     them to Maven Central (Maven plugin and nmcp respectively — both use the
+     Central Portal publisher API);
    - publishes the crate to crates.io;
    - attaches every native archive, wheel and JAR to the GitHub release;
    - creates the `bindings/go/v2.5.0` tag that `go get` needs for the Go
@@ -81,7 +85,9 @@ publishing; tick *publish* to push to the registries.
 Registry failures do not block the GitHub release: the PyPI, crates.io and
 Maven Central steps are `continue-on-error`, so a release still ships the native
 archives (which the Go download fallback depends on) even if a registry rejects
-the upload.
+the upload. Because that would otherwise let a release go green with nothing
+published, a final **Verify published artifacts** job re-checks crates.io, PyPI
+and both Maven Central artifacts and **fails** if any is missing.
 
 ## One-time registry setup
 
@@ -166,7 +172,7 @@ dependencies {
 
 ```bash
 # Go (pure Go, no cgo)
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink
 ```
 
 For C and C++, download the archive for your platform from the

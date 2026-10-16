@@ -31,7 +31,7 @@ char *out = ilink_call("login.start", "{}");   /* JSON 逃生通道 */
 | C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
 | Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
 | Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
-| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
+| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/v2/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink) |
 | Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.github.x500x:ilink-sdk`（Maven） | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) |
 | Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.github.x500x:ilink-sdk-kotlin`（Gradle） | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) |
 

@@ -15,7 +15,7 @@ Java/Kotlin 用类），因此常用流程无需手动解析结果 JSON。
 | C++ | [`bindings/cpp`](../../../bindings/cpp) | [C++ 指南](../../../bindings/cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | 已实测 |
 | Rust | crate 本体 | [API 手册](api.md) | `cargo add ilink-sdk` | 原生 |
 | Python | [`bindings/python`](../../../bindings/python) | [Python 指南](../../../bindings/python/README.zh.md) | `pip install ilink-sdk` | 已实测 |
-| Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | `go get .../bindings/go/ilink` | 已实测 |
+| Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | `go get .../bindings/go/v2/ilink` | 已实测 |
 | Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | `io.github.x500x:ilink-sdk`（Maven） | 已实测 |
 | Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | `io.github.x500x:ilink-sdk`（Gradle） | 已实测 |
 
@@ -31,7 +31,7 @@ Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能�
 | 语言 | 安装 | 仓库 | 原生库 |
 | --- | --- | --- | --- |
 | Python | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) | 打包进平台 wheel |
-| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) | 嵌入模块，用 purego 加载 |
+| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink) | 嵌入模块，用 purego 加载 |
 | Java | Maven `io.github.x500x:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) | 打包进 JAR，运行时解压 |
 | Kotlin | Gradle `io.github.x500x:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) | 打包进 JAR，运行时解压 |
 | C++ | `cmake --install bindings/cpp --prefix <dir>` | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) | 安装到头文件旁边 |
@@ -130,7 +130,7 @@ print(sent.message_id)
 ### Go
 
 ```go
-import "github.com/x500x/iLink-SDK-rs/bindings/go/ilink"
+import "github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink"
 
 var info struct{ Mime string `json:"mime"` }
 _ = ilink.CallInto("mime.info", map[string]any{"path": "photo.png"}, &info)

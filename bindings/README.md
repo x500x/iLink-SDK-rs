@@ -33,7 +33,7 @@ flows.
 | C++ | [`bindings/cpp`](cpp) | [C++ guide](cpp/README.md) | `find_package(ilink-sdk)` / pkg-config | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
 | Rust | crate root (`use ilink_sdk`) | [Rust docs](../docs/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
 | Python | [`bindings/python`](python) | [Python guide](python/README.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
-| Go | [`bindings/go`](go) | [Go guide](go/README.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
+| Go | [`bindings/go`](go) | [Go guide](go/README.md) | `go get .../bindings/go/v2/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink) |
 | Java | [`bindings/java`](java) | [Java guide](java/README.md) | `io.github.x500x:ilink-sdk` (Maven) | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) |
 | Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | `io.github.x500x:ilink-sdk-kotlin` (Gradle) | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) |
 

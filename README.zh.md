@@ -231,7 +231,7 @@ CI 在 Linux、macOS 和 Windows（x86_64 与 aarch64）上构建并测试，并
 | Python | `pip install ilink-sdk` | <https://pypi.org/project/ilink-sdk/> |
 | Java | `io.github.x500x:ilink-sdk` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
 | Kotlin | `io.github.x500x:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
-| Go | `go get .../bindings/go/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| Go | `go get .../bindings/go/v2/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink> |
 | C / C++ | 下载压缩包 | <https://github.com/x500x/iLink-SDK-rs/releases> |
 
 发版流程与所需 secrets 见 [发布与分发](docs/zh/reference/distribution.md)。
@@ -248,7 +248,7 @@ Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能�
 
 ```bash
 pip install ilink-sdk                    # Python
-go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go（纯 Go，无需 cgo）
+go get github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink   # Go（纯 Go，无需 cgo）
 ```
 
 | 语言 | 目录 | 安装 | 说明 |
@@ -257,7 +257,7 @@ go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go（纯 Go，无需 
 | C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only，RAII，类型化模型 |
 | Rust | crate 本体 | `cargo add ilink-sdk` | 原生 |
 | Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`，无依赖，dataclass |
-| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/ilink` | 纯 Go（purego），类型化 struct |
+| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/v2/ilink` | 纯 Go（purego），类型化 struct |
 | Java | [`bindings/java`](bindings/java) | Maven `io.github.x500x:ilink-sdk` | JNA，类型化模型 |
 | Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.github.x500x:ilink-sdk` | JNA，类型化 data class |
 

@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/x500x/iLink-SDK-rs/bindings/go/ilink"
+	"github.com/x500x/iLink-SDK-rs/bindings/go/v2/ilink"
 )
 
 func main() {

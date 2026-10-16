@@ -19,7 +19,9 @@ this once per OS/arch to publish platform wheels.
 from __future__ import annotations
 
 import os
+import re
 import shutil
+import struct
 import sys
 from pathlib import Path
 
@@ -35,7 +37,31 @@ except ImportError:  # pragma: no cover - wheel is a build requirement
 HERE = Path(__file__).resolve().parent
 REPO_ROOT = HERE.parent.parent
 
-#: Platform tag used when the host is not recognised by ``bdist_wheel``.
+#: ELF ``e_machine`` -> wheel architecture.
+_ELF_MACHINE = {
+    0x03: "i686",
+    0x28: "armv7l",
+    0x3E: "x86_64",
+    0xB7: "aarch64",
+    0xF3: "riscv64",
+}
+
+#: Mach-O ``cputype`` -> wheel architecture.
+_MACHO_CPU = {
+    7: "i386",
+    12: "armv7l",
+    0x01000007: "x86_64",
+    0x0100000C: "arm64",
+}
+
+#: PE ``Machine`` -> wheel platform.
+_PE_MACHINE = {
+    0x014C: "win32",
+    0x8664: "win_amd64",
+    0xAA64: "win_arm64",
+}
+
+#: Platform tag used when the bundled library cannot be inspected.
 _FALLBACK_PLAT = {
     "win32": "win_amd64",
     "darwin": "macosx_11_0_arm64",
@@ -76,21 +102,118 @@ def find_library() -> Path:
     )
 
 
+# ---------------------------------------------------------------------------
+# Platform tagging
+#
+# The wheel tag must describe the *native library that is bundled*, not the
+# build host. Deriving it from the host gets two things wrong:
+#
+#   * Linux wheels get the generic ``linux_x86_64`` tag, which PyPI rejects:
+#     it wants a PEP 600 ``manylinux_x_y`` tag that states the glibc floor.
+#   * macOS runners ship a universal2 Python, so ``bdist_wheel`` reports
+#     ``macosx_*_universal2`` even when the bundled dylib is a thin
+#     single-architecture build. Claiming universal2 would let pip install an
+#     x86_64-only dylib on Apple Silicon.
+#
+# So inspect the library itself and describe what it really is.
+# ---------------------------------------------------------------------------
+
+
+def _max_glibc(data: bytes) -> tuple[int, int] | None:
+    """The highest ``GLIBC_x.y`` version referenced by an ELF image."""
+    best: tuple[int, int] | None = None
+    for match in re.finditer(rb"GLIBC_(\d+)\.(\d+)", data):
+        version = (int(match.group(1)), int(match.group(2)))
+        if best is None or version > best:
+            best = version
+    return best
+
+
+def _elf_platform(data: bytes) -> str:
+    machine = struct.unpack_from("<H", data, 18)[0]
+    arch = _ELF_MACHINE.get(machine, "x86_64")
+    glibc = _max_glibc(data)
+    if glibc is None:
+        # Not linked against glibc (musl, or a static build): there is no
+        # manylinux floor to promise, so stay with the generic tag.
+        return f"linux_{arch}"
+    return f"manylinux_{glibc[0]}_{glibc[1]}_{arch}"
+
+
+def _macho_slices(data: bytes) -> list[tuple[int, tuple[int, int]]]:
+    """``(cputype, (major, minor))`` for each architecture in a Mach-O image."""
+    magic = struct.unpack_from(">I", data, 0)[0]
+    offsets: list[int] = []
+    if magic in (0xCAFEBABE, 0xCAFEBABF):  # fat binary
+        count = struct.unpack_from(">I", data, 4)[0]
+        for index in range(count):
+            offsets.append(struct.unpack_from(">I", data, 8 + 20 * index + 8)[0])
+    else:
+        offsets.append(0)
+
+    slices: list[tuple[int, tuple[int, int]]] = []
+    for offset in offsets:
+        cpu = struct.unpack_from("<i", data, offset + 4)[0] & 0xFFFFFFFF
+        ncmds = struct.unpack_from("<I", data, offset + 16)[0]
+        cursor = offset + 32
+        minimum = (10, 12)
+        for _ in range(ncmds):
+            cmd, size = struct.unpack_from("<II", data, cursor)
+            if cmd == 0x32:  # LC_BUILD_VERSION
+                raw = struct.unpack_from("<I", data, cursor + 12)[0]
+                minimum = (raw >> 16, (raw >> 8) & 0xFF)
+                break
+            if cmd == 0x24:  # LC_VERSION_MIN_MACOSX
+                raw = struct.unpack_from("<I", data, cursor + 8)[0]
+                minimum = (raw >> 16, (raw >> 8) & 0xFF)
+                break
+            cursor += size
+        slices.append((cpu, minimum))
+    return slices
+
+
+def _macho_platform(data: bytes) -> str:
+    slices = _macho_slices(data)
+    arches = {_MACHO_CPU.get(cpu, "x86_64") for cpu, _ in slices}
+    # A genuine universal2 build can run on both Intel and Apple Silicon.
+    if arches == {"x86_64", "arm64"}:
+        arch = "universal2"
+        # universal2 requires a deployment target of 11.0 or newer.
+        minimum = max(minimum for _, minimum in slices)
+        minimum = max(minimum, (11, 0))
+    else:
+        arch = next(iter(arches))
+        minimum = slices[0][1]
+        if arch == "arm64":
+            minimum = max(minimum, (11, 0))
+    return f"macosx_{minimum[0]}_{minimum[1]}_{arch}"
+
+
+def _pe_platform(data: bytes) -> str:
+    offset = struct.unpack_from("<I", data, 0x3C)[0]
+    machine = struct.unpack_from("<H", data, offset + 4)[0]
+    return _PE_MACHINE.get(machine, "win_amd64")
+
+
+def platform_tag(library: Path) -> str:
+    """The wheel platform tag describing ``library``."""
+    data = library.read_bytes()
+    if data[:4] == b"\x7fELF":
+        return _elf_platform(data)
+    if data[:2] == b"MZ":
+        return _pe_platform(data)
+    if struct.unpack_from(">I", data, 0)[0] in (0xCAFEBABE, 0xCAFEBABF) or \
+            struct.unpack_from("<I", data, 0)[0] in (0xFEEDFACE, 0xFEEDFACF):
+        return _macho_platform(data)
+    raise SystemExit(f"unrecognised binary format in {library}")
+
+
 def native_platform_tag() -> str:
-    """The wheel platform tag for the host, e.g. ``win_amd64``."""
-    if sys.platform == "win32":
-        import platform
-
-        machine = platform.machine().lower()
-        return "win_arm64" if machine in ("arm64", "aarch64") else "win_amd64"
-    if sys.platform == "darwin":
-        import platform
-
-        machine = platform.machine().lower()
-        return "macosx_11_0_arm64" if machine in ("arm64", "aarch64") else "macosx_10_12_x86_64"
-    # Linux: the CI builds inside a manylinux container, so the tag is already
-    # correct; a plain source build still needs *a* platform tag.
-    return _FALLBACK_PLAT.get(sys.platform, "manylinux2014_x86_64")
+    """Fallback tag for the host, used when the library cannot be inspected."""
+    try:
+        return platform_tag(find_library())
+    except SystemExit:
+        return _FALLBACK_PLAT.get(sys.platform, "manylinux2014_x86_64")
 
 
 class build_py(_build_py):
@@ -114,18 +237,20 @@ class build_py(_build_py):
 if _bdist_wheel is not None:
 
     class bdist_wheel(_bdist_wheel):  # type: ignore[misc, valid-type]
-        """Mark the wheel as platform-specific and tag it for the host."""
+        """Mark the wheel as platform-specific and tag it from the library."""
 
         def finalize_options(self) -> None:
             super().finalize_options()
             self.root_is_pure = False
-            if self.plat_name is None:
-                self.plat_name = native_platform_tag()
 
         def get_tag(self):  # type: ignore[override]
-            _python, _abi, plat = super().get_tag()
-            # ctypes works on any CPython 3.x, so the wheel is py3-none-<plat>.
-            return "py3", "none", plat
+            _python, _abi, _plat = super().get_tag()
+            # Ignore the platform tag setuptools derived from the *host*: on
+            # macOS that is the universal2 tag of the runner's Python, which
+            # would misdescribe a thin dylib. Describe the bundled library
+            # instead. ctypes works on any CPython 3.x, so the wheel is
+            # py3-none-<plat>.
+            return "py3", "none", native_platform_tag()
 
 else:  # pragma: no cover
     bdist_wheel = None

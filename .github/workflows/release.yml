@@ -224,6 +224,12 @@ jobs:
           names = zipfile.ZipFile(wheel).namelist()
           native = [n for n in names if n.endswith((".so", ".dylib", ".dll"))]
           assert native, f"no native library in {wheel}: {names}"
+          # PyPI rejects the generic `linux_x86_64` tag; setup.py derives a
+          # PEP 600 `manylinux_x_y` tag from the library's glibc symbols.
+          tag = wheel.rsplit("-", 1)[-1].removesuffix(".whl")
+          assert not tag.startswith("linux_"), (
+              f"{wheel} has the non-portable tag {tag!r}; PyPI will reject it"
+          )
           print(f"{wheel} bundles {native}")
           PY
 
@@ -233,14 +239,35 @@ jobs:
           path: bindings/python/dist/*.whl
           if-no-files-found: error
 
+  # Wheels are built per platform, but only one upload is needed. The PyPI
+  # action refuses to run outside Linux, so publishing happens here, in a single
+  # Linux job, after every wheel has been built.
+  pypi:
+    name: Publish to PyPI
+    needs: [prepare, python-wheels]
+    if: needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheel-*
+          path: wheels
+          merge-multiple: true
+
+      - name: Show the wheels
+        run: ls -la wheels
+
       - name: Publish to PyPI
-        if: needs.prepare.outputs.publish == 'true'
         # A registry hiccup must not block the GitHub release, which is what the
-        # Go download fallback and the C/C++ archives depend on.
+        # Go download fallback and the C/C++ archives depend on. The `verify`
+        # job reports any publish that did not land.
         continue-on-error: true
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: bindings/python/dist
+          packages-dir: wheels
           skip-existing: true
           # A configured API token wins (required for the very first upload of
           # a new project). With no token the action falls back to trusted
@@ -346,7 +373,10 @@ jobs:
             echo "::notice::MAVEN_CENTRAL_USERNAME not set; skipping Maven Central"
             exit 0
           fi
-          gradle -p bindings/kotlin publish
+          # Releases go through the Central Portal publisher API, which is what
+          # nmcp drives. A plain PUT to the maven-releases repository returns
+          # 404.
+          gradle -p bindings/kotlin publishAggregationToCentralPortal
 
       - uses: actions/upload-artifact@v4
         with:
@@ -408,6 +438,60 @@ jobs:
             exit 0
           fi
           CARGO_REGISTRY_TOKEN="$token" cargo publish --allow-dirty
+
+  # Every registry step is `continue-on-error` so a hiccup there cannot block
+  # the GitHub release (the Go download fallback and the C/C++ archives depend
+  # on it). That would otherwise let a release go green while nothing was
+  # actually published, so this job re-checks each registry afterwards and
+  # fails loudly if an artifact is missing.
+  verify:
+    name: Verify published artifacts
+    needs: [prepare, pypi, jvm-jars, crates-io]
+    if: always() && needs.prepare.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
+    steps:
+      - name: Check every registry
+        run: |
+          set -uo pipefail
+          version="$VERSION"
+          failed=0
+
+          check() {
+            local label="$1" url="$2"
+            local code
+            # crates.io answers 403 to requests without a User-Agent.
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 \
+              -H 'User-Agent: ilink-sdk-release-check' "$url" || echo 000)"
+            if [ "$code" = "200" ]; then
+              echo "  ok       $label"
+            else
+              echo "::error::$label is not published (HTTP $code): $url"
+              failed=1
+            fi
+          }
+
+          echo "Checking version $version"
+          check "crates.io" "https://crates.io/api/v1/crates/ilink-sdk/$version"
+          check "PyPI" "https://pypi.org/pypi/ilink-sdk/$version/json"
+          check "Maven (Java)" \
+            "https://repo1.maven.org/maven2/io/github/x500x/ilink-sdk/$version/ilink-sdk-$version.pom"
+          check "Maven (Kotlin)" \
+            "https://repo1.maven.org/maven2/io/github/x500x/ilink-sdk-kotlin/$version/ilink-sdk-kotlin-$version.pom"
+
+          # Central takes a few minutes to mirror to repo1; retry that pair.
+          if [ "$failed" = "1" ]; then
+            echo "Waiting for Maven Central to mirror, then retrying..."
+            sleep 120
+            failed=0
+            check "Maven (Java)" \
+              "https://repo1.maven.org/maven2/io/github/x500x/ilink-sdk/$version/ilink-sdk-$version.pom"
+            check "Maven (Kotlin)" \
+              "https://repo1.maven.org/maven2/io/github/x500x/ilink-sdk-kotlin/$version/ilink-sdk-kotlin-$version.pom"
+          fi
+
+          exit "$failed"
 
   release:
     name: Publish GitHub release

@@ -4,6 +4,10 @@ plugins {
     `maven-publish`
     signing
     application
+    // Publishes the staged bundle through the Central Portal publisher API.
+    // The settings plugin (settings.gradle.kts) supplies the version and the
+    // credentials.
+    id("com.gradleup.nmcp")
 }
 
 group = "io.github.x500x"
@@ -68,12 +72,12 @@ publishing {
         }
     }
     repositories {
-        // Sonatype Central Portal. Credentials come from the release workflow,
-        // which sets the ORG_GRADLE_PROJECT_centralUsername / ...centralPassword
-        // environment variables (Gradle maps those onto project properties).
+        // Snapshots only. Releases go through the Central Portal publisher API
+        // (nmcp), because a plain PUT to the maven-releases repository returns
+        // 404 -- see settings.gradle.kts.
         maven {
-            name = "central"
-            url = uri("https://central.sonatype.com/repository/maven-releases/")
+            name = "centralSnapshots"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
             credentials {
                 username = (findProperty("centralUsername") as String?) ?: ""
                 password = (findProperty("centralPassword") as String?) ?: ""
