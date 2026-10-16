@@ -24,8 +24,8 @@ void  ilink_string_free(char *ptr);
 | Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
 | Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
 | Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
-| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) |
-| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.ilink:ilink-sdk-kotlin`（Gradle） | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) |
+| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.github.x500x:ilink-sdk`（Maven） | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.github.x500x:ilink-sdk-kotlin`（Gradle） | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) |
 
 所有产物都从同一个 `vX.Y.Z` tag 发布；发版流程与各仓库地址见
 [发布与分发](../docs/zh/reference/distribution.md)。

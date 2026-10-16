@@ -16,8 +16,8 @@ Java/Kotlin 用类），因此常用流程无需手动解析结果 JSON。
 | Rust | crate 本体 | [API 手册](api.md) | `cargo add ilink-sdk` | 原生 |
 | Python | [`bindings/python`](../../../bindings/python) | [Python 指南](../../../bindings/python/README.zh.md) | `pip install ilink-sdk` | 已实测 |
 | Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | `go get .../bindings/go/ilink` | 已实测 |
-| Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | 已实测 |
-| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | `io.ilink:ilink-sdk`（Gradle） | 已实测 |
+| Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | `io.github.x500x:ilink-sdk`（Maven） | 已实测 |
+| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | `io.github.x500x:ilink-sdk`（Gradle） | 已实测 |
 
 每份语言指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
 context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。
@@ -32,8 +32,8 @@ Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能�
 | --- | --- | --- | --- |
 | Python | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) | 打包进平台 wheel |
 | Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) | 嵌入模块，用 purego 加载 |
-| Java | Maven `io.ilink:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) | 打包进 JAR，运行时解压 |
-| Kotlin | Gradle `io.ilink:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) | 打包进 JAR，运行时解压 |
+| Java | Maven `io.github.x500x:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) | 打包进 JAR，运行时解压 |
+| Kotlin | Gradle `io.github.x500x:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) | 打包进 JAR，运行时解压 |
 | C++ | `cmake --install bindings/cpp --prefix <dir>` | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) | 安装到头文件旁边 |
 | Rust | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) | 从源码构建 |
 

@@ -11,12 +11,12 @@
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("io.ilink:ilink-sdk-kotlin:2.4.10")
+    implementation("io.github.x500x:ilink-sdk-kotlin:2.4.10")
 }
 ```
 
 发布于 Maven Central：
-<https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin>。
+<https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin>。
 
 启动时加载器会挑选当前 OS/CPU 对应的内置库（JAR 内的
 `io/ilink/sdk/native/<platform>/`），解压到临时目录后把路径交给 JNA。如需覆盖，

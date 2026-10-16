@@ -12,14 +12,14 @@
 
 ```xml
 <dependency>
-  <groupId>io.ilink</groupId>
+  <groupId>io.github.x500x</groupId>
   <artifactId>ilink-sdk</artifactId>
   <version>2.4.10</version>
 </dependency>
 ```
 
 发布于 Maven Central：
-<https://central.sonatype.com/artifact/io.ilink/ilink-sdk>。
+<https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk>。
 
 启动时加载器会挑选当前 OS/CPU 对应的内置库（JAR 内的
 `io/ilink/sdk/native/<platform>/`），解压到临时目录后把路径交给 JNA。如需覆盖：

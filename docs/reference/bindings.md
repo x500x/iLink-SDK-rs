@@ -18,8 +18,8 @@ Java/Kotlin), so callers never hand-parse result JSON for the common flows.
 | Rust | crate root | [API handbook](api.md) | `cargo add ilink-sdk` | native |
 | Python | [`bindings/python`](../../bindings/python) | [Python guide](../../bindings/python/README.md) | `pip install ilink-sdk` | tested |
 | Go | [`bindings/go`](../../bindings/go) | [Go guide](../../bindings/go/README.md) | `go get .../bindings/go/ilink` | tested |
-| Java | [`bindings/java`](../../bindings/java) | [Java guide](../../bindings/java/README.md) | `io.ilink:ilink-sdk` (Maven) | tested |
-| Kotlin | [`bindings/kotlin`](../../bindings/kotlin) | [Kotlin guide](../../bindings/kotlin/README.md) | `io.ilink:ilink-sdk` (Gradle) | tested |
+| Java | [`bindings/java`](../../bindings/java) | [Java guide](../../bindings/java/README.md) | `io.github.x500x:ilink-sdk` (Maven) | tested |
+| Kotlin | [`bindings/kotlin`](../../bindings/kotlin) | [Kotlin guide](../../bindings/kotlin/README.md) | `io.github.x500x:ilink-sdk` (Gradle) | tested |
 
 Each per-language guide covers installing/locating the library, a quick start,
 the common workflows (QR login, sending and receiving, media, context tokens,
@@ -37,8 +37,8 @@ process.
 | --- | --- | --- | --- |
 | Python | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) | bundled in the platform wheel |
 | Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) | embedded, loaded with purego |
-| Java | Maven `io.ilink:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) | bundled in the JAR, extracted at runtime |
-| Kotlin | Gradle `io.ilink:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) | bundled in the JAR, extracted at runtime |
+| Java | Maven `io.github.x500x:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) | bundled in the JAR, extracted at runtime |
+| Kotlin | Gradle `io.github.x500x:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) | bundled in the JAR, extracted at runtime |
 | C++ | `cmake --install bindings/cpp --prefix <dir>` | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) | installed next to the headers |
 | Rust | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) | built from source |
 

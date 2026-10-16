@@ -12,12 +12,12 @@ right one at runtime, so no manual library setup is required.
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("io.ilink:ilink-sdk-kotlin:2.4.10")
+    implementation("io.github.x500x:ilink-sdk-kotlin:2.4.10")
 }
 ```
 
 Published on Maven Central:
-<https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin>.
+<https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin>.
 
 At startup the loader picks the bundled library for the current OS/CPU
 (`io/ilink/sdk/native/<platform>/` inside the JAR), extracts it to a temporary

@@ -25,8 +25,8 @@ Java/Kotlin) so callers never hand-parse result JSON for the common flows.
 | Rust | crate root (`use ilink_sdk`) | [Rust docs](../docs/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
 | Python | [`bindings/python`](python) | [Python guide](python/README.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
 | Go | [`bindings/go`](go) | [Go guide](go/README.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
-| Java | [`bindings/java`](java) | [Java guide](java/README.md) | `io.ilink:ilink-sdk` (Maven) | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) |
-| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | `io.ilink:ilink-sdk-kotlin` (Gradle) | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) |
+| Java | [`bindings/java`](java) | [Java guide](java/README.md) | `io.github.x500x:ilink-sdk` (Maven) | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk) |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | `io.github.x500x:ilink-sdk-kotlin` (Gradle) | [Maven Central](https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin) |
 
 Every artifact is published from the same `vX.Y.Z` tag; the release process and
 registry URLs are documented in

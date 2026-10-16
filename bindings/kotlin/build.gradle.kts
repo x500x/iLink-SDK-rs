@@ -6,7 +6,7 @@ plugins {
     application
 }
 
-group = "io.ilink"
+group = "io.github.x500x"
 version = "2.4.10"
 
 repositories {

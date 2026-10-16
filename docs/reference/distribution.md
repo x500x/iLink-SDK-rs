@@ -14,10 +14,14 @@ Every published artifact is produced from a single git tag (`vX.Y.Z`).
 | --- | --- | --- | --- |
 | Rust | `ilink-sdk` crate | crates.io | <https://crates.io/crates/ilink-sdk> |
 | Python | `ilink-sdk` wheel | PyPI | <https://pypi.org/project/ilink-sdk/> |
-| Java | `io.ilink:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk> |
-| Kotlin | `io.ilink:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin> |
+| Java | `io.github.x500x:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
+| Kotlin | `io.github.x500x:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
 | Go | `…/bindings/go/ilink` module | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
 | C / C++ | native library + headers | GitHub Releases | <https://github.com/x500x/iLink-SDK-rs/releases> |
+
+The Maven `groupId` is `io.github.x500x`, the namespace GitHub verifies
+automatically. The Java package name stays `io.ilink.sdk`; the two are
+independent.
 
 GitHub Releases is the source of truth for the raw native libraries
 (`ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`, the import/static
@@ -96,7 +100,7 @@ pip install ilink-sdk        # Python
 ```xml
 <!-- Java -->
 <dependency>
-  <groupId>io.ilink</groupId>
+  <groupId>io.github.x500x</groupId>
   <artifactId>ilink-sdk</artifactId>
   <version>2.5.0</version>
 </dependency>
@@ -105,7 +109,7 @@ pip install ilink-sdk        # Python
 ```kotlin
 // Kotlin
 dependencies {
-    implementation("io.ilink:ilink-sdk-kotlin:2.5.0")
+    implementation("io.github.x500x:ilink-sdk-kotlin:2.5.0")
 }
 ```
 

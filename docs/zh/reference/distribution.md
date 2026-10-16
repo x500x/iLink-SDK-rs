@@ -13,10 +13,13 @@
 | --- | --- | --- | --- |
 | Rust | `ilink-sdk` crate | crates.io | <https://crates.io/crates/ilink-sdk> |
 | Python | `ilink-sdk` wheel | PyPI | <https://pypi.org/project/ilink-sdk/> |
-| Java | `io.ilink:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk> |
-| Kotlin | `io.ilink:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin> |
+| Java | `io.github.x500x:ilink-sdk` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
+| Kotlin | `io.github.x500x:ilink-sdk-kotlin` | Maven Central | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
 | Go | `…/bindings/go/ilink` 模块 | Go module proxy | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
 | C / C++ | 原生库 + 头文件 | GitHub Releases | <https://github.com/x500x/iLink-SDK-rs/releases> |
+
+Maven 的 `groupId` 用 `io.github.x500x`，这是 GitHub 自动验证的命名空间。Java 包名仍为
+`io.ilink.sdk`，两者互不相关。
 
 原生库（`ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`、导入库/静态库以及
 `ilink_sdk.h`）以 GitHub Releases 为准，覆盖六个平台：`linux-x86_64`、
@@ -90,7 +93,7 @@ pip install ilink-sdk        # Python
 ```xml
 <!-- Java -->
 <dependency>
-  <groupId>io.ilink</groupId>
+  <groupId>io.github.x500x</groupId>
   <artifactId>ilink-sdk</artifactId>
   <version>2.5.0</version>
 </dependency>
@@ -99,7 +102,7 @@ pip install ilink-sdk        # Python
 ```kotlin
 // Kotlin
 dependencies {
-    implementation("io.ilink:ilink-sdk-kotlin:2.5.0")
+    implementation("io.github.x500x:ilink-sdk-kotlin:2.5.0")
 }
 ```
 

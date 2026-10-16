@@ -13,14 +13,14 @@ Add the dependency to your build:
 
 ```xml
 <dependency>
-  <groupId>io.ilink</groupId>
+  <groupId>io.github.x500x</groupId>
   <artifactId>ilink-sdk</artifactId>
   <version>2.4.10</version>
 </dependency>
 ```
 
 Published on Maven Central:
-<https://central.sonatype.com/artifact/io.ilink/ilink-sdk>.
+<https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk>.
 
 At startup the loader picks the bundled library for the current OS/CPU
 (`io/ilink/sdk/native/<platform>/` inside the JAR), extracts it to a temporary

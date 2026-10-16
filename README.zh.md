@@ -214,8 +214,8 @@ CI 在 Linux、macOS 和 Windows（x86_64 与 aarch64）上构建并测试，并
 | --- | --- | --- |
 | Rust | `cargo add ilink-sdk` | <https://crates.io/crates/ilink-sdk> |
 | Python | `pip install ilink-sdk` | <https://pypi.org/project/ilink-sdk/> |
-| Java | `io.ilink:ilink-sdk` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk> |
-| Kotlin | `io.ilink:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin> |
+| Java | `io.github.x500x:ilink-sdk` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk> |
+| Kotlin | `io.github.x500x:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.github.x500x/ilink-sdk-kotlin> |
 | Go | `go get .../bindings/go/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
 | C / C++ | 下载压缩包 | <https://github.com/x500x/iLink-SDK-rs/releases> |
 
@@ -243,8 +243,8 @@ go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go（纯 Go，无需 
 | Rust | crate 本体 | `cargo add ilink-sdk` | 原生 |
 | Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`，无依赖，dataclass |
 | Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/ilink` | 纯 Go（purego），类型化 struct |
-| Java | [`bindings/java`](bindings/java) | Maven `io.ilink:ilink-sdk` | JNA，类型化模型 |
-| Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.ilink:ilink-sdk` | JNA，类型化 data class |
+| Java | [`bindings/java`](bindings/java) | Maven `io.github.x500x:ilink-sdk` | JNA，类型化模型 |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.github.x500x:ilink-sdk` | JNA，类型化 data class |
 
 ```python
 # Python
