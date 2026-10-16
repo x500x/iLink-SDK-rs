@@ -1,7 +1,9 @@
 // Command example is a tiny Go consumer of the iLink SDK bindings.
 //
-// Build the library first (from the repository root): cargo build --release
-// Then: cd bindings/go && go run ./examples
+// Run it directly; the native library is resolved automatically (see the
+// package documentation):
+//
+//	cd bindings/go && go run ./examples
 package main
 
 import (
