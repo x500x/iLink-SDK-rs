@@ -213,11 +213,18 @@ impl QuoteStore {
         )
         .map_err(sqlite)?;
 
+        // Set the busy timeout *before* touching the journal mode. Switching a
+        // fresh database into WAL needs a lock on it, so with the default zero
+        // timeout two callers racing to create the store would fail with
+        // "database is locked" instead of one waiting for the other.
+        conn.busy_timeout(std::time::Duration::from_millis(5000))
+            .map_err(sqlite)?;
+
+        enable_wal(&conn)?;
+
         conn.execute_batch(
             r#"
-            PRAGMA journal_mode = WAL;
             PRAGMA synchronous = NORMAL;
-            PRAGMA busy_timeout = 5000;
             CREATE TABLE IF NOT EXISTS quote_messages (
                 account_id TEXT NOT NULL,
                 conversation_id TEXT NOT NULL,
@@ -661,6 +668,35 @@ fn io(err: std::io::Error) -> Error {
     Error::from(err)
 }
 
+/// Switch the database into WAL mode.
+///
+/// `PRAGMA journal_mode = WAL` deliberately ignores `busy_timeout`: SQLite
+/// returns `SQLITE_BUSY` immediately rather than waiting, because waiting could
+/// deadlock against another connection that holds the lock while waiting for
+/// this one. That means two processes (or threads) opening the same fresh
+/// database at once make the loser fail with "database is locked".
+///
+/// Retry briefly instead, and treat "already in WAL" as success. Once one
+/// caller has switched the database, every later `PRAGMA journal_mode = WAL`
+/// returns `wal` without needing the exclusive lock.
+fn enable_wal(conn: &Connection) -> Result<()> {
+    const ATTEMPTS: u32 = 50;
+    let mut last = String::new();
+    for attempt in 0..ATTEMPTS {
+        match conn.query_row("PRAGMA journal_mode = WAL", [], |row| {
+            row.get::<_, String>(0)
+        }) {
+            Ok(mode) if mode.eq_ignore_ascii_case("wal") => return Ok(()),
+            Ok(mode) => last = format!("journal_mode is {mode}, expected wal"),
+            Err(err) => last = err.to_string(),
+        }
+        if attempt + 1 < ATTEMPTS {
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        }
+    }
+    Err(Error::unknown(format!("could not enable WAL: {last}")))
+}
+
 fn sqlite(err: rusqlite::Error) -> Error {
     Error::from(err)
 }
@@ -670,6 +706,37 @@ mod tests {
     use super::*;
 
     const BACKSLASH: char = '\\';
+
+    /// Opening the same fresh database from several threads at once must not
+    /// fail: switching a new database into WAL returns SQLITE_BUSY immediately
+    /// (it deliberately ignores `busy_timeout`), so the opener has to retry.
+    #[test]
+    fn concurrent_open_does_not_fail() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("root");
+        let media = dir.path().join("media");
+        let barrier = std::sync::Arc::new(std::sync::Barrier::new(8));
+
+        let handles: Vec<_> = (0..8)
+            .map(|_| {
+                let root = root.clone();
+                let media = media.clone();
+                let barrier = barrier.clone();
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    QuoteStore::open_at(QuoteCachePolicy::default(), &root, &media)
+                        .map(|_| ())
+                        .map_err(|e| e.to_string())
+                })
+            })
+            .collect();
+
+        let failures: Vec<String> = handles
+            .into_iter()
+            .filter_map(|h| h.join().unwrap().err())
+            .collect();
+        assert!(failures.is_empty(), "concurrent open failed: {failures:?}");
+    }
 
     fn test_store() -> (tempfile::TempDir, QuoteStore) {
         let dir = tempfile::tempdir().unwrap();
