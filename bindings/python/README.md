@@ -12,6 +12,8 @@ with no Rust toolchain and no manual library setup.
 pip install ilink-sdk
 ```
 
+Published on PyPI: <https://pypi.org/project/ilink-sdk/>.
+
 That installs a platform wheel (`ilink_sdk.dll` / `libilink_sdk.so` /
 `libilink_sdk.dylib` is inside the package). The loader looks for the library in
 this order, so you can override it when needed:

@@ -29,15 +29,18 @@ sync cursor, session guard, quote cache) and the full list of typed helpers.
 
 The Python, Go, Java and Kotlin packages bundle the native library, so installing
 the binding is enough. C and C++ link the library that `cargo build --release`
-produces.
+produces. Every artifact is published from the same `vX.Y.Z` tag — see
+[Releases & distribution](distribution.md) for the registry URLs and the release
+process.
 
-| Language | Install | Native library |
-| --- | --- | --- |
-| Python | `pip install ilink-sdk` | bundled in the platform wheel |
-| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | embedded, loaded with purego |
-| Java | Maven `io.ilink:ilink-sdk` | bundled in the JAR, extracted at runtime |
-| Kotlin | Gradle `io.ilink:ilink-sdk` | bundled in the JAR, extracted at runtime |
-| C++ | `cmake --install bindings/cpp --prefix <dir>` | installed next to the headers |
+| Language | Install | Registry | Native library |
+| --- | --- | --- | --- |
+| Python | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) | bundled in the platform wheel |
+| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) | embedded, loaded with purego |
+| Java | Maven `io.ilink:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) | bundled in the JAR, extracted at runtime |
+| Kotlin | Gradle `io.ilink:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) | bundled in the JAR, extracted at runtime |
+| C++ | `cmake --install bindings/cpp --prefix <dir>` | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) | installed next to the headers |
+| Rust | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) | built from source |
 
 ## Building the native library from source
 

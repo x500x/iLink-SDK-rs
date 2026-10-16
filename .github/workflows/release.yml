@@ -1,9 +1,17 @@
 name: Release
 
+# A tag push (`v*`) builds everything and publishes to every registry
+# automatically. A manual run builds the artifacts and only publishes when the
+# `publish` input is checked.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Also publish to crates.io / PyPI / Maven Central"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -12,8 +20,55 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # Derive the version from the tag (or Cargo.toml) and make every manifest
+  # agree, so the crate, wheels and JARs are all published with the same number.
+  prepare:
+    name: Prepare version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Resolve and sync the version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#v}"
+            publish=true
+          else
+            version="$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)"
+            publish="${{ inputs.publish }}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          python bindings/scripts/set_version.py "$version"
+          python bindings/scripts/set_version.py --check
+          echo "releasing $version (publish=$publish)"
+
+      # A tag release must not silently publish a different version than the
+      # one committed in the tree.
+      - name: Fail if the tag and Cargo.toml disagree
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          set -euo pipefail
+          declared="$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)"
+          if [ "$declared" != "${{ steps.version.outputs.version }}" ]; then
+            echo "::error::tag v${{ steps.version.outputs.version }} but Cargo.toml says $declared"
+            exit 1
+          fi
+
   libraries:
     name: Libraries (${{ matrix.artifact }})
+    needs: prepare
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -107,8 +162,7 @@ jobs:
 
   python-wheels:
     name: Python wheel (${{ matrix.artifact }})
-    needs: libraries
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [prepare, libraries]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -139,10 +193,24 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --quiet --upgrade build
+          python bindings/scripts/set_version.py "${{ needs.prepare.outputs.version }}"
           # Point setup.py at the library built by the `libraries` job.
           lib=$(find native -maxdepth 1 -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) | head -n1)
           echo "bundling $lib"
           ILINK_SDK_LIB="$lib" python -m build --wheel bindings/python
+
+      - name: Verify the wheel bundles the library
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import glob, zipfile
+          wheel = glob.glob("bindings/python/dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          native = [n for n in names if n.endswith((".so", ".dylib", ".dll"))]
+          assert native, f"no native library in {wheel}: {names}"
+          print(f"{wheel} bundles {native}")
+          PY
 
       - uses: actions/upload-artifact@v4
         with:
@@ -150,11 +218,22 @@ jobs:
           path: bindings/python/dist/*.whl
           if-no-files-found: error
 
+      - name: Publish to PyPI
+        if: needs.prepare.outputs.publish == 'true'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: bindings/python/dist
+          # Trusted publishing (OIDC) works with no secret; set PYPI_API_TOKEN
+          # to fall back to an API token instead.
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
+
   jvm-jars:
     name: JVM JARs (Java + Kotlin)
-    needs: libraries
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [prepare, libraries]
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.prepare.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
@@ -162,6 +241,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+          server-id: central
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
       - uses: actions/download-artifact@v4
         with:
@@ -185,7 +269,21 @@ jobs:
           find bindings/java/src/main/resources bindings/kotlin/src/main/resources -type f
 
       - name: Build the Java JAR
-        run: mvn -q -f bindings/java/pom.xml package -DskipTests
+        run: mvn -B -f bindings/java/pom.xml package
+
+      - name: Publish the Java JAR to Maven Central
+        if: needs.prepare.outputs.publish == 'true'
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MAVEN_USERNAME:-}" ]; then
+            echo "::notice::MAVEN_CENTRAL_USERNAME not set; skipping Maven Central"
+            exit 0
+          fi
+          mvn -B -Prelease -f bindings/java/pom.xml deploy
 
       - name: Build the Kotlin JAR
         run: |
@@ -200,8 +298,28 @@ jobs:
               $(find bindings/kotlin/src/main/kotlin -name '*.kt')
           cp -r bindings/kotlin/src/main/resources/* /tmp/kout/
           mkdir -p bindings/kotlin/build
-          jar cf bindings/kotlin/build/ilink-sdk-kotlin-2.4.10.jar -C /tmp/kout .
+          jar cf "bindings/kotlin/build/ilink-sdk-kotlin-${VERSION}.jar" -C /tmp/kout .
           ls -la bindings/kotlin/build/*.jar
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Publish the Kotlin JAR to Maven Central
+        if: needs.prepare.outputs.publish == 'true'
+        env:
+          ORG_GRADLE_PROJECT_centralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_centralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          GPG_SIGNING_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          GPG_SIGNING_PASSWORD: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ORG_GRADLE_PROJECT_centralUsername:-}" ]; then
+            echo "::notice::MAVEN_CENTRAL_USERNAME not set; skipping Maven Central"
+            exit 0
+          fi
+          gradle -p bindings/kotlin publish
 
       - uses: actions/upload-artifact@v4
         with:
@@ -211,10 +329,38 @@ jobs:
             bindings/kotlin/build/*.jar
           if-no-files-found: error
 
+  # crates.io is the only registry that is pure Rust, so it publishes the crate
+  # itself (the Rust API, the C ABI and the CLI).
+  crates-io:
+    name: Publish to crates.io
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "${{ needs.prepare.outputs.publish }}" != "true" ]; then
+            echo "::notice::dry-run (publish not requested)"
+            cargo publish --dry-run --allow-dirty
+          elif [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
+            echo "::notice::CARGO_REGISTRY_TOKEN not set; running a dry-run instead"
+            cargo publish --dry-run --allow-dirty
+          else
+            cargo publish --allow-dirty
+          fi
+
   release:
-    name: Publish release
-    needs: [libraries, python-wheels, jvm-jars]
-    if: startsWith(github.ref, 'refs/tags/')
+    name: Publish GitHub release
+    needs: [prepare, libraries, python-wheels, jvm-jars]
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -246,10 +392,7 @@ jobs:
       # `bindings/go/vX.Y.Z` for `go get` to resolve them. Create it pointing at
       # the same commit as the release tag.
       - name: Tag the Go submodule
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME}"
-          git tag "bindings/go/${version}" "${GITHUB_SHA}"
-          git push origin "bindings/go/${version}"
+          git tag "bindings/go/${GITHUB_REF_NAME}" "${GITHUB_SHA}"
+          git push origin "bindings/go/${GITHUB_REF_NAME}"

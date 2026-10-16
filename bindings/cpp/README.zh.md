@@ -7,8 +7,11 @@
 
 ## 安装
 
-封装本身是 header-only，唯一构建产物是原生库。最省事的接入方式是用本目录里的 CMake
-包：
+封装本身是 header-only，唯一构建产物是原生库。预编译压缩包在
+[releases 页面](https://github.com/x500x/iLink-SDK-rs/releases)（每平台一个，内含共享库/
+静态库与 `ilink_sdk.h`）。
+
+从源码接入最省事的方式是用本目录里的 CMake 包：
 
 ```bash
 cargo build --release                    # 在仓库根目录执行

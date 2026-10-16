@@ -17,15 +17,18 @@ void  ilink_string_free(char *ptr);
 自然的值类型（Python 用 dataclass，Go/C++ 用 struct，Java/Kotlin 用类），因此常用流程
 无需手动解析结果 JSON。
 
-| 语言 | 目录 | 指南 | 安装方式 | 状态 |
+| 语言 | 目录 | 指南 | 安装方式 | 仓库 |
 | --- | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | [C ABI](../docs/zh/reference/ffi.md) | 链接库 | 参考实现 |
-| C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | 已实测 |
-| Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | `cargo add ilink-sdk` | 原生 |
-| Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | `pip install ilink-sdk` | 已实测 |
-| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/ilink` | 已实测 |
-| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | 已实测 |
-| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.ilink:ilink-sdk`（Gradle） | 已实测 |
+| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | [C ABI](../docs/zh/reference/ffi.md) | 链接库 | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
+| C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
+| Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
+| Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
+| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
+| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.ilink:ilink-sdk-kotlin`（Gradle） | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) |
+
+所有产物都从同一个 `vX.Y.Z` tag 发布；发版流程与各仓库地址见
+[发布与分发](../docs/zh/reference/distribution.md)。
 
 每份指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
 context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。

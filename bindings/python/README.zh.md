@@ -11,6 +11,8 @@
 pip install ilink-sdk
 ```
 
+发布于 PyPI：<https://pypi.org/project/ilink-sdk/>。
+
 安装的是平台 wheel（`ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`
 就在包内）。加载器按以下顺序查找库，必要时可覆盖：
 

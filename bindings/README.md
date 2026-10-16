@@ -18,15 +18,19 @@ language: each binding only decodes the shared JSON into the natural value type
 of that language (dataclasses in Python, structs in Go/C++, classes in
 Java/Kotlin) so callers never hand-parse result JSON for the common flows.
 
-| Language | Directory | Guide | Install | Status |
+| Language | Directory | Guide | Install | Registry |
 | --- | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h), [`examples/c`](../examples/c) | [C ABI](../docs/reference/ffi.md) | link the library | reference |
-| C++ | [`bindings/cpp`](cpp) | [C++ guide](cpp/README.md) | `find_package(ilink-sdk)` / pkg-config | tested |
-| Rust | crate root (`use ilink_sdk`) | [Rust docs](../docs/reference/api.md) | `cargo add ilink-sdk` | native |
-| Python | [`bindings/python`](python) | [Python guide](python/README.md) | `pip install ilink-sdk` | tested |
-| Go | [`bindings/go`](go) | [Go guide](go/README.md) | `go get .../bindings/go/ilink` | tested |
-| Java | [`bindings/java`](java) | [Java guide](java/README.md) | `io.ilink:ilink-sdk` (Maven) | tested |
-| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | `io.ilink:ilink-sdk` (Gradle) | tested |
+| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h), [`examples/c`](../examples/c) | [C ABI](../docs/reference/ffi.md) | link the library | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
+| C++ | [`bindings/cpp`](cpp) | [C++ guide](cpp/README.md) | `find_package(ilink-sdk)` / pkg-config | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) |
+| Rust | crate root (`use ilink_sdk`) | [Rust docs](../docs/reference/api.md) | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) |
+| Python | [`bindings/python`](python) | [Python guide](python/README.md) | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) |
+| Go | [`bindings/go`](go) | [Go guide](go/README.md) | `go get .../bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) |
+| Java | [`bindings/java`](java) | [Java guide](java/README.md) | `io.ilink:ilink-sdk` (Maven) | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | `io.ilink:ilink-sdk-kotlin` (Gradle) | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) |
+
+Every artifact is published from the same `vX.Y.Z` tag; the release process and
+registry URLs are documented in
+[Releases & distribution](../docs/reference/distribution.md).
 
 Each guide covers installing/locating the library, a quick start, the common
 workflows (QR login, sending and receiving, media, context tokens, sync cursor,

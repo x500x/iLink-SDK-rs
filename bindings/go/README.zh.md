@@ -10,6 +10,9 @@
 go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
 ```
 
+发布于 Go module proxy：
+<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink>。
+
 就这样，无需其它步骤：模块在运行时用
 [purego](https://github.com/ebitengine/purego) 加载原生库，因此**不需要 C 编译器，也不需要
 `cargo build`**。当模块未携带当前平台的内置副本时，会自动从对应的

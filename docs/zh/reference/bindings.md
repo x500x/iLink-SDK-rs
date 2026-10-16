@@ -25,15 +25,17 @@ context token、同步游标、会话守卫、引用缓存）以及全部类型�
 ## 安装绑定
 
 Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能用。C 和 C++ 则链接
-`cargo build --release` 产出的库。
+`cargo build --release` 产出的库。所有产物都从同一个 `vX.Y.Z` tag 发布——各仓库地址与
+发版流程见 [发布与分发](distribution.md)。
 
-| 语言 | 安装 | 原生库 |
-| --- | --- | --- |
-| Python | `pip install ilink-sdk` | 打包进平台 wheel |
-| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | 嵌入模块，用 purego 加载 |
-| Java | Maven `io.ilink:ilink-sdk` | 打包进 JAR，运行时解压 |
-| Kotlin | Gradle `io.ilink:ilink-sdk` | 打包进 JAR，运行时解压 |
-| C++ | `cmake --install bindings/cpp --prefix <dir>` | 安装到头文件旁边 |
+| 语言 | 安装 | 仓库 | 原生库 |
+| --- | --- | --- | --- |
+| Python | `pip install ilink-sdk` | [PyPI](https://pypi.org/project/ilink-sdk/) | 打包进平台 wheel |
+| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | [pkg.go.dev](https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink) | 嵌入模块，用 purego 加载 |
+| Java | Maven `io.ilink:ilink-sdk` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk) | 打包进 JAR，运行时解压 |
+| Kotlin | Gradle `io.ilink:ilink-sdk-kotlin` | [Maven Central](https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin) | 打包进 JAR，运行时解压 |
+| C++ | `cmake --install bindings/cpp --prefix <dir>` | [GitHub Releases](https://github.com/x500x/iLink-SDK-rs/releases) | 安装到头文件旁边 |
+| Rust | `cargo add ilink-sdk` | [crates.io](https://crates.io/crates/ilink-sdk) | 从源码构建 |
 
 ## 从源码构建原生库
 

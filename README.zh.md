@@ -206,6 +206,21 @@ CI 在 Linux、macOS 和 Windows（x86_64 与 aarch64）上构建并测试，并
 [`.github/workflows/release.yml`](.github/workflows/release.yml)）。macOS 上会把 dylib
 的 install name 改写为 `@rpath/libilink_sdk.dylib`，以便打包进 app bundle。
 
+## 安装
+
+所有已发布产物都来自同一个 `vX.Y.Z` tag：
+
+| 生态 | 安装 | 仓库 |
+| --- | --- | --- |
+| Rust | `cargo add ilink-sdk` | <https://crates.io/crates/ilink-sdk> |
+| Python | `pip install ilink-sdk` | <https://pypi.org/project/ilink-sdk/> |
+| Java | `io.ilink:ilink-sdk` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk> |
+| Kotlin | `io.ilink:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin> |
+| Go | `go get .../bindings/go/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| C / C++ | 下载压缩包 | <https://github.com/x500x/iLink-SDK-rs/releases> |
+
+发版流程与所需 secrets 见 [发布与分发](docs/zh/reference/distribution.md)。
+
 ## 多语言绑定
 
 除 Rust 和 C 外，还提供了 Go、Python、C++、Java、Kotlin 的薄绑定。它们都是同一套

@@ -11,6 +11,9 @@ over the shared library's JSON C ABI.
 go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
 ```
 
+Published on the Go module proxy:
+<https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink>.
+
 That is all you need: the module loads the native library at runtime with
 [purego](https://github.com/ebitengine/purego), so **no C compiler and no
 `cargo build` are required**. When the module does not carry an embedded copy

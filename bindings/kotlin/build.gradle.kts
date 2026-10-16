@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.0.21"
     `java-library`
     `maven-publish`
+    signing
     application
 }
 
@@ -40,6 +41,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            artifactId = "ilink-sdk-kotlin"
             pom {
                 name.set("iLink SDK (Kotlin)")
                 description.set(
@@ -52,11 +54,42 @@ publishing {
                         url.set("https://opensource.org/licenses/MIT")
                     }
                 }
+                developers {
+                    developer {
+                        name.set("iLink SDK contributors")
+                        organizationUrl.set("https://github.com/x500x/iLink-SDK-rs")
+                    }
+                }
                 scm {
                     connection.set("scm:git:https://github.com/x500x/iLink-SDK-rs.git")
                     url.set("https://github.com/x500x/iLink-SDK-rs")
                 }
             }
         }
+    }
+    repositories {
+        // Sonatype Central Portal. Credentials come from the release workflow,
+        // which sets the ORG_GRADLE_PROJECT_centralUsername / ...centralPassword
+        // environment variables (Gradle maps those onto project properties).
+        maven {
+            name = "central"
+            url = uri("https://central.sonatype.com/repository/maven-releases/")
+            credentials {
+                username = (findProperty("centralUsername") as String?) ?: ""
+                password = (findProperty("centralPassword") as String?) ?: ""
+            }
+        }
+    }
+}
+
+// Signing is enabled only when the release workflow supplies a key, so a plain
+// `./gradlew build` works without one.
+signing {
+    val key = System.getenv("GPG_SIGNING_KEY")
+    val password = System.getenv("GPG_SIGNING_PASSWORD")
+    isRequired = key != null
+    if (key != null) {
+        useInMemoryPgpKeys(key, password)
+        sign(publishing.publications)
     }
 }

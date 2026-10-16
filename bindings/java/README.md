@@ -19,6 +19,9 @@ Add the dependency to your build:
 </dependency>
 ```
 
+Published on Maven Central:
+<https://central.sonatype.com/artifact/io.ilink/ilink-sdk>.
+
 At startup the loader picks the bundled library for the current OS/CPU
 (`io/ilink/sdk/native/<platform>/` inside the JAR), extracts it to a temporary
 directory and hands the path to JNA. To override:

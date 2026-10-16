@@ -99,6 +99,9 @@ jobs:
       - name: Build shared library
         run: cargo build --release --lib
 
+      - name: Version numbers agree across manifests
+        run: python3 bindings/scripts/set_version.py --check
+
       - name: Python bindings
         run: PYTHONPATH=bindings/python python3 bindings/python/tests/test_smoke.py
 
@@ -283,3 +286,64 @@ jobs:
           name: ilink-sdk-${{ matrix.artifact }}
           path: dist/*
           if-no-files-found: error
+
+  # Validate everything a release would publish, without publishing. This
+  # catches a broken manifest, a crate that does not package cleanly, or a
+  # missing native library before a tag is cut.
+  packaging:
+    name: Packaging
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+          cache: false
+
+      - name: Version numbers agree across manifests
+        run: python3 bindings/scripts/set_version.py --check
+
+      - name: The crate packages cleanly
+        run: cargo publish --dry-run --allow-dirty
+
+      - name: Python metadata builds
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet --upgrade build twine
+          python3 -m build --sdist bindings/python
+          python3 -m twine check bindings/python/dist/*
+
+      - name: Java POM is valid
+        run: mvn -B -f bindings/java/pom.xml help:effective-pom -Doutput=/tmp/effective-pom.xml
+
+      - name: Kotlin build script is valid
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/gradle.zip \
+              https://services.gradle.org/distributions/gradle-8.10.2-bin.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          /tmp/gradle-8.10.2/bin/gradle -p bindings/kotlin tasks --quiet
+
+      - name: Go module is tidy
+        working-directory: bindings/go
+        run: |
+          set -euo pipefail
+          cp go.mod /tmp/go.mod.bak
+          cp go.sum /tmp/go.sum.bak
+          go mod tidy
+          diff -u /tmp/go.mod.bak go.mod
+          diff -u /tmp/go.sum.bak go.sum

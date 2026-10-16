@@ -219,6 +219,22 @@ and [`.github/workflows/release.yml`](.github/workflows/release.yml)). On macOS
 the dylib's install name is rewritten to `@rpath/libilink_sdk.dylib` so it can
 be bundled into an app bundle.
 
+## Install
+
+Every published artifact comes from the same `vX.Y.Z` tag:
+
+| Ecosystem | Install | Registry |
+| --- | --- | --- |
+| Rust | `cargo add ilink-sdk` | <https://crates.io/crates/ilink-sdk> |
+| Python | `pip install ilink-sdk` | <https://pypi.org/project/ilink-sdk/> |
+| Java | `io.ilink:ilink-sdk` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk> |
+| Kotlin | `io.ilink:ilink-sdk-kotlin` | <https://central.sonatype.com/artifact/io.ilink/ilink-sdk-kotlin> |
+| Go | `go get .../bindings/go/ilink` | <https://pkg.go.dev/github.com/x500x/iLink-SDK-rs/bindings/go/ilink> |
+| C / C++ | download the archive | <https://github.com/x500x/iLink-SDK-rs/releases> |
+
+See [Releases & distribution](docs/reference/distribution.md) for the release
+process and the required secrets.
+
 ## Language bindings
 
 Besides Rust and C, thin bindings are provided for Go, Python, C++, Java and

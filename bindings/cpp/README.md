@@ -8,7 +8,12 @@ beyond a C++17 compiler and the native `ilink_sdk` library.
 ## Install
 
 The wrapper is header-only; the native library is the only build artifact. The
-simplest way to consume it is the CMake package in this directory:
+prebuilt archives are on the
+[releases page](https://github.com/x500x/iLink-SDK-rs/releases) (one per
+platform, containing the shared/static library and `ilink_sdk.h`).
+
+The simplest way to consume it from source is the CMake package in this
+directory:
 
 ```bash
 cargo build --release                    # from the repository root
