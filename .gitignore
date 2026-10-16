@@ -20,6 +20,8 @@ debug-mode.json
 # Language binding build artifacts
 bindings/python/**/__pycache__/
 bindings/python/*.egg-info/
+# Stray setuptools metadata from running setup.py out of tree
+*.egg-info/
 bindings/python/build/
 bindings/python/dist/
 bindings/go/**/*.exe

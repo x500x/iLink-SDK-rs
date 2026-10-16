@@ -196,8 +196,21 @@ jobs:
           set -euo pipefail
           python -m pip install --quiet --upgrade build
           python bindings/scripts/set_version.py "${{ needs.prepare.outputs.version }}"
-          # Point setup.py at the library built by the `libraries` job.
-          lib=$(find native -maxdepth 1 -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) | head -n1)
+          # Point setup.py at the library built by the `libraries` job. The path
+          # must be absolute: `python -m build` runs the backend with the cwd set
+          # to bindings/python, so a relative path would not resolve. Compute it
+          # with Python so the result is a native path on every OS (git-bash's
+          # /d/... form would not be understood by python.exe on Windows).
+          lib=$(python - "$PWD/native" <<'PY'
+          import glob, os, sys
+          for pattern in ("*.dll", "*.so", "*.dylib"):
+              found = glob.glob(os.path.join(sys.argv[1], pattern))
+              if found:
+                  print(os.path.abspath(found[0]))
+                  break
+          PY
+          )
+          test -n "$lib"
           echo "bundling $lib"
           ILINK_SDK_LIB="$lib" python -m build --wheel bindings/python
 
