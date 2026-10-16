@@ -209,27 +209,31 @@ CI 在 Linux、macOS 和 Windows（x86_64 与 aarch64）上构建并测试，并
 ## 多语言绑定
 
 除 Rust 和 C 外，还提供了 Go、Python、C++、Java、Kotlin 的薄绑定。它们都是同一套
-JSON C ABI 的封装，没有按语言重复实现协议 —— 见 [`bindings/`](bindings/README.zh.md)。
+JSON C ABI 的封装，没有按语言重复实现协议。每个绑定都提供通用入口 `call(op, params)`
+触达全部操作，并为常用流程提供**类型化模型** —— 见
+[`bindings/`](bindings/README.zh.md)。
 
 | 语言 | 目录 | 说明 |
 | --- | --- | --- |
 | C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | 头文件 + [`examples/c`](examples/c) |
-| C++ | [`bindings/cpp`](bindings/cpp) | header-only，RAII |
+| C++ | [`bindings/cpp`](bindings/cpp) | header-only，RAII，类型化模型 |
 | Rust | crate 本体 | 原生 |
-| Python | [`bindings/python`](bindings/python) | `ctypes`，无依赖 |
-| Go | [`bindings/go`](bindings/go) | cgo |
-| Java | [`bindings/java`](bindings/java) | JNA |
-| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA |
+| Python | [`bindings/python`](bindings/python) | `ctypes`，无依赖，dataclass |
+| Go | [`bindings/go`](bindings/go) | cgo，类型化 struct |
+| Java | [`bindings/java`](bindings/java) | JNA，类型化模型 |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA，类型化 data class |
 
 ```python
 # Python
 import ilink_sdk
 ilink_sdk.call("mime.info", {"path": "photo.png"})
+ilink_sdk.Client().mime_info("photo.png").mime          # 类型化方法
 ```
 
 ```go
 // Go
 ilink.Call("mime.info", map[string]any{"path": "photo.png"})
+info, _ := ilink.NewClient(ilink.Config{}).MimeInfo("photo.png")  // 类型化方法
 ```
 
 ## 配置

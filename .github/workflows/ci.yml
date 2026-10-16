@@ -114,7 +114,7 @@ jobs:
       - name: C++ bindings
         run: |
           set -euo pipefail
-          g++ -std=c++17 -I include bindings/cpp/example.cpp \
+          g++ -std=c++17 -I include -I bindings/cpp bindings/cpp/example.cpp \
               -L target/release -lilink_sdk -o /tmp/ilink_cpp_demo
           LD_LIBRARY_PATH=target/release /tmp/ilink_cpp_demo
 

@@ -19,7 +19,10 @@ mvn package
 ```java
 import io.ilink.sdk.IlinkClient;
 import io.ilink.sdk.IlinkError;
+import io.ilink.sdk.IlinkModels.MimeInfo;
+import io.ilink.sdk.IlinkModels.SendResult;
 import io.ilink.sdk.IlinkSdk;
+import io.ilink.sdk.JsonValue;
 
 String version = IlinkSdk.version();
 
@@ -27,13 +30,18 @@ String version = IlinkSdk.version();
 String info = IlinkSdk.call("mime.info", "{\"path\":\"photo.png\"}");
 
 IlinkClient client = new IlinkClient("cfe9a2017e77-im-bot");
-String sent = client.sendText("someone@im.wechat", "hello from Java");
 
-try {
-    IlinkSdk.call("does.not.exist", "{}");
-} catch (IlinkError err) {
-    System.err.println(err.getKind() + ": " + err.getMessage());
-}
+// ...or let the client decode it into a typed model.
+MimeInfo mime = client.mimeInfo("photo.png");
+System.out.println(mime.mime);
+
+SendResult sent = client.sendText("someone@im.wechat", "hello from Java");
+System.out.println(sent.messageId);
+
+// The parsed-JSON entry point is available too.
+JsonValue parsed = IlinkSdk.callValue("mime.extension", "{\"mime\":\"image/png\"}");
+
+IlinkSdk.call("does.not.exist", "{}");   // throws IlinkError
 ```
 
 Locate the library with `-Djna.library.path=target/release` (or
@@ -45,9 +53,13 @@ the JVM launcher).
 - `IlinkSdk.version()`
 - `IlinkSdk.call(op, paramsJson)` — every operation; returns the `result` JSON
   and throws `IlinkError` on failure
-- `IlinkClient` — carries routing defaults and adds helpers (`accounts`,
-  `loginStart`, `loginComplete`, `sendText`, `sendFile`, `getUpdates`,
-  `sendTyping`, `upload`)
+- `IlinkSdk.callValue(op, paramsJson)` — same, but parsed into a `JsonValue`
+- `IlinkClient` — carries routing defaults and returns typed models from
+  [`IlinkModels`](src/main/java/io/ilink/sdk/IlinkModels.java): `accounts`,
+  `resolveAccount`, `saveAccount`, `loginStart`, `loginPoll`, `loginWait`,
+  `loginComplete`, `sendText`, `sendFile`, `sendBytes`, `sendItem`, `getUpdates`,
+  `getConfig`, `sendTyping`, `upload`, `download`, `downloadItem`, `mimeInfo`,
+  `sessionStatus`, `quotePolicy`, `quoteFind`, ...
 
 ## Run the example
 

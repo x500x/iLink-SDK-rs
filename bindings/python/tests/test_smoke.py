@@ -13,6 +13,14 @@ def test_pure_helper():
     assert info["is_image"] is True
 
 
+def test_typed_mime_info():
+    info = ilink_sdk.Client().mime_info("photo.PNG")
+    assert isinstance(info, ilink_sdk.models.MimeInfo)
+    assert info.mime == "image/png"
+    assert info.is_image is True
+    assert info.extension == ".png"
+
+
 def test_unknown_op_raises_with_kind():
     try:
         ilink_sdk.call("does.not.exist")
@@ -25,17 +33,18 @@ def test_unknown_op_raises_with_kind():
 
 def test_crypto_round_trip():
     key = "00112233445566778899aabbccddeeff"
-    enc = ilink_sdk.call("crypto.encrypt", {"key_hex": key, "data_base64": "aGVsbG8gd29ybGQ="})
-    dec = ilink_sdk.call("crypto.decrypt", {"key_hex": key, "data_base64": enc["data_base64"]})
-    import base64
-
-    assert base64.b64decode(dec["data_base64"]) == b"hello world"
+    client = ilink_sdk.Client()
+    enc = client.crypto_encrypt(key, b"hello world")
+    assert enc.padded_size == 16
+    assert client.crypto_decrypt(key, enc.data_base64) == b"hello world"
 
 
 def test_client_routing_merge():
     client = ilink_sdk.Client(account_id="demo")
     # session.status only needs an account id; the client injects it.
-    assert client.session_status()["paused"] is False
+    status = client.session_status()
+    assert isinstance(status, ilink_sdk.models.SessionStatus)
+    assert status.paused is False
 
 
 if __name__ == "__main__":

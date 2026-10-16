@@ -6,6 +6,8 @@ package io.ilink.sdk;
  */
 public class IlinkError extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     private final String kind;
 
     public IlinkError(String kind, String message) {

@@ -27,7 +27,13 @@ val version = IlinkSdk.version()
 val info = IlinkSdk.call("mime.info", """{"path":"photo.png"}""")
 
 val client = IlinkClient(accountId = "cfe9a2017e77-im-bot")
+
+// ...or let the client decode it into a typed data class.
+val mime = client.mimeInfo("photo.png")
+println(mime.mime)
+
 val sent = client.sendText("someone@im.wechat", "hello from Kotlin")
+println(sent.messageId)
 
 try {
     IlinkSdk.call("does.not.exist", "{}")
@@ -44,6 +50,14 @@ On Windows the DLL must also be on `PATH`.
 - `IlinkSdk.version()`
 - `IlinkSdk.call(op, paramsJson)` — every operation; returns the `result` JSON
   and throws `IlinkError` on failure
-- `IlinkClient` — carries routing defaults and adds helpers (`accounts`,
-  `loginStart`, `loginComplete`, `sendText`, `sendFile`, `getUpdates`,
-  `sendTyping`, `upload`)
+- `IlinkSdk.callValue(op, paramsJson)` — same, but parsed into a `JsonValue`
+- `IlinkClient` — carries routing defaults and returns typed data classes from
+  [`IlinkModels`](src/main/kotlin/io/ilink/sdk/IlinkModels.kt): `accounts`,
+  `resolveAccount`, `saveAccount`, `loginStart`, `loginPoll`, `loginWait`,
+  `loginComplete`, `sendText`, `sendFile`, `sendBytes`, `sendItem`, `getUpdates`,
+  `getConfig`, `sendTyping`, `upload`, `download`, `downloadItem`, `mimeInfo`,
+  `sessionStatus`, `quotePolicy`, `quoteFind`, ...
+
+> `IlinkClient.notify(action)` takes a required argument because
+> `@JvmOverloads` would otherwise generate a `notify()` overload clashing with
+> `Object.notify()`.

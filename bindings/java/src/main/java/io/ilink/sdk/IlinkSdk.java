@@ -65,4 +65,16 @@ public final class IlinkSdk {
         String kind = Json.decodeString(Json.field(envelope, "kind"));
         throw new IlinkError(kind, message == null ? "operation failed" : message);
     }
+
+    /**
+     * Run one SDK operation and return the {@code result} parsed as JSON.
+     *
+     * <pre>{@code
+     * JsonValue info = IlinkSdk.callValue("mime.info", "{\"path\":\"photo.png\"}");
+     * String mime = info.get("mime").asString("");
+     * }</pre>
+     */
+    public static JsonValue callValue(String op, String paramsJson) {
+        return JsonValue.parse(call(op, paramsJson));
+    }
 }

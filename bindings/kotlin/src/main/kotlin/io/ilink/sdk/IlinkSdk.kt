@@ -55,4 +55,9 @@ object IlinkSdk {
         val kind = Json.decodeString(Json.field(envelope, "kind")) ?: "unknown"
         throw IlinkError(kind, message)
     }
+
+    /** Run one SDK operation and return the `result` parsed as JSON. */
+    @JvmStatic
+    fun callValue(op: String, paramsJson: String? = "{}"): JsonValue =
+        JsonValue.parse(call(op, paramsJson))
 }

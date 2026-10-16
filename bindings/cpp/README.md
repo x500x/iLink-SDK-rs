@@ -8,7 +8,7 @@ Header-only C++ wrapper around the shared library's JSON C ABI. No dependencies.
 
 ```bash
 cargo build --release            # from the repository root
-g++ -std=c++17 -I include bindings/cpp/example.cpp \
+g++ -std=c++17 -I include -I bindings/cpp bindings/cpp/example.cpp \
     target/release/ilink_sdk.dll -o ilink_demo.exe
 ```
 
@@ -28,8 +28,13 @@ int main() {
     std::string info = ilink::call("mime.info", R"({"path":"photo.png"})");
     std::cout << info << "\n";
 
+    // ...or let the client decode it into a typed model.
     ilink::Client client("cfe9a2017e77-im-bot");
-    std::cout << client.send_text("someone@im.wechat", "hello from C++") << "\n";
+    ilink::MimeInfo mime = client.mime_info("photo.png");
+    std::cout << mime.mime << "\n";
+
+    ilink::SendResult sent = client.send_text("someone@im.wechat", "hello from C++");
+    std::cout << sent.message_id << "\n";
 
     try {
         ilink::call("does.not.exist");
@@ -44,9 +49,14 @@ int main() {
 - `ilink::version()`
 - `ilink::call(op, params_json = "{}")` — every operation; returns the `result`
   JSON and throws `ilink::Error` on failure
-- `ilink::Client` — carries routing defaults and adds helpers (`accounts`,
-  `login_start`, `login_complete`, `send_text`, `send_file`, `get_updates`,
-  `send_typing`, `upload`)
+- `ilink::call_json(op, params_json = "{}")` — same, but parsed into an
+  `ilink::json::Value` (see [`ilink_json.hpp`](ilink_json.hpp))
+- `ilink::Client` — carries routing defaults and returns typed models from
+  [`ilink_types.hpp`](ilink_types.hpp): `accounts`, `resolve_account`,
+  `save_account`, `login_start`, `login_poll`, `login_complete`, `send_text`,
+  `send_file`, `send_bytes`, `send_item`, `get_updates`, `get_config`,
+  `send_typing`, `upload`, `download`, `download_item`, `mime_info`,
+  `session_status`, `quote_policy`, `quote_find`, ...
 
 ## Errors
 

@@ -1,12 +1,16 @@
 // ilink_sdk.hpp — header-only C++ wrapper for the iLink (Weixin) SDK.
 //
-// Wraps the shared library's JSON C ABI in RAII + exceptions:
+// Wraps the shared library's JSON C ABI in RAII + exceptions. The low-level
+// `ilink::call` returns the raw `result` JSON string; `ilink::call_json`
+// returns it parsed into an `ilink::json::Value`. `ilink::Client` adds typed
+// helpers that decode results into the models from `ilink_types.hpp`:
 //
 //     #include "ilink_sdk.hpp"
-//     std::string result = ilink::call("mime.info", R"({"path":"a.png"})");
+//     ilink::Client client("cfe9a2017e77-im-bot");
+//     ilink::SendResult sent = client.send_text("someone@im.wechat", "hi");
+//     std::cout << sent.message_id << "\n";
 //
-// `call` returns the `result` JSON as a string (parse it with your JSON library
-// of choice) and throws `ilink::Error` on failure, carrying the Rust `kind`.
+// Failures throw `ilink::Error`, carrying the Rust `kind`.
 //
 // Compile with `-I include` and link the shared library, e.g.
 //     g++ -std=c++17 -I include app.cpp target/release/ilink_sdk.dll -o app
@@ -14,12 +18,17 @@
 #pragma once
 
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "ilink_sdk.h"
+#include "ilink_json.hpp"
+#include "ilink_types.hpp"
 
 namespace ilink {
 
@@ -244,7 +253,16 @@ inline std::string call(const std::string& op, const std::string& params_json = 
     throw Error(kind, message);
 }
 
-/// A client that carries default routing parameters for every call.
+/// Run one operation and parse the `result` into a JSON value.
+inline json::Value call_json(const std::string& op, const std::string& params_json = "{}") {
+    return json::parse(call(op, params_json));
+}
+
+/// A client that carries default routing parameters and returns typed models.
+///
+/// Every helper decodes the operation result into one of the structs in
+/// `ilink_types.hpp`. `call` / `call_json` remain available for operations
+/// without a dedicated helper.
 class Client {
 public:
     explicit Client(std::string account_id = "", std::string base_url = "",
@@ -257,67 +275,318 @@ public:
           bot_agent_(std::move(bot_agent)),
           timeout_ms_(timeout_ms) {}
 
+    /// Run any operation with the routing defaults merged in (raw result JSON).
     std::string call(const std::string& op, const std::string& params_json = "{}") const {
         return ilink::call(op, merge_routing(params_json));
     }
 
-    std::string accounts() const { return call("accounts.list"); }
-
-    std::string login_start(const std::string& base_url = "") const {
-        return call("login.start", base_url.empty() ? "{}" : "{\"base_url\":" + detail::quote(base_url) + "}");
+    /// Run any operation with the routing defaults merged in (parsed result).
+    json::Value call_json(const std::string& op, const json::Value& params = json::Value::object()) const {
+        return ilink::call_json(op, merge_routing(params.dump()));
     }
 
-    std::string login_complete(const std::string& session_key, int timeout_secs = 480,
-                               const std::string& verify_code = "") const {
-        std::string params = "{\"session_key\":" + detail::quote(session_key) +
-                             ",\"timeout_secs\":" + std::to_string(timeout_secs);
-        if (!verify_code.empty()) params += ",\"verify_code\":" + detail::quote(verify_code);
-        params += "}";
-        return call("login.complete", params);
-    }
+    // -- meta -------------------------------------------------------------
+    std::string version() const { return ilink::version(); }
 
-    std::string send_text(const std::string& to, const std::string& text,
-                          const std::string& context_token = "") const {
-        std::string params = "{\"to\":" + detail::quote(to) + ",\"text\":" + detail::quote(text);
-        if (!context_token.empty()) params += ",\"context_token\":" + detail::quote(context_token);
-        params += "}";
-        return call("send.text", params);
-    }
+    Paths paths() const { return decode<Paths>("paths"); }
 
-    std::string send_file(const std::string& to, const std::string& path,
-                          const std::string& caption = "") const {
-        std::string params = "{\"to\":" + detail::quote(to) + ",\"path\":" + detail::quote(path);
-        if (!caption.empty()) params += ",\"caption\":" + detail::quote(caption);
-        params += "}";
-        return call("send.file", params);
-    }
-
-    std::string get_updates(const std::string& get_updates_buf = "", int timeout_ms = 0) const {
-        std::string params = "{";
-        if (!get_updates_buf.empty()) params += "\"get_updates_buf\":" + detail::quote(get_updates_buf);
-        if (timeout_ms > 0) {
-            if (params.size() > 1) params += ",";
-            params += "\"timeout_ms\":" + std::to_string(timeout_ms);
+    // -- accounts ---------------------------------------------------------
+    std::vector<Account> accounts() const {
+        std::vector<Account> out;
+        const json::Value result = call_json("accounts.list");
+        for (std::size_t i = 0; i < result.size(); ++i) {
+            out.push_back(from_json(result[i], static_cast<Account*>(nullptr)));
         }
-        params += "}";
-        return call("get_updates", params);
+        return out;
     }
 
-    std::string send_typing(const std::string& user_id, const std::string& typing_ticket,
-                            const std::string& status = "typing") const {
-        return call("send_typing", "{\"user_id\":" + detail::quote(user_id) +
-                                       ",\"typing_ticket\":" + detail::quote(typing_ticket) +
-                                       ",\"status\":" + detail::quote(status) + "}");
+    Account resolve_account(const std::string& account_id) const {
+        return decode<Account>("account.resolve", obj({{"account_id", account_id}}));
     }
 
-    std::string upload(const std::string& to, const std::string& path,
-                       const std::string& media_type = "file") const {
-        return call("media.upload", "{\"to\":" + detail::quote(to) + ",\"path\":" +
-                                        detail::quote(path) + ",\"media_type\":" +
-                                        detail::quote(media_type) + "}");
+    Account save_account(const std::string& account_id, const std::string& token = "",
+                         const std::string& base_url = "", const std::string& user_id = "") const {
+        json::Value params = obj({{"account_id", account_id}});
+        if (!token.empty()) params.set("token", json::Value(token));
+        if (!base_url.empty()) params.set("base_url", json::Value(base_url));
+        if (!user_id.empty()) params.set("user_id", json::Value(user_id));
+        return decode<Account>("account.save", params);
+    }
+
+    void clear_account(const std::string& account_id) const {
+        call_json("account.clear", obj({{"account_id", account_id}}));
+    }
+
+    // -- QR login ---------------------------------------------------------
+    LoginStart login_start(const std::string& base_url = "") const {
+        json::Value params = json::Value::object();
+        if (!base_url.empty()) params.set("base_url", json::Value(base_url));
+        return decode<LoginStart>("login.start", params);
+    }
+
+    LoginPoll login_poll(const std::string& session_key) const {
+        return decode<LoginPoll>("login.poll", obj({{"session_key", session_key}}));
+    }
+
+    void login_submit_verify_code(const std::string& session_key, const std::string& code) const {
+        call_json("login.submit_verify_code", obj({{"session_key", session_key}, {"code", code}}));
+    }
+
+    LoginStart login_refresh(const std::string& session_key) const {
+        return decode<LoginStart>("login.refresh", obj({{"session_key", session_key}}));
+    }
+
+    LoginResult login_wait(const std::string& session_key, int timeout_secs = 480,
+                           const std::string& verify_code = "") const {
+        return decode<LoginResult>("login.wait", login_params(session_key, timeout_secs, verify_code));
+    }
+
+    LoginResult login_complete(const std::string& session_key, int timeout_secs = 480,
+                               const std::string& verify_code = "") const {
+        return decode<LoginResult>("login.complete", login_params(session_key, timeout_secs, verify_code));
+    }
+
+    // -- outbound ---------------------------------------------------------
+    SendResult send_text(const std::string& to, const std::string& text,
+                         const std::string& context_token = "") const {
+        json::Value params = obj({{"to", to}, {"text", text}});
+        if (!context_token.empty()) params.set("context_token", json::Value(context_token));
+        return decode<SendResult>("send.text", params);
+    }
+
+    SendResult send_file(const std::string& to, const std::string& path,
+                         const std::string& caption = "") const {
+        json::Value params = obj({{"to", to}, {"path", path}});
+        if (!caption.empty()) params.set("caption", json::Value(caption));
+        return decode<SendResult>("send.file", params);
+    }
+
+    SendResult send_bytes(const std::string& to, const std::string& file_name,
+                          const std::string& data_base64, const std::string& caption = "") const {
+        json::Value params = obj({{"to", to}, {"file_name", file_name}, {"data_base64", data_base64}});
+        if (!caption.empty()) params.set("caption", json::Value(caption));
+        return decode<SendResult>("send.bytes", params);
+    }
+
+    SendResult send_item(const std::string& to, const json::Value& item,
+                         const std::string& context_token = "") const {
+        json::Value params = obj({{"to", to}, {"item", item}});
+        if (!context_token.empty()) params.set("context_token", json::Value(context_token));
+        return decode<SendResult>("send.item", params);
+    }
+
+    // -- inbound / API ----------------------------------------------------
+    Updates get_updates(const std::string& get_updates_buf = "", int timeout_ms = 0) const {
+        json::Value params = json::Value::object();
+        if (!get_updates_buf.empty()) params.set("get_updates_buf", json::Value(get_updates_buf));
+        if (timeout_ms > 0) params.set("timeout_ms", json::Value(static_cast<std::int64_t>(timeout_ms)));
+        return decode<Updates>("get_updates", params);
+    }
+
+    GetConfig get_config(const std::string& user_id, const std::string& context_token = "") const {
+        json::Value params = obj({{"user_id", user_id}});
+        if (!context_token.empty()) params.set("context_token", json::Value(context_token));
+        return decode<GetConfig>("get_config", params);
+    }
+
+    void send_typing(const std::string& user_id, const std::string& typing_ticket,
+                     const std::string& status = "typing") const {
+        call_json("send_typing", obj({{"user_id", user_id},
+                                       {"typing_ticket", typing_ticket},
+                                       {"status", status}}));
+    }
+
+    void notify(const std::string& action = "start") const {
+        call_json("notify", obj({{"action", action}}));
+    }
+
+    MsgContext context_to_message(const json::Value& message,
+                                  const std::string& account_id = "") const {
+        json::Value params = obj({{"message", message}});
+        if (!account_id.empty()) params.set("account_id", json::Value(account_id));
+        return decode<MsgContext>("context.to_message", params);
+    }
+
+    std::string message_body(const json::Value& items) const {
+        return call_json("message.body", obj({{"items", items}}))["body"].as_string();
+    }
+
+    // -- media ------------------------------------------------------------
+    UploadedFile upload(const std::string& to, const std::string& path,
+                        const std::string& media_type = "file") const {
+        return decode<UploadedFile>(
+            "media.upload", obj({{"to", to}, {"path", path}, {"media_type", media_type}}));
+    }
+
+    MediaFetch download(const json::Value& media, const std::string& aes_key = "",
+                        const std::string& dest_path = "") const {
+        json::Value params = obj({{"media", media}});
+        if (!aes_key.empty()) params.set("aes_key", json::Value(aes_key));
+        if (!dest_path.empty()) params.set("dest_path", json::Value(dest_path));
+        return decode<MediaFetch>("media.download", params);
+    }
+
+    MediaFetch fetch(const std::string& url, const std::string& dest_path = "") const {
+        json::Value params = obj({{"url", url}});
+        if (!dest_path.empty()) params.set("dest_path", json::Value(dest_path));
+        return decode<MediaFetch>("media.fetch", params);
+    }
+
+    InboundMedia download_item(const json::Value& item, const std::string& dest_dir = "") const {
+        json::Value params = obj({{"item", item}});
+        if (!dest_dir.empty()) params.set("dest_dir", json::Value(dest_dir));
+        return decode<InboundMedia>("media.download_item", params);
+    }
+
+    // -- quote cache ------------------------------------------------------
+    QuotePolicy quote_policy() const { return decode<QuotePolicy>("quote.policy"); }
+
+    std::optional<QuoteRecord> quote_find(const std::string& account_id,
+                                          const std::string& conversation_id,
+                                          const std::string& message_id) const {
+        const json::Value result = call_json(
+            "quote.find",
+            obj({{"account_id", account_id},
+                 {"conversation_id", conversation_id},
+                 {"message_id", message_id}}));
+        if (!result.is_object()) return std::nullopt;
+        return from_json(result, static_cast<QuoteRecord*>(nullptr));
+    }
+
+    void quote_put(const QuoteRecord& record) const {
+        json::Value params = obj({{"account_id", record.account_id},
+                                  {"conversation_id", record.conversation_id},
+                                  {"message_id", record.message_id},
+                                  {"body", record.body}});
+        if (!record.direction.empty()) params.set("direction", json::Value(record.direction));
+        if (record.media_path) params.set("source_media_path", json::Value(*record.media_path));
+        if (record.media_mime) params.set("media_mime", json::Value(*record.media_mime));
+        if (record.media_name) params.set("media_name", json::Value(*record.media_name));
+        if (record.created_at != 0) params.set("created_at", json::Value(record.created_at));
+        call_json("quote.put", params);
+    }
+
+    void quote_gc() const { call_json("quote.gc"); }
+
+    void quote_delete_account(const std::string& account_id) const {
+        call_json("quote.delete_account", obj({{"account_id", account_id}}));
+    }
+
+    std::string quote_media_dir(const std::string& account_id) const {
+        return call_json("quote.media_dir", obj({{"account_id", account_id}}))["path"].as_string();
+    }
+
+    // -- context tokens ---------------------------------------------------
+    std::optional<std::string> context_get(const std::string& account_id,
+                                           const std::string& user_id) const {
+        const json::Value result =
+            call_json("context.get", obj({{"account_id", account_id}, {"user_id", user_id}}));
+        if (!result.is_object()) return std::nullopt;
+        return result["token"].as_string();
+    }
+
+    void context_set(const std::string& account_id, const std::string& user_id,
+                     const std::string& token) const {
+        call_json("context.set",
+                  obj({{"account_id", account_id}, {"user_id", user_id}, {"token", token}}));
+    }
+
+    void context_clear(const std::string& account_id) const {
+        call_json("context.clear", obj({{"account_id", account_id}}));
+    }
+
+    std::int64_t context_restore(const std::string& account_id) const {
+        return call_json("context.restore", obj({{"account_id", account_id}}))["restored"].as_int();
+    }
+
+    // -- sync cursor ------------------------------------------------------
+    std::string sync_load(const std::string& account_id) const {
+        return call_json("sync.load", obj({{"account_id", account_id}}))["get_updates_buf"].as_string();
+    }
+
+    void sync_save(const std::string& account_id, const std::string& buf) const {
+        call_json("sync.save", obj({{"account_id", account_id}, {"buf", buf}}));
+    }
+
+    void sync_clear(const std::string& account_id) const {
+        call_json("sync.clear", obj({{"account_id", account_id}}));
+    }
+
+    // -- session guard ----------------------------------------------------
+    SessionStatus session_status(const std::string& account_id = "") const {
+        json::Value params = json::Value::object();
+        if (!account_id.empty()) params.set("account_id", json::Value(account_id));
+        return decode<SessionStatus>("session.status", params);
+    }
+
+    void session_pause(const std::string& account_id) const {
+        call_json("session.pause", obj({{"account_id", account_id}}));
+    }
+
+    void session_resume(const std::string& account_id) const {
+        call_json("session.resume", obj({{"account_id", account_id}}));
+    }
+
+    void session_assert(const std::string& account_id) const {
+        call_json("session.assert", obj({{"account_id", account_id}}));
+    }
+
+    // -- helpers ----------------------------------------------------------
+    MimeInfo mime_info(const std::string& path) const {
+        return decode<MimeInfo>("mime.info", obj({{"path", path}}));
+    }
+
+    std::string mime_extension(const std::string& mime) const {
+        return call_json("mime.extension", obj({{"mime", mime}}))["extension"].as_string();
+    }
+
+    std::string generate_id(const std::string& prefix = "ilink-sdk") const {
+        return call_json("util.generate_id", obj({{"prefix", prefix}}))["id"].as_string();
+    }
+
+    std::string file_key() const {
+        return call_json("util.file_key")["file_key"].as_string();
+    }
+
+    std::string temp_name(const std::string& prefix = "ilink-sdk", const std::string& ext = "") const {
+        return call_json("util.temp_name", obj({{"prefix", prefix}, {"ext", ext}}))["name"].as_string();
+    }
+
+    ConfigLoad config_load() const { return decode<ConfigLoad>("config.load"); }
+
+    // -- crypto -----------------------------------------------------------
+    CryptoResult crypto_encrypt(const std::string& key_hex, const std::string& data_base64) const {
+        return decode<CryptoResult>(
+            "crypto.encrypt", obj({{"key_hex", key_hex}, {"data_base64", data_base64}}));
+    }
+
+    std::string crypto_decrypt(const std::string& key_hex, const std::string& data_base64) const {
+        return call_json("crypto.decrypt",
+                         obj({{"key_hex", key_hex}, {"data_base64", data_base64}}))
+            ["data_base64"]
+                .as_string();
     }
 
 private:
+    static json::Value obj(std::initializer_list<std::pair<std::string, json::Value>> entries) {
+        json::Value out = json::Value::object();
+        for (const auto& entry : entries) out.set(entry.first, entry.second);
+        return out;
+    }
+
+    json::Value login_params(const std::string& session_key, int timeout_secs,
+                             const std::string& verify_code) const {
+        json::Value params = obj({{"session_key", session_key}});
+        params.set("timeout_secs", json::Value(static_cast<std::int64_t>(timeout_secs)));
+        if (!verify_code.empty()) params.set("verify_code", json::Value(verify_code));
+        return params;
+    }
+
+    template <typename T>
+    T decode(const std::string& op, const json::Value& params = json::Value::object()) const {
+        return from_json(call_json(op, params), static_cast<T*>(nullptr));
+    }
+
     std::string merge_routing(const std::string& params_json) const {
         std::string extra;
         auto add = [&](const char* key, const std::string& value) {

@@ -29,11 +29,12 @@ func main() {
     version, _ := ilink.Version()
     fmt.Println(version)
 
-    var info struct{ Mime string `json:"mime"` }
-    _ = ilink.CallInto("mime.info", map[string]any{"path": "photo.png"}, &info)
+    client := ilink.NewClient(ilink.Config{AccountID: "cfe9a2017e77-im-bot"})
+
+    // 类型化方法返回已解码的 struct，而非原始 JSON。
+    info, _ := client.MimeInfo("photo.png")
     fmt.Println(info.Mime)
 
-    client := ilink.NewClient(ilink.Config{AccountID: "cfe9a2017e77-im-bot"})
     accounts, _ := client.Accounts()
     fmt.Println(len(accounts))
 
@@ -42,6 +43,15 @@ func main() {
         panic(err)
     }
     fmt.Println(sent.MessageID)
+
+    updates, _ := client.GetUpdates("", 0)
+    for _, message := range updates.Messages() {
+        fmt.Println(message.MessageID)
+    }
+
+    // Call / CallInto 仍可触达全部操作。
+    var raw struct{ Mime string `json:"mime"` }
+    _ = ilink.CallInto("mime.info", map[string]any{"path": "photo.png"}, &raw)
 }
 ```
 
@@ -51,9 +61,12 @@ func main() {
 - `ilink.Call(op string, params any) (json.RawMessage, error)` — 全部操作
 - `ilink.CallInto(op string, params any, out any) error` — 解析到结构体
 - `ilink.NewClient(Config) *Client` — 把 `account_id`、`base_url`、`cdn_base_url`、
-  `route_tag`、`bot_agent`、`timeout_ms` 合并进每次调用，并提供类型化方法
-  （`Accounts`、`LoginStart`、`LoginComplete`、`SendText`、`SendFile`、
-  `GetUpdates`、`SendTyping`、`Upload`）
+  `route_tag`、`bot_agent`、`timeout_ms` 合并进每次调用，并返回类型化模型：
+  `Accounts`、`ResolveAccount`、`SaveAccount`、`LoginStart`、`LoginPoll`、
+  `LoginWait`、`LoginComplete`、`SendText`、`SendFile`、`SendBytes`、`SendItem`、
+  `GetUpdates`、`GetConfig`、`SendTyping`、`Upload`、`Download`、`DownloadItem`、
+  `MimeInfo`、`SessionStatus`、`QuotePolicy`、`QuoteFind` 等。模型定义见
+  [`ilink/types.go`](ilink/types.go)。
 
 ## 错误
 

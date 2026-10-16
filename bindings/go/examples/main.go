@@ -19,20 +19,28 @@ func main() {
 	}
 	fmt.Println("version:", version)
 
-	var info struct {
-		Mime string `json:"mime"`
-	}
-	if err := ilink.CallInto("mime.info", map[string]any{"path": "photo.png"}, &info); err != nil {
+	client := ilink.NewClient(ilink.Config{})
+
+	// Typed helpers return decoded models, not raw JSON.
+	info, err := client.MimeInfo("photo.png")
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "mime.info:", err)
 		os.Exit(1)
 	}
-	fmt.Println("mime   :", info.Mime)
+	fmt.Printf("mime   : %s (image=%v, ext=%s)\n", info.Mime, info.IsImage, info.Extension)
 
-	client := ilink.NewClient(ilink.Config{})
 	accounts, err := client.Accounts()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "accounts:", err)
 		os.Exit(1)
 	}
 	fmt.Printf("accounts: %d\n", len(accounts))
+
+	// The universal entry point is still available for anything without a
+	// dedicated helper.
+	if _, err := client.Call("session.status", map[string]any{"account_id": "demo"}); err != nil {
+		fmt.Fprintln(os.Stderr, "session.status:", err)
+		os.Exit(1)
+	}
+	fmt.Println("ok")
 }

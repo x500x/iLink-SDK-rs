@@ -30,17 +30,24 @@ print(ilink_sdk.call("mime.info", {"path": "a.png"}))   # 已解析的结果对�
 
 client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")
 
+# 类型化方法返回 ilink_sdk.models 中的 dataclass。
+info = client.mime_info("a.png")            # models.MimeInfo
+print(info.mime, info.is_image)
+
 # 二维码登录
-start = client.login_start()
-print(start["qrcode_url"])
-result = client.login_complete(start["session_key"])    # 阻塞至扫码完成
-account_id = result["account_id"]
+start = client.login_start()                # models.LoginStart
+print(start.qrcode_url)
+result = client.login_complete(start.session_key)   # 阻塞至扫码完成
+account_id = result.account_id
 
 # 发送消息
-client.send_text("someone@im.wechat", "hello from Python")
+sent = client.send_text("someone@im.wechat", "hello from Python")
+print(sent.message_id)
 
 # 长轮询接收
-updates = client.get_updates()
+updates = client.get_updates()              # models.Updates
+for message in updates.messages:
+    print(message.message_id)
 ```
 
 ## 错误
@@ -59,9 +66,13 @@ except ilink_sdk.IlinkError as err:
 ## API
 
 `call(op, params=None)` 可触达**全部**操作（见
-[`docs/zh/reference/ffi.md`](../../docs/zh/reference/ffi.md)）；`Client` 为常用操作
-提供类型化方法，并把默认路由参数（`account_id`、`base_url`、`cdn_base_url`、
-`route_tag`、`bot_agent`、`timeout_ms`）应用到每次调用。
+[`docs/zh/reference/ffi.md`](../../docs/zh/reference/ffi.md)）并返回已解码的 Python
+数据；`Client` 为常用流程提供类型化方法，返回
+[`ilink_sdk.models`](ilink_sdk/models.py) 中的 dataclass（`Account`、`LoginStart`、
+`LoginResult`、`SendResult`、`Updates`、`MsgContext`、`UploadedFile`、
+`InboundMedia`、`MimeInfo` 等），并把默认路由参数（`account_id`、`base_url`、
+`cdn_base_url`、`route_tag`、`bot_agent`、`timeout_ms`）应用到每次调用。
+可用 `Client.call_into(op, Model, params)` 把任意操作解码成模型。
 
 ## 测试
 

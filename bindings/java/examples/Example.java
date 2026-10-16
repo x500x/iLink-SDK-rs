@@ -1,6 +1,12 @@
+import java.util.List;
+
 import io.ilink.sdk.IlinkClient;
 import io.ilink.sdk.IlinkError;
+import io.ilink.sdk.IlinkModels.Account;
+import io.ilink.sdk.IlinkModels.CryptoResult;
+import io.ilink.sdk.IlinkModels.MimeInfo;
 import io.ilink.sdk.IlinkSdk;
+import io.ilink.sdk.JsonValue;
 
 /**
  * Minimal Java consumer / smoke test of the iLink SDK.
@@ -25,17 +31,26 @@ public final class Example {
         check(version.contains("."), "unexpected version: " + version);
         System.out.println("version   : " + version);
 
-        String mime = IlinkSdk.call("mime.info", "{\"path\":\"photo.PNG\"}");
-        check(mime.contains("\"mime\":\"image/png\""), "unexpected mime: " + mime);
-        System.out.println("mime.info : " + mime);
-
-        String encrypted = IlinkSdk.call("crypto.encrypt",
-                "{\"key_hex\":\"00112233445566778899aabbccddeeff\",\"data_base64\":\"aGVsbG8gd29ybGQ=\"}");
-        check(encrypted.contains("padded_size"), "unexpected encrypt: " + encrypted);
-        System.out.println("encrypt   : " + encrypted);
-
         IlinkClient client = new IlinkClient();
-        System.out.println("accounts  : " + client.accounts());
+
+        // Typed helpers decode results into the IlinkModels structs.
+        MimeInfo info = client.mimeInfo("photo.PNG");
+        check("image/png".equals(info.mime) && info.isImage, "unexpected mime: " + info.mime);
+        System.out.println("mime.info : " + info.mime + " (image=" + info.isImage
+                + ", ext=" + info.extension + ")");
+
+        CryptoResult encrypted = client.cryptoEncrypt(
+                "00112233445566778899aabbccddeeff", "hello world".getBytes());
+        check(encrypted.paddedSize != null && encrypted.paddedSize == 16, "unexpected padding");
+        System.out.println("encrypt   : " + encrypted.dataBase64);
+
+        List<Account> accounts = client.accounts();
+        System.out.println("accounts  : " + accounts.size());
+
+        // The raw entry points remain available.
+        JsonValue extension = IlinkSdk.callValue("mime.extension", "{\"mime\":\"image/png\"}");
+        check(".png".equals(extension.get("extension").asString("")), "unexpected extension");
+        System.out.println("extension : " + extension.get("extension").asString(""));
 
         try {
             IlinkSdk.call("does.not.exist", "{}");

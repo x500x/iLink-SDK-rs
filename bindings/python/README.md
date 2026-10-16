@@ -30,17 +30,24 @@ print(ilink_sdk.call("mime.info", {"path": "a.png"}))   # decoded result object
 
 client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")
 
+# Typed helpers return dataclasses from ilink_sdk.models.
+info = client.mime_info("a.png")            # models.MimeInfo
+print(info.mime, info.is_image)
+
 # QR login
-start = client.login_start()
-print(start["qrcode_url"])
-result = client.login_complete(start["session_key"])    # blocks until scanned
-account_id = result["account_id"]
+start = client.login_start()                # models.LoginStart
+print(start.qrcode_url)
+result = client.login_complete(start.session_key)   # blocks until scanned
+account_id = result.account_id
 
 # Send a message
-client.send_text("someone@im.wechat", "hello from Python")
+sent = client.send_text("someone@im.wechat", "hello from Python")
+print(sent.message_id)
 
 # Long-poll for inbound messages
-updates = client.get_updates()
+updates = client.get_updates()              # models.Updates
+for message in updates.messages:
+    print(message.message_id)
 ```
 
 ## Errors
@@ -59,10 +66,14 @@ except ilink_sdk.IlinkError as err:
 ## API
 
 `call(op, params=None)` reaches **every** operation (see
-[`docs/reference/ffi.md`](../../docs/reference/ffi.md)); `Client` adds typed
-helpers for the common ones and applies default routing parameters
+[`docs/reference/ffi.md`](../../docs/reference/ffi.md)) and returns decoded
+Python data. `Client` adds typed helpers for the common flows, returning
+[`ilink_sdk.models`](ilink_sdk/models.py) dataclasses (`Account`, `LoginStart`,
+`LoginResult`, `SendResult`, `Updates`, `MsgContext`, `UploadedFile`,
+`InboundMedia`, `MimeInfo`, ...), and applies default routing parameters
 (`account_id`, `base_url`, `cdn_base_url`, `route_tag`, `bot_agent`,
-`timeout_ms`) to every call.
+`timeout_ms`) to every call. Use `Client.call_into(op, Model, params)` to decode
+any operation into a model.
 
 ## Test
 

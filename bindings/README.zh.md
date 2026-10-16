@@ -13,7 +13,9 @@ void  ilink_string_free(char *ptr);
 
 下面每个绑定都是这套 ABI 的薄封装：加载库、调用 `ilink_call`、拆开
 `{"ok":true,"result":...}` / `{"ok":false,...}` 信封，并暴露符合该语言习惯的
-辅助方法。**没有按语言重复实现协议。**
+**类型化**辅助方法。**没有按语言重复实现协议**：每个绑定只是把同一份 JSON 解码成该语言
+自然的值类型（Python 用 dataclass，Go/C++ 用 struct，Java/Kotlin 用类），因此常用流程
+无需手动解析结果 JSON。
 
 | 语言 | 目录 | 运行时依赖 | 状态 |
 | --- | --- | --- | --- |
@@ -69,4 +71,40 @@ catch (IlinkError err) { err.getKind(); }
 
 ```cpp
 catch (const ilink::Error& err) { err.kind(); }
+```
+
+## 类型化返回值
+
+通用入口 `call(op, params)` 仍可触达全部操作，但每个绑定同时提供类型化模型，以及返回
+这些模型的 `Client` 辅助方法：
+
+| 语言 | 返回类型 | Client |
+| --- | --- | --- |
+| Python | `ilink_sdk.models.*` dataclass | `ilink_sdk.Client` |
+| Go | `ilink` 包内的 struct | `ilink.Client` |
+| C++ | `ilink_types.hpp` 内的 struct | `ilink::Client` |
+| Java | `IlinkModels.*` | `IlinkClient` |
+| Kotlin | `IlinkModels.*` data class | `IlinkClient` |
+
+```python
+info = ilink_sdk.Client().mime_info("photo.png")   # models.MimeInfo
+info.mime, info.is_image
+```
+
+```go
+info, err := ilink.NewClient(ilink.Config{}).MimeInfo("photo.png")
+info.Mime
+```
+
+```cpp
+ilink::Client client;
+ilink::MimeInfo info = client.mime_info("photo.png");
+```
+
+```java
+IlinkModels.MimeInfo info = new IlinkClient().mimeInfo("photo.png");
+```
+
+```kotlin
+val info = IlinkClient().mimeInfo("photo.png")
 ```

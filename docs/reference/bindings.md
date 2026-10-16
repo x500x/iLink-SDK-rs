@@ -5,7 +5,9 @@ C++, Go, Python, Java and Kotlin. All of them go through the same JSON-in /
 JSON-out C ABI described in [C ABI (dll / so / dylib)](ffi.md), so nothing is
 reimplemented per language: each binding loads the shared library, calls
 `ilink_call`, unwraps the `{"ok":true,"result":...}` envelope and exposes
-idiomatic helpers.
+idiomatic, **typed** helpers. Results are decoded into the natural value type of
+the host language (dataclasses in Python, structs in Go/C++, classes in
+Java/Kotlin), so callers never hand-parse result JSON for the common flows.
 
 | Language | Directory | Runtime dependency | Status |
 | --- | --- | --- | --- |
@@ -28,12 +30,21 @@ cargo build --release
 
 ## Quick start
 
-Every binding exposes the same two things:
+Every binding exposes the same three things:
 
-- a universal `call(op, params)` that reaches **every** operation, and
+- a universal `call(op, params)` that reaches **every** operation,
+- typed models for the operation results (see the table below), and
 - a `Client` helper that carries default routing parameters
   (`account_id`, `base_url`, `cdn_base_url`, `route_tag`, `bot_agent`,
-  `timeout_ms`) and adds typed helpers for the common flows.
+  `timeout_ms`) and returns typed models from its common-flow methods.
+
+| Language | Result models | Typed client |
+| --- | --- | --- |
+| Python | `ilink_sdk.models` | `ilink_sdk.Client` |
+| Go | package `ilink` | `ilink.Client` |
+| C++ | `ilink_types.hpp` | `ilink::Client` |
+| Java | `IlinkModels` | `IlinkClient` |
+| Kotlin | `IlinkModels` | `IlinkClient` |
 
 ### C
 
@@ -53,7 +64,8 @@ ilink_string_free(out);
 
 std::string info = ilink::call("mime.info", R"({"path":"photo.png"})");
 ilink::Client client("cfe9a2017e77-im-bot");
-std::string sent = client.send_text("someone@im.wechat", "hello from C++");
+ilink::SendResult sent = client.send_text("someone@im.wechat", "hello from C++");
+std::cout << sent.message_id;
 ```
 
 ### Rust
@@ -74,7 +86,8 @@ import ilink_sdk
 
 info = ilink_sdk.call("mime.info", {"path": "photo.png"})   # -> dict
 client = ilink_sdk.Client(account_id="cfe9a2017e77-im-bot")
-client.send_text("someone@im.wechat", "hello from Python")
+sent = client.send_text("someone@im.wechat", "hello from Python")  # models.SendResult
+print(sent.message_id)
 ```
 
 ### Go
@@ -87,17 +100,20 @@ _ = ilink.CallInto("mime.info", map[string]any{"path": "photo.png"}, &info)
 
 client := ilink.NewClient(ilink.Config{AccountID: "cfe9a2017e77-im-bot"})
 sent, err := client.SendText("someone@im.wechat", "hello from Go", "", "")
+fmt.Println(sent.MessageID)
 ```
 
 ### Java
 
 ```java
 import io.ilink.sdk.IlinkClient;
+import io.ilink.sdk.IlinkModels.SendResult;
 import io.ilink.sdk.IlinkSdk;
 
 String info = IlinkSdk.call("mime.info", "{\"path\":\"photo.png\"}");
 IlinkClient client = new IlinkClient("cfe9a2017e77-im-bot");
-String sent = client.sendText("someone@im.wechat", "hello from Java");
+SendResult sent = client.sendText("someone@im.wechat", "hello from Java");
+System.out.println(sent.messageId);
 ```
 
 ### Kotlin
@@ -109,6 +125,7 @@ import io.ilink.sdk.IlinkSdk
 val info = IlinkSdk.call("mime.info", """{"path":"photo.png"}""")
 val client = IlinkClient(accountId = "cfe9a2017e77-im-bot")
 val sent = client.sendText("someone@im.wechat", "hello from Kotlin")
+println(sent.messageId)
 ```
 
 ## Locating the shared library

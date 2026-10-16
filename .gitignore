@@ -27,3 +27,7 @@ bindings/java/target/
 bindings/kotlin/build/
 bindings/kotlin/kbuild/
 bindings/kotlin/.gradle/
+# Stray Kotlin/JVM output from manual compiles
+/io/
+/build/
+/META-INF/

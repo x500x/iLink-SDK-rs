@@ -223,27 +223,31 @@ be bundled into an app bundle.
 
 Besides Rust and C, thin bindings are provided for Go, Python, C++, Java and
 Kotlin. They are all wrappers over the same JSON C ABI, so nothing is
-reimplemented per language — see [`bindings/`](bindings/README.md).
+reimplemented per language. Each binding exposes a universal `call(op, params)`
+for every operation **and** typed models for the common flows — see
+[`bindings/`](bindings/README.md).
 
 | Language | Directory | Notes |
 | --- | --- | --- |
 | C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | header + [`examples/c`](examples/c) |
-| C++ | [`bindings/cpp`](bindings/cpp) | header-only, RAII |
+| C++ | [`bindings/cpp`](bindings/cpp) | header-only, RAII, typed models |
 | Rust | crate root | native |
-| Python | [`bindings/python`](bindings/python) | `ctypes`, no dependencies |
-| Go | [`bindings/go`](bindings/go) | cgo |
-| Java | [`bindings/java`](bindings/java) | JNA |
-| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA |
+| Python | [`bindings/python`](bindings/python) | `ctypes`, no dependencies, dataclasses |
+| Go | [`bindings/go`](bindings/go) | cgo, typed structs |
+| Java | [`bindings/java`](bindings/java) | JNA, typed models |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA, typed data classes |
 
 ```python
 # Python
 import ilink_sdk
 ilink_sdk.call("mime.info", {"path": "photo.png"})
+ilink_sdk.Client().mime_info("photo.png").mime          # typed helper
 ```
 
 ```go
 // Go
 ilink.Call("mime.info", map[string]any{"path": "photo.png"})
+info, _ := ilink.NewClient(ilink.Config{}).MimeInfo("photo.png")  // typed helper
 ```
 
 ## Configuration

@@ -27,7 +27,13 @@ val version = IlinkSdk.version()
 val info = IlinkSdk.call("mime.info", """{"path":"photo.png"}""")
 
 val client = IlinkClient(accountId = "cfe9a2017e77-im-bot")
+
+// ……或让 Client 解码成类型化 data class。
+val mime = client.mimeInfo("photo.png")
+println(mime.mime)
+
 val sent = client.sendText("someone@im.wechat", "hello from Kotlin")
+println(sent.messageId)
 
 try {
     IlinkSdk.call("does.not.exist", "{}")
@@ -44,5 +50,13 @@ Windows 上 DLL 还需在 `PATH` 中。
 - `IlinkSdk.version()`
 - `IlinkSdk.call(op, paramsJson)` — 全部操作；返回 `result` JSON，失败抛
   `IlinkError`
-- `IlinkClient` — 携带路由默认值，并提供辅助方法（`accounts`、`loginStart`、
-  `loginComplete`、`sendText`、`sendFile`、`getUpdates`、`sendTyping`、`upload`）
+- `IlinkSdk.callValue(op, paramsJson)` — 同上，但解析为 `JsonValue`
+- `IlinkClient` — 携带路由默认值，并返回
+  [`IlinkModels`](src/main/kotlin/io/ilink/sdk/IlinkModels.kt) 中的类型化 data class：
+  `accounts`、`resolveAccount`、`saveAccount`、`loginStart`、`loginPoll`、
+  `loginWait`、`loginComplete`、`sendText`、`sendFile`、`sendBytes`、`sendItem`、
+  `getUpdates`、`getConfig`、`sendTyping`、`upload`、`download`、`downloadItem`、
+  `mimeInfo`、`sessionStatus`、`quotePolicy`、`quoteFind` 等
+
+> `IlinkClient.notify(action)` 的参数为必填，因为 `@JvmOverloads` 会生成与
+> `Object.notify()` 冲突的 `notify()` 重载。

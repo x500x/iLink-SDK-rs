@@ -1,7 +1,6 @@
 package ilink
 
 import (
-	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -29,6 +28,17 @@ func TestCallPureHelper(t *testing.T) {
 	}
 }
 
+func TestClientMimeInfo(t *testing.T) {
+	client := NewClient(Config{})
+	info, err := client.MimeInfo("photo.PNG")
+	if err != nil {
+		t.Fatalf("MimeInfo: %v", err)
+	}
+	if info.Mime != "image/png" || !info.IsImage || info.Extension != ".png" {
+		t.Fatalf("unexpected info: %+v", info)
+	}
+}
+
 func TestUnknownOpReturnsKind(t *testing.T) {
 	_, err := Call("does.not.exist", nil)
 	if err == nil {
@@ -44,35 +54,27 @@ func TestUnknownOpReturnsKind(t *testing.T) {
 }
 
 func TestCryptoRoundTrip(t *testing.T) {
+	client := NewClient(Config{})
 	const key = "00112233445566778899aabbccddeeff"
-	var enc struct {
-		DataBase64 string `json:"data_base64"`
+
+	enc, err := client.CryptoEncrypt(key, []byte("hello world"))
+	if err != nil {
+		t.Fatalf("CryptoEncrypt: %v", err)
 	}
-	if err := CallInto("crypto.encrypt", map[string]any{"key_hex": key, "data_base64": "aGVsbG8gd29ybGQ="}, &enc); err != nil {
-		t.Fatalf("encrypt: %v", err)
+	dec, err := client.CryptoDecrypt(key, enc.DataBase64)
+	if err != nil {
+		t.Fatalf("CryptoDecrypt: %v", err)
 	}
-	var dec struct {
-		DataBase64 string `json:"data_base64"`
-	}
-	if err := CallInto("crypto.decrypt", map[string]any{"key_hex": key, "data_base64": enc.DataBase64}, &dec); err != nil {
-		t.Fatalf("decrypt: %v", err)
-	}
-	if dec.DataBase64 != "aGVsbG8gd29ybGQ=" {
-		t.Fatalf("round trip mismatch: %s", dec.DataBase64)
+	if string(dec) != "hello world" {
+		t.Fatalf("round trip mismatch: %q", dec)
 	}
 }
 
 func TestClientMergesRouting(t *testing.T) {
 	client := NewClient(Config{AccountID: "demo"})
-	raw, err := client.Call("session.status", nil)
+	status, err := client.SessionStatus("")
 	if err != nil {
-		t.Fatalf("session.status: %v", err)
-	}
-	var status struct {
-		Paused bool `json:"paused"`
-	}
-	if err := json.Unmarshal(raw, &status); err != nil {
-		t.Fatalf("decode: %v", err)
+		t.Fatalf("SessionStatus: %v", err)
 	}
 	if status.Paused {
 		t.Fatal("expected not paused")

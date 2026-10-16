@@ -13,7 +13,10 @@ void  ilink_string_free(char *ptr);
 
 Every binding below is a thin wrapper over that ABI: it loads the library, calls
 `ilink_call`, unwraps the `{"ok":true,"result":...}` / `{"ok":false,...}`
-envelope, and exposes idiomatic helpers. Nothing is reimplemented per language.
+envelope, and exposes idiomatic, **typed** helpers. Nothing is reimplemented per
+language: each binding only decodes the shared JSON into the natural value type
+of that language (dataclasses in Python, structs in Go/C++, classes in
+Java/Kotlin) so callers never hand-parse result JSON for the common flows.
 
 | Language | Directory | Runtime dependency | Status |
 | --- | --- | --- | --- |
@@ -23,7 +26,7 @@ envelope, and exposes idiomatic helpers. Nothing is reimplemented per language.
 | Python | [`bindings/python`](python) | none (`ctypes`) | tested |
 | Go | [`bindings/go`](go) | cgo | tested |
 | Java | [`bindings/java`](java) | [JNA](https://github.com/java-native-access/jna) | tested |
-| Kotlin | [`bindings/kotlin`](kotlin) | JNA | source |
+| Kotlin | [`bindings/kotlin`](kotlin) | JNA | tested |
 
 ## Build the library first
 
@@ -70,4 +73,40 @@ catch (IlinkError err) { err.getKind(); }
 
 ```cpp
 catch (const ilink::Error& err) { err.kind(); }
+```
+
+## Typed results
+
+The universal `call(op, params)` still reaches every operation, but each binding
+also exposes typed models and a `Client` whose helpers return them:
+
+| Language | Result type | Client |
+| --- | --- | --- |
+| Python | `ilink_sdk.models.*` dataclasses | `ilink_sdk.Client` |
+| Go | structs in package `ilink` | `ilink.Client` |
+| C++ | structs in `ilink_types.hpp` | `ilink::Client` |
+| Java | `IlinkModels.*` | `IlinkClient` |
+| Kotlin | `IlinkModels.*` data classes | `IlinkClient` |
+
+```python
+info = ilink_sdk.Client().mime_info("photo.png")   # models.MimeInfo
+info.mime, info.is_image
+```
+
+```go
+info, err := ilink.NewClient(ilink.Config{}).MimeInfo("photo.png")
+info.Mime
+```
+
+```cpp
+ilink::Client client;
+ilink::MimeInfo info = client.mime_info("photo.png");
+```
+
+```java
+IlinkModels.MimeInfo info = new IlinkClient().mimeInfo("photo.png");
+```
+
+```kotlin
+val info = IlinkClient().mimeInfo("photo.png")
 ```
