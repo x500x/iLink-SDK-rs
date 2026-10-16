@@ -229,6 +229,12 @@ jobs:
         with:
           packages-dir: bindings/python/dist
           skip-existing: true
+          # A configured API token wins (required for the very first upload of
+          # a new project). With no token the action falls back to trusted
+          # publishing (OIDC), which needs the pending publisher on PyPI.
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          # PEP 740 attestations only work in the trusted-publishing flow.
+          attestations: ${{ secrets.PYPI_API_TOKEN == '' }}
           # No token: PyPI trusted publishing (OIDC) authenticates via the
           # `id-token: write` permission. Configure the trusted publisher once
           # at https://pypi.org/manage/account/publishing/ with:
