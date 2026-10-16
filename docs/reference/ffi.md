@@ -1,5 +1,8 @@
 # C ABI (dll / so / dylib)
 
+> Language bindings for Go, Python, C++, Java and Kotlin wrap this same ABI; see
+> [Language bindings](bindings.md).
+
 Building `ilink-sdk` produces, in addition to the Rust `rlib`:
 
 | Platform | Shared library | Static library | Import library |

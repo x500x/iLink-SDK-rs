@@ -20,6 +20,7 @@
 | [配置](reference/configuration.md) | `openclaw.json`、环境变量、feature 开关。 |
 | [命令行工具](reference/cli.md) | 内置的 `weixin` 二进制。 |
 | [C ABI（dll / so / dylib）](reference/ffi.md) | 通过共享/静态库从 C/C++/Go 调用本 SDK。 |
+| [多语言绑定](reference/bindings.md) | 从 C、C++、Go、Python、Java、Kotlin 使用本 SDK。 |
 | [API 客户端参考](reference/api-client.md) | 底层 `WeixinApiClient`。 |
 | [API 手册](reference/api.md) | 逐个列出每个公开类型、函数与常量的完整清单。 |
 | [分板块 API 手册](apis/README.md) | 按领域逐一详述各 API 的作用与用法。 |

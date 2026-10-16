@@ -22,6 +22,7 @@ practical guides and a module reference.
 | [Configuration](reference/configuration.md) | `openclaw.json`, environment variables, feature flags. |
 | [CLI](reference/cli.md) | The bundled `weixin` binary. |
 | [C ABI (dll / so / dylib)](reference/ffi.md) | Call the SDK from C/C++/Go via the shared/static library. |
+| [Language bindings](reference/bindings.md) | Use the SDK from C, C++, Go, Python, Java and Kotlin. |
 | [API client reference](reference/api-client.md) | The low-level `WeixinApiClient`. |
 | [API handbook](reference/api.md) | Exhaustive catalog of every public type, function, and constant. |
 | [API by board](apis/README.md) | Detailed, per-area guides for each API surface. |

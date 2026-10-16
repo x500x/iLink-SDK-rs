@@ -1,5 +1,7 @@
 # C ABI（dll / so / dylib）
 
+> Go、Python、C++、Java、Kotlin 的绑定都封装同一套 ABI，见 [多语言绑定](bindings.md)。
+
 构建 `ilink-sdk` 时，除了 Rust `rlib` 之外还会产出：
 
 | 平台 | 共享库 | 静态库 | 导入库 |
@@ -45,11 +47,11 @@ Windows 上的静态库由 MSVC 工具链产出，只能由 MSVC 链接（会引
 MSVC 的 C++ type-info 运行时）。MinGW/gcc 和 Windows 上的 Go cgo 请改用共享库。
 
 **Windows 运行库依赖。** Windows 产物使用 `+crt-static` 构建（见
-[`.cargo/config.toml`](../../.cargo/config.toml)），静态链接 MSVC C 运行库，**不需要**
+[`.cargo/config.toml`](../../../.cargo/config.toml)），静态链接 MSVC C 运行库，**不需要**
 安装 Visual C++ Redistributable。如果使用未读取该配置的自定义工具链，加上
 `RUSTFLAGS="-C target-feature=+crt-static"` 可获得同样效果。
 
-公开头文件为 [`include/ilink_sdk.h`](../../include/ilink_sdk.h)。
+公开头文件为 [`include/ilink_sdk.h`](../../../include/ilink_sdk.h)。
 
 ## 单一入口
 
@@ -74,7 +76,7 @@ void  ilink_string_free(char *ptr);
 
 ## 示例
 
-见 [`examples/c/ilink_demo.c`](../../examples/c/ilink_demo.c)。
+见 [`examples/c/ilink_demo.c`](../../../examples/c/ilink_demo.c)。
 
 ```c
 #include "ilink_sdk.h"
