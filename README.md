@@ -217,6 +217,33 @@ and [`.github/workflows/release.yml`](.github/workflows/release.yml)). On macOS
 the dylib's install name is rewritten to `@rpath/libilink_sdk.dylib` so it can
 be bundled into an app bundle.
 
+## Language bindings
+
+Besides Rust and C, thin bindings are provided for Go, Python, C++, Java and
+Kotlin. They are all wrappers over the same JSON C ABI, so nothing is
+reimplemented per language — see [`bindings/`](bindings/README.md).
+
+| Language | Directory | Notes |
+| --- | --- | --- |
+| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | header + [`examples/c`](examples/c) |
+| C++ | [`bindings/cpp`](bindings/cpp) | header-only, RAII |
+| Rust | crate root | native |
+| Python | [`bindings/python`](bindings/python) | `ctypes`, no dependencies |
+| Go | [`bindings/go`](bindings/go) | cgo |
+| Java | [`bindings/java`](bindings/java) | JNA |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA |
+
+```python
+# Python
+import ilink_sdk
+ilink_sdk.call("mime.info", {"path": "photo.png"})
+```
+
+```go
+// Go
+ilink.Call("mime.info", map[string]any{"path": "photo.png"})
+```
+
 ## Configuration
 
 Optional settings in `channels.openclaw-weixin` of `openclaw.json`:

@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ilink-sdk"
+version = "2.4.10"
+description = "Python bindings for the iLink (Weixin) SDK via its JSON C ABI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["weixin", "ilink", "im", "sdk", "bot"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+[tool.setuptools]
+packages = ["ilink_sdk"]

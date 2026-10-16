@@ -16,3 +16,14 @@ debug-mode.json
 .idea/
 .vscode/
 .DS_Store
+
+# Language binding build artifacts
+bindings/python/**/__pycache__/
+bindings/python/*.egg-info/
+bindings/go/**/*.exe
+bindings/cpp/*.exe
+bindings/java/out/
+bindings/java/target/
+bindings/kotlin/build/
+bindings/kotlin/kbuild/
+bindings/kotlin/.gradle/
