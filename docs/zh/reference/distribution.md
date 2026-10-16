@@ -71,17 +71,47 @@ python bindings/scripts/set_version.py           # 采用 Cargo.toml 中的版�
 手动执行 **Release → Run workflow** 会构建同样的产物但不发布；勾选 *publish* 才会推送到
 各仓库。
 
-## 需要的 Secrets
+注册表失败不会阻断 GitHub Release：PyPI、crates.io、Maven Central 的步骤都是
+`continue-on-error`，因此即使某个仓库拒绝了上传，Release 仍会产出原生库压缩包（Go 的
+下载回退依赖它）。
 
-只有当对应 secret 存在时流程才会发布；否则只构建（crates.io 则执行 dry-run）后继续，
-因此 fork 也能跑通。
+## 各仓库的一次性配置
 
-| Secret | 用途 |
+在支持的情况下，流程不使用长期 token 进行认证。下面每一项都是**只能由仓库所有者本人
+在浏览器中完成**的一次性操作——它是仓库用来证明你拥有该项目的方式。
+
+| 仓库 | 一次性操作 |
 | --- | --- |
-| `CARGO_REGISTRY_TOKEN` | `cargo publish` 到 crates.io |
-| `PYPI_API_TOKEN` | 上传到 PyPI（省略则用 trusted publishing / OIDC） |
-| `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal |
-| `MAVEN_GPG_PRIVATE_KEY` / `MAVEN_GPG_PASSPHRASE` | 为 Maven 产物签名 |
+| PyPI | 在 <https://pypi.org/manage/account/publishing/> 添加 trusted publisher：项目 `ilink-sdk`、owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`、environment *（留空）*。无需 secret。 |
+| crates.io | 在 <https://crates.io/settings/tokens> → *Trusted Publishing* 添加：owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`。无需 secret。 |
+| Maven Central | 注册 Sonatype Central Portal 账号，并验证 `io.github.x500x` 命名空间（GitHub 自动验证）。 |
+| Maven Central | 登记发布用 GPG 公钥（见下）。 |
+
+### Secrets
+
+流程会读取以下 GitHub Actions secrets。缺失时降级为只构建而不报错，因此 fork 也能跑通。
+
+| Secret | 用途 | 状态 |
+| --- | --- | --- |
+| `MAVEN_GPG_PRIVATE_KEY` | 为 Maven 产物签名 | **已配置** |
+| `MAVEN_GPG_PASSPHRASE` | 该密钥的口令 | **已配置** |
+| `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal | 拿到账号后需要 |
+
+**不需要** `CARGO_REGISTRY_TOKEN` 和 `PYPI_API_TOKEN`：crates.io 与 PyPI 使用 OIDC
+可信发布。
+
+### 发布签名密钥
+
+本仓库已配置一把 4096 位 RSA 签名密钥，其公钥已发布到 `keyserver.ubuntu.com`：
+
+```bash
+# 指纹
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys \
+    FC00B490E76352FFF0B84C6E0B170264E9B37831
+```
+
+Maven Central 会向公钥服务器验证签名，这正是签名上传能被接受的原因。私钥与口令只存在于
+上面两个 secret 中。
 
 ## 安装已发布版本
 

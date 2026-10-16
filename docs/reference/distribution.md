@@ -78,17 +78,52 @@ if they disagree, and the release workflow refuses to publish when the tag and
 A manual **Release → Run workflow** builds the same artifacts without
 publishing; tick *publish* to push to the registries.
 
-## Required secrets
+Registry failures do not block the GitHub release: the PyPI, crates.io and
+Maven Central steps are `continue-on-error`, so a release still ships the native
+archives (which the Go download fallback depends on) even if a registry rejects
+the upload.
 
-The workflow publishes only when the matching secret is present; otherwise it
-builds (and for crates.io, dry-runs) and moves on, so a fork can still run it.
+## One-time registry setup
 
-| Secret | Used for |
+The workflow authenticates without long-lived tokens where the registry supports
+it. Each of these is a one-time, browser-based step that only the repository
+owner can perform — it is how the registry proves you own the project.
+
+| Registry | One-time step |
 | --- | --- |
-| `CARGO_REGISTRY_TOKEN` | `cargo publish` to crates.io |
-| `PYPI_API_TOKEN` | PyPI upload (omit to use trusted publishing / OIDC) |
-| `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal |
-| `MAVEN_GPG_PRIVATE_KEY` / `MAVEN_GPG_PASSPHRASE` | signing the Maven artifacts |
+| PyPI | Add a trusted publisher at <https://pypi.org/manage/account/publishing/>: project `ilink-sdk`, owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`, environment *(empty)*. No secret needed. |
+| crates.io | Add a trusted publisher at <https://crates.io/settings/tokens> → *Trusted Publishing*: owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`. No secret needed. |
+| Maven Central | Create a Sonatype Central Portal account and verify the `io.github.x500x` namespace (GitHub-verified). |
+| Maven Central | Register the release GPG public key (see below). |
+
+### Secrets
+
+The workflow reads these GitHub Actions secrets. Missing ones degrade to a
+build-only run instead of failing, so a fork still works.
+
+| Secret | Used for | Status |
+| --- | --- | --- |
+| `MAVEN_GPG_PRIVATE_KEY` | signing the Maven artifacts | **configured** |
+| `MAVEN_GPG_PASSPHRASE` | passphrase for that key | **configured** |
+| `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal | needed once you have an account |
+
+`CARGO_REGISTRY_TOKEN` and `PYPI_API_TOKEN` are **not** needed: crates.io and
+PyPI use OIDC trusted publishing.
+
+### The release signing key
+
+A 4096-bit RSA signing key is already configured for this repository. Its public
+half is published on `keyserver.ubuntu.com`:
+
+```bash
+# fingerprint
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys \
+    FC00B490E76352FFF0B84C6E0B170264E9B37831
+```
+
+Maven Central verifies the signature against a public keyserver, so this is what
+makes a signed upload acceptable. The private key and its passphrase live only
+in the two secrets above.
 
 ## Installing a released build
 

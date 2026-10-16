@@ -15,6 +15,8 @@ on:
 
 permissions:
   contents: write
+  # Required for OIDC trusted publishing to PyPI and crates.io.
+  id-token: write
 
 env:
   CARGO_TERM_COLOR: always
@@ -220,13 +222,17 @@ jobs:
 
       - name: Publish to PyPI
         if: needs.prepare.outputs.publish == 'true'
+        # A registry hiccup must not block the GitHub release, which is what the
+        # Go download fallback and the C/C++ archives depend on.
+        continue-on-error: true
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: bindings/python/dist
-          # Trusted publishing (OIDC) works with no secret; set PYPI_API_TOKEN
-          # to fall back to an API token instead.
-          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true
+          # No token: PyPI trusted publishing (OIDC) authenticates via the
+          # `id-token: write` permission. Configure the trusted publisher once
+          # at https://pypi.org/manage/account/publishing/ with:
+          #   owner=x500x  repo=iLink-SDK-rs  workflow=release.yml  env=(none)
 
   jvm-jars:
     name: JVM JARs (Java + Kotlin)
@@ -273,6 +279,7 @@ jobs:
 
       - name: Publish the Java JAR to Maven Central
         if: needs.prepare.outputs.publish == 'true'
+        continue-on-error: true
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
@@ -308,6 +315,7 @@ jobs:
 
       - name: Publish the Kotlin JAR to Maven Central
         if: needs.prepare.outputs.publish == 'true'
+        continue-on-error: true
         env:
           ORG_GRADLE_PROJECT_centralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
           ORG_GRADLE_PROJECT_centralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
@@ -335,6 +343,9 @@ jobs:
     name: Publish to crates.io
     needs: prepare
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -342,16 +353,27 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
+      # Trusted publishing: exchange the GitHub OIDC token for a short-lived
+      # crates.io token. Configure it once at
+      # https://crates.io/settings/tokens -> "Trusted Publishing" with
+      #   owner=x500x  repo=iLink-SDK-rs  workflow=release.yml
+      - name: Authenticate with crates.io
+        id: auth
+        if: needs.prepare.outputs.publish == 'true'
+        uses: rust-lang/crates-io-auth-action@v1.0.5
+
       - name: Publish
+        # Do not let a crates.io failure block the GitHub release.
+        continue-on-error: true
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
           set -euo pipefail
           if [ "${{ needs.prepare.outputs.publish }}" != "true" ]; then
             echo "::notice::dry-run (publish not requested)"
             cargo publish --dry-run --allow-dirty
           elif [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
-            echo "::notice::CARGO_REGISTRY_TOKEN not set; running a dry-run instead"
+            echo "::notice::no crates.io token; running a dry-run instead"
             cargo publish --dry-run --allow-dirty
           else
             cargo publish --allow-dirty
