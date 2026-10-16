@@ -50,6 +50,70 @@ for message in updates.messages:
     print(message.message_id)
 ```
 
+## Common workflows
+
+### Media
+
+```python
+# Upload a file to the CDN (media_type: image | video | file | voice)
+uploaded = client.upload("someone@im.wechat", "big.png", media_type="image")
+print(uploaded.filekey, uploaded.aes_key_base64)
+
+# Download and decrypt a CDN reference, writing it to disk
+got = client.download({"encrypt_query_param": "...", "aes_key": "..."},
+                      dest_path="/tmp/out.png")
+print(got.bytes, got.path)
+
+# Fetch a URL; without dest_path the bytes come back inline, base64 decoded
+inline = client.fetch("https://example.com/a.bin")
+raw = inline.data()                      # bytes | None
+
+# Download every media referenced by an inbound message item
+media = client.download_item(msg.item_list[1], dest_dir="/tmp")
+print(media.paths())                     # ['/tmp/...']
+```
+
+### Context tokens & sync cursor
+
+```python
+client.context_set(account_id, user_id, token)
+token = client.context_get(account_id, user_id)   # str | None
+client.context_clear(account_id)
+client.context_restore(account_id)                # -> int (restored count)
+
+cursor = client.sync_load(account_id)
+client.sync_save(account_id, cursor)
+client.sync_clear(account_id)
+```
+
+### Session guard
+
+```python
+client.session_pause(account_id)
+status = client.session_status(account_id)        # models.SessionStatus
+print(status.paused, status.remaining_ms)
+client.session_resume(account_id)
+client.session_assert(account_id)                 # raises when paused
+```
+
+### Quote cache
+
+```python
+policy = client.quote_policy()                    # models.QuotePolicy
+client.quote_put(account_id, conversation_id, message_id, body="hi")
+record = client.quote_find(account_id, conversation_id, message_id)  # models.QuoteRecord | None
+client.quote_gc()
+print(client.quote_media_dir(account_id))
+```
+
+### Any operation, typed
+
+```python
+paths = client.call_into("paths", ilink_sdk.models.Paths)
+config = client.config_load()                     # models.ConfigLoad
+raw = client.call("mime.extension", {"mime": "image/png"})   # plain dict
+```
+
 ## Errors
 
 Failures raise `ilink_sdk.IlinkError` with the Rust `kind` attached:

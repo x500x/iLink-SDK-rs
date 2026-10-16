@@ -45,6 +45,104 @@ try {
 Locate the library with `-Djna.library.path=<dir>` (or `-Dilink.sdk.lib=<name>`).
 On Windows the DLL must also be on `PATH`.
 
+## Common workflows
+
+`IlinkClient` carries routing defaults and returns the typed data classes from
+[`IlinkModels`](src/main/kotlin/io/ilink/sdk/IlinkModels.kt). Every call throws
+`IlinkError` on failure.
+
+### QR login
+
+```kotlin
+val client = IlinkClient(accountId = "cfe9a2017e77-im-bot")
+
+val start = client.loginStart()
+println(start.qrcodeUrl)
+
+// Blocks until the user scans and confirms.
+val done = client.loginComplete(start.sessionKey, timeoutSecs = 480)
+if (done.connected) {
+    println("logged in as ${done.accountId}")
+}
+
+// Non-blocking: react to poll.kind (continue / needs_verification / expired /
+// verify_code_blocked / already_connected / done).
+val poll = client.loginPoll(start.sessionKey)
+when (poll.kind) {
+    "needs_verification" -> client.loginSubmitVerifyCode(start.sessionKey, "123456")
+    "expired" -> client.loginRefresh(start.sessionKey)   // new QR code
+}
+```
+
+`loginWait` is like `loginComplete` but does not persist the credentials.
+
+### Receiving messages
+
+```kotlin
+val updates = client.getUpdates(cursor, timeoutMs = 0)
+if (updates.isError) {
+    System.err.println("server error ${updates.ret}")
+}
+for (msg in updates.msgs) {
+    println(msg["message_id"].asString())
+}
+updates.getUpdatesBuf?.let { cursor = it }
+
+// Turn a raw message into a typed context:
+val ctx = client.contextToMessage(updates.msgs[0])
+println("${ctx.body} from ${ctx.from}")
+```
+
+### Media
+
+```kotlin
+val uploaded = client.upload("someone@im.wechat", "big.png", mediaType = "image")
+println(uploaded.filekey)
+
+val fetched = client.fetch("https://example.com/a.bin")
+fetched.path?.let { println("saved to $it") }
+val bytes = fetched.data()          // decoded when returned inline
+
+val media = client.downloadItem(updates.msgs[0], destDir = "/tmp")
+println(media.paths)
+```
+
+### Context tokens, sync cursor and session guard
+
+```kotlin
+client.contextSet(accountId, userId, token)
+val token2 = client.contextGet(accountId, userId)   // null when absent
+client.contextClear(accountId)
+val restored = client.contextRestore(accountId)
+
+cursor = client.syncLoad(accountId)
+client.syncSave(accountId, cursor)
+client.syncClear(accountId)
+
+client.sessionPause(accountId)
+val status = client.sessionStatus(accountId)
+client.sessionResume(accountId)
+```
+
+### Quote cache
+
+```kotlin
+import io.ilink.sdk.IlinkModels.QuoteRecord
+
+val policy = client.quotePolicy()
+
+client.quotePut(
+    QuoteRecord(
+        accountId = accountId,
+        conversationId = conversationId,
+        messageId = messageId,
+        body = "hi",
+    ),
+)
+val found = client.quoteFind(accountId, conversationId, messageId)
+client.quoteGc()
+```
+
 ## API
 
 - `IlinkSdk.version()`

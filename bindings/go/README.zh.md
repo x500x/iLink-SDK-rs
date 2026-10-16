@@ -55,6 +55,118 @@ func main() {
 }
 ```
 
+## 常用流程
+
+### 二维码登录
+
+`LoginStart` + `LoginComplete` 是常用路径（阻塞至用户扫码）：
+
+```go
+start, err := client.LoginStart("")            // *ilink.LoginStart
+if err != nil {
+    panic(err)
+}
+fmt.Println(start.QRCodeURL)
+
+done, err := client.LoginComplete(start.SessionKey, 480, "")   // *ilink.LoginResult
+if err != nil {
+    panic(err)
+}
+if done.Connected {
+    fmt.Println("已登录为", done.AccountID)
+}
+```
+
+若要自己驱动流程，可轮询状态并根据 `poll.Kind` 分支
+（`continue`、`needs_verification`、`expired`、`verify_code_blocked`、
+`already_connected`、`done`）。务必检查错误：会话不存在时 `LoginPoll` 会返回
+`(nil, err)`。
+
+```go
+poll, err := client.LoginPoll(start.SessionKey)
+if err != nil {
+    panic(err)
+}
+switch poll.Kind {
+case "needs_verification":
+    _ = client.LoginSubmitVerifyCode(start.SessionKey, "123456")
+case "expired":
+    start, err = client.LoginRefresh(start.SessionKey)   // 新二维码
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+`LoginWait` 与 `LoginComplete` 类似，但不持久化凭据。
+
+### 接收消息
+
+```go
+updates, err := client.GetUpdates(cursor, 0)   // *ilink.Updates
+if err != nil {
+    panic(err)
+}
+if updates.IsError() {
+    fmt.Println("服务端错误", updates.Ret, updates.ErrCode, updates.ErrMsg)
+}
+for _, msg := range updates.Messages() {
+    fmt.Println(msg.MessageID, msg.FromUserID)
+    if text, ok := msg.ItemList[0].Text(); ok {
+        fmt.Println("  text:", text)
+    }
+}
+if updates.GetUpdatesBuf != nil {
+    cursor = *updates.GetUpdatesBuf
+}
+
+// 把原始消息转成类型化上下文：
+ctx, _ := client.ContextToMessage(msg)         // *ilink.MsgContext
+fmt.Println(ctx.Body, ctx.From, ctx.To)
+```
+
+### 媒体
+
+```go
+uploaded, _ := client.Upload("someone@im.wechat", "big.png", "image")
+fmt.Println(uploaded.FileKey, uploaded.AESKeyBase64)
+
+fetched, _ := client.Fetch("https://example.com/a.bin", "")
+data, _ := fetched.Data()                      // []byte | nil
+
+media, _ := client.DownloadItem(msg.ItemList[1], "/tmp")
+fmt.Println(media.Paths())
+```
+
+### Context token、同步游标与会话守卫
+
+```go
+_ = client.ContextSet(accountID, userID, token)
+token, _ = client.ContextGet(accountID, userID)        // 不存在时为 ""
+_ = client.ContextClear(accountID)
+n, _ := client.ContextRestore(accountID)
+
+cursor, _ = client.SyncLoad(accountID)
+_ = client.SyncSave(accountID, cursor)
+_ = client.SyncClear(accountID)
+
+_ = client.SessionPause(accountID)
+status, _ := client.SessionStatus(accountID)           // *ilink.SessionStatus
+fmt.Println(status.Paused, status.RemainingMS)
+_ = client.SessionResume(accountID)
+```
+
+### 引用缓存
+
+```go
+policy, _ := client.QuotePolicy()                      // *ilink.QuotePolicy
+_ = client.QuotePut(ilink.QuoteRecord{
+    AccountID: accountID, ConversationID: convID, MessageID: msgID, Body: "hi",
+})
+record, _ := client.QuoteFind(accountID, convID, msgID) // *ilink.QuoteRecord | nil
+_ = client.QuoteGC()
+```
+
 ## API
 
 - `ilink.Version() (string, error)`

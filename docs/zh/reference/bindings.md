@@ -7,15 +7,18 @@
 结果会被解码成宿主语言自然的值类型（Python 用 dataclass，Go/C++ 用 struct，
 Java/Kotlin 用类），因此常用流程无需手动解析结果 JSON。
 
-| 语言 | 目录 | 运行时依赖 | 状态 |
-| --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../../../include/ilink_sdk.h) + [`examples/c`](../../../examples/c) | — | 参考实现 |
-| C++ | [`bindings/cpp`](../../../bindings/cpp) | —（header-only） | 已实测 |
-| Rust | crate 本体 | — | 原生 |
-| Python | [`bindings/python`](../../../bindings/python) | 无（`ctypes`） | 已实测 |
-| Go | [`bindings/go`](../../../bindings/go) | cgo | 已实测 |
-| Java | [`bindings/java`](../../../bindings/java) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
-| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | JNA | 已实测 |
+| 语言 | 目录 | 指南 | 运行时依赖 | 状态 |
+| --- | --- | --- | --- | --- |
+| C | [`include/ilink_sdk.h`](../../../include/ilink_sdk.h) + [`examples/c`](../../../examples/c) | [C ABI](ffi.md) | — | 参考实现 |
+| C++ | [`bindings/cpp`](../../../bindings/cpp) | [C++ 指南](../../../bindings/cpp/README.zh.md) | —（header-only） | 已实测 |
+| Rust | crate 本体 | [API 手册](api.md) | — | 原生 |
+| Python | [`bindings/python`](../../../bindings/python) | [Python 指南](../../../bindings/python/README.zh.md) | 无（`ctypes`） | 已实测 |
+| Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | cgo | 已实测 |
+| Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
+| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | JNA | 已实测 |
+
+每份语言指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
+context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。
 
 ## 先构建共享库
 

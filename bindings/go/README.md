@@ -57,6 +57,118 @@ func main() {
 }
 ```
 
+## Common workflows
+
+### QR login
+
+`LoginStart` + `LoginComplete` is the usual path (blocking until the user scans):
+
+```go
+start, err := client.LoginStart("")            // *ilink.LoginStart
+if err != nil {
+    panic(err)
+}
+fmt.Println(start.QRCodeURL)
+
+done, err := client.LoginComplete(start.SessionKey, 480, "")   // *ilink.LoginResult
+if err != nil {
+    panic(err)
+}
+if done.Connected {
+    fmt.Println("logged in as", done.AccountID)
+}
+```
+
+To drive the flow yourself, poll for status and react to `poll.Kind`
+(`continue`, `needs_verification`, `expired`, `verify_code_blocked`,
+`already_connected`, `done`). Always check the error: an inactive session makes
+`LoginPoll` return `(nil, err)`.
+
+```go
+poll, err := client.LoginPoll(start.SessionKey)
+if err != nil {
+    panic(err)
+}
+switch poll.Kind {
+case "needs_verification":
+    _ = client.LoginSubmitVerifyCode(start.SessionKey, "123456")
+case "expired":
+    start, err = client.LoginRefresh(start.SessionKey)   // new QR code
+    if err != nil {
+        panic(err)
+    }
+}
+```
+
+`LoginWait` is like `LoginComplete` but does not persist the credentials.
+
+### Receiving messages
+
+```go
+updates, err := client.GetUpdates(cursor, 0)   // *ilink.Updates
+if err != nil {
+    panic(err)
+}
+if updates.IsError() {
+    fmt.Println("server error", updates.Ret, updates.ErrCode, updates.ErrMsg)
+}
+for _, msg := range updates.Messages() {
+    fmt.Println(msg.MessageID, msg.FromUserID)
+    if text, ok := msg.ItemList[0].Text(); ok {
+        fmt.Println("  text:", text)
+    }
+}
+if updates.GetUpdatesBuf != nil {
+    cursor = *updates.GetUpdatesBuf
+}
+
+// Turn a raw message into a typed context:
+ctx, _ := client.ContextToMessage(msg)         // *ilink.MsgContext
+fmt.Println(ctx.Body, ctx.From, ctx.To)
+```
+
+### Media
+
+```go
+uploaded, _ := client.Upload("someone@im.wechat", "big.png", "image")
+fmt.Println(uploaded.FileKey, uploaded.AESKeyBase64)
+
+fetched, _ := client.Fetch("https://example.com/a.bin", "")
+data, _ := fetched.Data()                      // []byte | nil
+
+media, _ := client.DownloadItem(msg.ItemList[1], "/tmp")
+fmt.Println(media.Paths())
+```
+
+### Context tokens, sync cursor and session guard
+
+```go
+_ = client.ContextSet(accountID, userID, token)
+token, _ = client.ContextGet(accountID, userID)        // "" when absent
+_ = client.ContextClear(accountID)
+n, _ := client.ContextRestore(accountID)
+
+cursor, _ = client.SyncLoad(accountID)
+_ = client.SyncSave(accountID, cursor)
+_ = client.SyncClear(accountID)
+
+_ = client.SessionPause(accountID)
+status, _ := client.SessionStatus(accountID)           // *ilink.SessionStatus
+fmt.Println(status.Paused, status.RemainingMS)
+_ = client.SessionResume(accountID)
+```
+
+### Quote cache
+
+```go
+policy, _ := client.QuotePolicy()                      // *ilink.QuotePolicy
+_ = client.QuotePut(ilink.QuoteRecord{
+    AccountID: accountID, ConversationID: convID, MessageID: msgID, Body: "hi",
+})
+record, _ := client.QuoteFind(accountID, convID, msgID) // *ilink.QuoteRecord | nil
+_ = client.QuoteGC()
+```
+
 ## API
 
 - `ilink.Version() (string, error)`

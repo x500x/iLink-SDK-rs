@@ -46,6 +46,106 @@ IlinkSdk.call("does.not.exist", "{}");   // 抛出 IlinkError
 用 `-Djna.library.path=target/release`（或 `-Dilink.sdk.lib=<name>`）定位库。
 Windows 上 DLL 还需在 `PATH` 中（或放在 JVM 启动器旁边）。
 
+## 常用流程
+
+`IlinkClient` 携带路由默认值，并返回
+[`IlinkModels`](src/main/java/io/ilink/sdk/IlinkModels.java) 中的类型化模型。
+每次调用失败都会抛 `IlinkError`。
+
+### 二维码登录
+
+```java
+IlinkClient client = new IlinkClient("cfe9a2017e77-im-bot");
+
+IlinkModels.LoginStart start = client.loginStart();
+System.out.println(start.qrcodeUrl);
+
+// 阻塞至用户扫码确认。
+IlinkModels.LoginResult done = client.loginComplete(start.sessionKey, 480, null);
+if (done.connected) {
+    System.out.println("已登录为 " + done.accountId);
+}
+
+// 非阻塞：根据 poll.kind 分支（continue / needs_verification / expired /
+// verify_code_blocked / already_connected / done）。
+IlinkModels.LoginPoll poll = client.loginPoll(start.sessionKey);
+if ("needs_verification".equals(poll.kind)) {
+    client.loginSubmitVerifyCode(start.sessionKey, "123456");
+} else if ("expired".equals(poll.kind)) {
+    start = client.loginRefresh(start.sessionKey);   // 新二维码
+}
+```
+
+`loginWait` 与 `loginComplete` 类似，但不持久化凭据。
+
+### 接收消息
+
+```java
+IlinkModels.Updates updates = client.getUpdates(cursor, 0);
+if (updates.isError()) {
+    System.err.println("服务端错误 " + updates.ret);
+}
+for (JsonValue msg : updates.msgs) {
+    System.out.println(msg.get("message_id").asString(""));
+}
+if (updates.getUpdatesBuf != null) {
+    cursor = updates.getUpdatesBuf;
+}
+
+// 把原始消息转成类型化上下文：
+IlinkModels.MsgContext ctx = client.contextToMessage(updates.msgs.get(0));
+System.out.println(ctx.body + " from " + ctx.from);
+```
+
+### 媒体
+
+```java
+IlinkModels.UploadedFile uploaded = client.upload("someone@im.wechat", "big.png", "image");
+System.out.println(uploaded.filekey);
+
+IlinkModels.MediaFetch fetched = client.fetch("https://example.com/a.bin", null);
+if (fetched.path != null) {
+    System.out.println("已保存到 " + fetched.path);
+}
+byte[] bytes = fetched.data();          // 内联返回时已解码
+
+IlinkModels.InboundMedia media = client.downloadItem(updates.msgs.get(0), "/tmp");
+System.out.println(media.paths());
+```
+
+### Context token、同步游标与会话守卫
+
+```java
+client.contextSet(accountId, userId, token);
+String token2 = client.contextGet(accountId, userId);   // 不存在时为 null
+client.contextClear(accountId);
+long restored = client.contextRestore(accountId);
+
+cursor = client.syncLoad(accountId);
+client.syncSave(accountId, cursor);
+client.syncClear(accountId);
+
+client.sessionPause(accountId);
+IlinkModels.SessionStatus status = client.sessionStatus(accountId);
+client.sessionResume(accountId);
+```
+
+### 引用缓存
+
+```java
+IlinkModels.QuotePolicy policy = client.quotePolicy();
+
+IlinkModels.QuoteRecord record = new IlinkModels.QuoteRecord();
+record.accountId = accountId;
+record.conversationId = conversationId;
+record.messageId = messageId;
+record.body = "hi";
+client.quotePut(record);
+
+IlinkModels.QuoteRecord found = client.quoteFind(accountId, conversationId, messageId);
+client.quoteGc();
+```
+
 ## API
 
 - `IlinkSdk.version()`

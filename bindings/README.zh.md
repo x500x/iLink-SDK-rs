@@ -17,15 +17,18 @@ void  ilink_string_free(char *ptr);
 自然的值类型（Python 用 dataclass，Go/C++ 用 struct，Java/Kotlin 用类），因此常用流程
 无需手动解析结果 JSON。
 
-| 语言 | 目录 | 运行时依赖 | 状态 |
-| --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | — | 参考实现 |
-| C++ | [`bindings/cpp`](cpp) | —（header-only） | 已实测 |
-| Rust | crate 本体（`use ilink_sdk`） | — | 原生 |
-| Python | [`bindings/python`](python) | 无（`ctypes`） | 已实测 |
-| Go | [`bindings/go`](go) | cgo | 已实测 |
-| Java | [`bindings/java`](java) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
-| Kotlin | [`bindings/kotlin`](kotlin) | JNA | 已实测 |
+| 语言 | 目录 | 指南 | 运行时依赖 | 状态 |
+| --- | --- | --- | --- | --- |
+| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | [C ABI](../docs/zh/reference/ffi.md) | — | 参考实现 |
+| C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | —（header-only） | 已实测 |
+| Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | — | 原生 |
+| Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | 无（`ctypes`） | 已实测 |
+| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | cgo | 已实测 |
+| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | JNA | 已实测 |
+
+每份指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
+context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。
 
 ## 先构建共享库
 

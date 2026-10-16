@@ -45,6 +45,104 @@ try {
 用 `-Djna.library.path=<dir>`（或 `-Dilink.sdk.lib=<name>`）定位库。
 Windows 上 DLL 还需在 `PATH` 中。
 
+## 常用流程
+
+`IlinkClient` 携带路由默认值，并返回
+[`IlinkModels`](src/main/kotlin/io/ilink/sdk/IlinkModels.kt) 中的类型化 data class。
+每次调用失败都会抛 `IlinkError`。
+
+### 二维码登录
+
+```kotlin
+val client = IlinkClient(accountId = "cfe9a2017e77-im-bot")
+
+val start = client.loginStart()
+println(start.qrcodeUrl)
+
+// 阻塞至用户扫码确认。
+val done = client.loginComplete(start.sessionKey, timeoutSecs = 480)
+if (done.connected) {
+    println("已登录为 ${done.accountId}")
+}
+
+// 非阻塞：根据 poll.kind 分支（continue / needs_verification / expired /
+// verify_code_blocked / already_connected / done）。
+val poll = client.loginPoll(start.sessionKey)
+when (poll.kind) {
+    "needs_verification" -> client.loginSubmitVerifyCode(start.sessionKey, "123456")
+    "expired" -> client.loginRefresh(start.sessionKey)   // 新二维码
+}
+```
+
+`loginWait` 与 `loginComplete` 类似，但不持久化凭据。
+
+### 接收消息
+
+```kotlin
+val updates = client.getUpdates(cursor, timeoutMs = 0)
+if (updates.isError) {
+    System.err.println("服务端错误 ${updates.ret}")
+}
+for (msg in updates.msgs) {
+    println(msg["message_id"].asString())
+}
+updates.getUpdatesBuf?.let { cursor = it }
+
+// 把原始消息转成类型化上下文：
+val ctx = client.contextToMessage(updates.msgs[0])
+println("${ctx.body} from ${ctx.from}")
+```
+
+### 媒体
+
+```kotlin
+val uploaded = client.upload("someone@im.wechat", "big.png", mediaType = "image")
+println(uploaded.filekey)
+
+val fetched = client.fetch("https://example.com/a.bin")
+fetched.path?.let { println("已保存到 $it") }
+val bytes = fetched.data()          // 内联返回时已解码
+
+val media = client.downloadItem(updates.msgs[0], destDir = "/tmp")
+println(media.paths)
+```
+
+### Context token、同步游标与会话守卫
+
+```kotlin
+client.contextSet(accountId, userId, token)
+val token2 = client.contextGet(accountId, userId)   // 不存在时为 null
+client.contextClear(accountId)
+val restored = client.contextRestore(accountId)
+
+cursor = client.syncLoad(accountId)
+client.syncSave(accountId, cursor)
+client.syncClear(accountId)
+
+client.sessionPause(accountId)
+val status = client.sessionStatus(accountId)
+client.sessionResume(accountId)
+```
+
+### 引用缓存
+
+```kotlin
+import io.ilink.sdk.IlinkModels.QuoteRecord
+
+val policy = client.quotePolicy()
+
+client.quotePut(
+    QuoteRecord(
+        accountId = accountId,
+        conversationId = conversationId,
+        messageId = messageId,
+        body = "hi",
+    ),
+)
+val found = client.quoteFind(accountId, conversationId, messageId)
+client.quoteGc()
+```
+
 ## API
 
 - `IlinkSdk.version()`

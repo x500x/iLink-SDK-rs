@@ -18,15 +18,19 @@ language: each binding only decodes the shared JSON into the natural value type
 of that language (dataclasses in Python, structs in Go/C++, classes in
 Java/Kotlin) so callers never hand-parse result JSON for the common flows.
 
-| Language | Directory | Runtime dependency | Status |
-| --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h), [`examples/c`](../examples/c) | — | reference |
-| C++ | [`bindings/cpp`](cpp) | — (header-only) | tested |
-| Rust | crate root (`use ilink_sdk`) | — | native |
-| Python | [`bindings/python`](python) | none (`ctypes`) | tested |
-| Go | [`bindings/go`](go) | cgo | tested |
-| Java | [`bindings/java`](java) | [JNA](https://github.com/java-native-access/jna) | tested |
-| Kotlin | [`bindings/kotlin`](kotlin) | JNA | tested |
+| Language | Directory | Guide | Runtime dependency | Status |
+| --- | --- | --- | --- | --- |
+| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h), [`examples/c`](../examples/c) | [C ABI](../docs/reference/ffi.md) | — | reference |
+| C++ | [`bindings/cpp`](cpp) | [C++ guide](cpp/README.md) | — (header-only) | tested |
+| Rust | crate root (`use ilink_sdk`) | [Rust docs](../docs/reference/api.md) | — | native |
+| Python | [`bindings/python`](python) | [Python guide](python/README.md) | none (`ctypes`) | tested |
+| Go | [`bindings/go`](go) | [Go guide](go/README.md) | cgo | tested |
+| Java | [`bindings/java`](java) | [Java guide](java/README.md) | [JNA](https://github.com/java-native-access/jna) | tested |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin guide](kotlin/README.md) | JNA | tested |
+
+Each guide covers installing/locating the library, a quick start, the common
+workflows (QR login, sending and receiving, media, context tokens, sync cursor,
+session guard, quote cache) and the full list of typed helpers.
 
 ## Build the library first
 
