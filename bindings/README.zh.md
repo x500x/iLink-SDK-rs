@@ -3,18 +3,26 @@
 > English: [README.md](README.md)
 
 Rust crate 会产出一个原生库（`ilink_sdk.dll` / `libilink_sdk.so` /
-`libilink_sdk.dylib`），其全部能力都通过一个 JSON 进 / JSON 出的 C 函数暴露：
+`libilink_sdk.dylib`），它暴露两层接口：
+
+- **类型化 C 函数** —— 每个操作一个函数，结果用 C 结构体（无需 JSON），
+  另有 `IlinkConfig` 携带路由默认值；以及
+- 一个万能的 JSON 进 / JSON 出调用，用于其余操作：
 
 ```c
-char *ilink_call(const char *op, const char *params_json);
-char *ilink_version(void);
-void  ilink_string_free(char *ptr);
+IlinkMimeInfo info;
+if (ilink_mime_info("photo.png", &info) == ILINK_OK) {
+    printf("%s\n", info.mime);
+    ilink_mime_info_free(&info);
+}
+
+char *out = ilink_call("login.start", "{}");   /* 逃生通道 */
 ```
 
-下面每个绑定都是这套 ABI 的薄封装：加载库、调用 `ilink_call`、拆开
+下面每个绑定都是这套 ABI 的薄封装：加载库、调用它（用到 JSON 层时）拆开
 `{"ok":true,"result":...}` / `{"ok":false,...}` 信封，并暴露符合该语言习惯的
 **类型化**辅助方法。**没有按语言重复实现协议**：每个绑定只是把同一份 JSON 解码成该语言
-自然的值类型（Python 用 dataclass，Go/C++ 用 struct，Java/Kotlin 用类），因此常用流程
+自然的值类型（C/Go/C++ 用 struct，Python 用 dataclass，Java/Kotlin 用类），因此常用流程
 无需手动解析结果 JSON。
 
 | 语言 | 目录 | 指南 | 安装方式 | 仓库 |
@@ -89,6 +97,7 @@ catch (const ilink::Error& err) { err.kind(); }
 
 | 语言 | 返回类型 | Client |
 | --- | --- | --- |
+| C | `Ilink*` 结构体 | `IlinkConfig` + 每个操作一个函数 |
 | Python | `ilink_sdk.models.*` dataclass | `ilink_sdk.Client` |
 | Go | `ilink` 包内的 struct | `ilink.Client` |
 | C++ | `ilink_types.hpp` 内的 struct | `ilink::Client` |

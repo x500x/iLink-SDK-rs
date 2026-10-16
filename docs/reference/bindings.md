@@ -73,6 +73,7 @@ Every binding exposes the same three things:
 
 | Language | Result models | Typed client |
 | --- | --- | --- |
+| C | `Ilink*` structs in `ilink_sdk.h` | `IlinkConfig` + one function per operation |
 | Python | `ilink_sdk.models` | `ilink_sdk.Client` |
 | Go | package `ilink` | `ilink.Client` |
 | C++ | `ilink_types.hpp` | `ilink::Client` |
@@ -84,8 +85,19 @@ Every binding exposes the same three things:
 ```c
 #include "ilink_sdk.h"
 
-char *out = ilink_call("send.text",
-                       "{\"to\":\"someone@im.wechat\",\"text\":\"hi\"}");
+/* Typed API: one function per operation, C structs for results. */
+IlinkConfig config;
+memset(&config, 0, sizeof config);
+config.account_id = "cfe9a2017e77-im-bot";
+
+IlinkSendResult sent;
+if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == ILINK_OK) {
+    puts(sent.message_id);
+    ilink_send_result_free(&sent);
+}
+
+/* Escape hatch for operations without a typed wrapper. */
+char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);
 ```

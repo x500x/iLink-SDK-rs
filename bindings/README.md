@@ -3,20 +3,29 @@
 > 中文版: [README.zh.md](README.zh.md)
 
 The Rust crate builds a native library (`ilink_sdk.dll` / `libilink_sdk.so` /
-`libilink_sdk.dylib`) whose entire surface is one JSON-in / JSON-out C function:
+`libilink_sdk.dylib`) that exposes two layers:
+
+- **typed C functions** — one per operation, with C structs for the results
+  (no JSON), plus an `IlinkConfig` for routing defaults; and
+- a universal JSON-in / JSON-out call for everything else:
 
 ```c
-char *ilink_call(const char *op, const char *params_json);
-char *ilink_version(void);
-void  ilink_string_free(char *ptr);
+IlinkMimeInfo info;
+if (ilink_mime_info("photo.png", &info) == ILINK_OK) {
+    printf("%s\n", info.mime);
+    ilink_mime_info_free(&info);
+}
+
+char *out = ilink_call("login.start", "{}");   /* escape hatch */
 ```
 
 Every binding below is a thin wrapper over that ABI: it loads the library, calls
-`ilink_call`, unwraps the `{"ok":true,"result":...}` / `{"ok":false,...}`
-envelope, and exposes idiomatic, **typed** helpers. Nothing is reimplemented per
-language: each binding only decodes the shared JSON into the natural value type
-of that language (dataclasses in Python, structs in Go/C++, classes in
-Java/Kotlin) so callers never hand-parse result JSON for the common flows.
+into it, unwraps the `{"ok":true,"result":...}` / `{"ok":false,...}` envelope
+(where it uses the JSON layer), and exposes idiomatic, **typed** helpers. Nothing
+is reimplemented per language: each binding only decodes the shared JSON into the
+natural value type of that language (structs in C/Go/C++, dataclasses in Python,
+classes in Java/Kotlin) so callers never hand-parse result JSON for the common
+flows.
 
 | Language | Directory | Guide | Install | Registry |
 | --- | --- | --- | --- | --- |
@@ -95,6 +104,7 @@ also exposes typed models and a `Client` whose helpers return them:
 
 | Language | Result type | Client |
 | --- | --- | --- |
+| C | `Ilink*` structs | `IlinkConfig` + one function per operation |
 | Python | `ilink_sdk.models.*` dataclasses | `ilink_sdk.Client` |
 | Go | structs in package `ilink` | `ilink.Client` |
 | C++ | structs in `ilink_types.hpp` | `ilink::Client` |

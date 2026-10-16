@@ -74,6 +74,21 @@ jobs:
             LD_LIBRARY_PATH=target/release /tmp/ilink_demo
           fi
 
+      # The header is the public C API; make sure it stays valid C and C++.
+      - name: C header compiles under every standard
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '#include "ilink_sdk.h"\nint main(void){return 0;}\n' > /tmp/hdr.c
+          for std in c89 c99 c11 c17; do
+            cc -std=$std -Wall -Wextra -Wpedantic -I include -c /tmp/hdr.c -o /tmp/hdr.o
+          done
+          for std in c++11 c++17 c++20; do
+            c++ -x c++ -std=$std -Wall -Wextra -Wpedantic -I include -c /tmp/hdr.c -o /tmp/hdr.o
+          done
+          echo "header compiles under C89..C17 and C++11..C++20"
+
       - name: C ABI smoke test (windows, MinGW if present)
         if: runner.os == 'Windows'
         shell: pwsh

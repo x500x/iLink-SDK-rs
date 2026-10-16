@@ -192,12 +192,27 @@ Rust rlib:
 | Linux | `libilink_sdk.so`, `libilink_sdk.a` |
 | macOS | `libilink_sdk.dylib`, `libilink_sdk.a` |
 
-The whole SDK is reachable from C/C++/Go/… through one JSON-in / JSON-out call
-declared in [`include/ilink_sdk.h`](include/ilink_sdk.h):
+The SDK is reachable from C/C++/Go/… two ways, both declared in
+[`include/ilink_sdk.h`](include/ilink_sdk.h).
+
+Typed functions — one per operation, with C structs for the results:
 
 ```c
-char *out = ilink_call("send.text",
-                       "{\"to\":\"someone@im.wechat\",\"text\":\"hi\"}");
+IlinkConfig config = {0};
+config.account_id = "cfe9a2017e77-im-bot";
+
+IlinkSendResult sent;
+if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == ILINK_OK) {
+    puts(sent.message_id);
+    ilink_send_result_free(&sent);
+}
+```
+
+And a universal JSON-in / JSON-out call for operations without a typed wrapper
+(QR login, quote cache, ...):
+
+```c
+char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);
 ```
@@ -253,7 +268,7 @@ go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go (pure Go, no cgo)
 
 | Language | Directory | Install | Notes |
 | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | link the library | header + [`examples/c`](examples/c) |
+| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | link the library | typed functions + structs, JSON escape hatch |
 | C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only, RAII, typed models |
 | Rust | crate root | `cargo add ilink-sdk` | native |
 | Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`, no dependencies, dataclasses |

@@ -762,12 +762,12 @@ fn opt_string(params: &Value, key: &str) -> Option<String> {
     opt_str(params, key).map(str::to_string)
 }
 
-fn encode_base64(bytes: &[u8]) -> String {
+pub(crate) fn encode_base64(bytes: &[u8]) -> String {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 
-fn decode_base64(raw: &str) -> Result<Vec<u8>> {
+pub(crate) fn decode_base64(raw: &str) -> Result<Vec<u8>> {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD
         .decode(raw.as_bytes())

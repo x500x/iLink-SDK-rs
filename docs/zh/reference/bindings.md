@@ -65,6 +65,7 @@ python bindings/scripts/stage_native.py --binding go   # 或 java / kotlin
 
 | 语言 | 结果模型 | 类型化 Client |
 | --- | --- | --- |
+| C | `ilink_sdk.h` 中的 `Ilink*` 结构体 | `IlinkConfig` + 每个操作一个函数 |
 | Python | `ilink_sdk.models` | `ilink_sdk.Client` |
 | Go | `ilink` 包 | `ilink.Client` |
 | C++ | `ilink_types.hpp` | `ilink::Client` |
@@ -76,8 +77,19 @@ python bindings/scripts/stage_native.py --binding go   # 或 java / kotlin
 ```c
 #include "ilink_sdk.h"
 
-char *out = ilink_call("send.text",
-                       "{\"to\":\"someone@im.wechat\",\"text\":\"hi\"}");
+/* 类型化 API：每个操作一个函数，结果用 C 结构体。 */
+IlinkConfig config;
+memset(&config, 0, sizeof config);
+config.account_id = "cfe9a2017e77-im-bot";
+
+IlinkSendResult sent;
+if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == ILINK_OK) {
+    puts(sent.message_id);
+    ilink_send_result_free(&sent);
+}
+
+/* 没有类型化封装的操作走逃生通道。 */
+char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);
 ```

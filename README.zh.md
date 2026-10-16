@@ -183,12 +183,27 @@ crate 会同时构建为 `rlib`、`cdylib` 与 `staticlib`，因此 `cargo build
 | Linux | `libilink_sdk.so`、`libilink_sdk.a` |
 | macOS | `libilink_sdk.dylib`、`libilink_sdk.a` |
 
-整个 SDK 都可通过 [`include/ilink_sdk.h`](include/ilink_sdk.h) 中声明的单一
-JSON 进 / JSON 出调用，从 C/C++/Go/… 访问：
+SDK 可从 C/C++/Go/… 以两种方式访问，均声明于
+[`include/ilink_sdk.h`](include/ilink_sdk.h)。
+
+类型化函数 —— 每个操作一个函数，结果用 C 结构体：
 
 ```c
-char *out = ilink_call("send.text",
-                       "{\"to\":\"someone@im.wechat\",\"text\":\"hi\"}");
+IlinkConfig config = {0};
+config.account_id = "cfe9a2017e77-im-bot";
+
+IlinkSendResult sent;
+if (ilink_send_text(&config, "someone@im.wechat", "hi", NULL, NULL, &sent) == ILINK_OK) {
+    puts(sent.message_id);
+    ilink_send_result_free(&sent);
+}
+```
+
+以及一个万能的 JSON 进 / JSON 出调用，用于没有类型化封装的操作（二维码登录、引用
+缓存等）：
+
+```c
+char *out = ilink_call("login.start", "{}");
 puts(out);                 /* {"ok":true,"result":{...}} */
 ilink_string_free(out);
 ```
@@ -238,7 +253,7 @@ go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go（纯 Go，无需 
 
 | 语言 | 目录 | 安装 | 说明 |
 | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | 链接库 | 头文件 + [`examples/c`](examples/c) |
+| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | 链接库 | 类型化函数 + 结构体，另有 JSON 逃生通道 |
 | C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only，RAII，类型化模型 |
 | Rust | crate 本体 | `cargo add ilink-sdk` | 原生 |
 | Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`，无依赖，dataclass |
