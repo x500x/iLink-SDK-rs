@@ -172,7 +172,7 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact: linux-x86_64
-          - os: macos-13
+          - os: macos-15-intel
             artifact: macos-x86_64
           - os: macos-latest
             artifact: macos-aarch64
