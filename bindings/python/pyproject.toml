@@ -1,19 +1,40 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ilink-sdk"
 version = "2.4.10"
-description = "Python bindings for the iLink (Weixin) SDK via its JSON C ABI"
+description = "Python bindings for the iLink (Weixin) SDK, with the native library bundled"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
-keywords = ["weixin", "ilink", "im", "sdk", "bot"]
+keywords = ["weixin", "ilink", "im", "sdk", "bot", "wechat"]
+authors = [{ name = "iLink SDK contributors" }]
 classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Rust",
     "License :: OSI Approved :: MIT License",
+    "Topic :: Communications :: Chat",
+    "Topic :: Software Development :: Libraries",
 ]
 
+[project.urls]
+Homepage = "https://github.com/x500x/iLink-SDK-rs"
+Repository = "https://github.com/x500x/iLink-SDK-rs"
+Documentation = "https://github.com/x500x/iLink-SDK-rs/blob/main/bindings/python/README.md"
+
+# The wheel bundles the compiled library, so a pure-Python sdist cannot be
+# installed without a Rust toolchain. Building from source is documented in the
+# README; end users should install the platform wheels from PyPI.
 [tool.setuptools]
 packages = ["ilink_sdk"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+# Filled in by setup.py's build_py, which copies the native library here so it
+# ends up inside the wheel next to the Python modules.
+ilink_sdk = ["*.dll", "*.so", "*.dylib"]

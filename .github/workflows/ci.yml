@@ -102,16 +102,54 @@ jobs:
       - name: Python bindings
         run: PYTHONPATH=bindings/python python3 bindings/python/tests/test_smoke.py
 
+      - name: Python wheel bundles the native library
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet build
+          python3 -m build --wheel bindings/python
+          python3 - <<'PY'
+          import glob, zipfile
+          wheel = glob.glob("bindings/python/dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          native = [n for n in names if n.endswith((".so", ".dylib", ".dll"))]
+          assert native, f"no native library in {wheel}: {names}"
+          print(f"{wheel} bundles {native}")
+          PY
+
       - uses: actions/setup-go@v5
         with:
           go-version: "1.21"
           cache: false
 
-      - name: Go bindings
+      # The default build is cgo-free and loads the embedded library at runtime.
+      - name: Go bindings (cgo-free)
         working-directory: bindings/go
-        run: go test ./...
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          set -euo pipefail
+          python3 ../scripts/stage_native.py --binding go
+          go vet ./...
+          go test ./...
 
-      - name: C++ bindings
+      - name: Go bindings (opt-in cgo)
+        working-directory: bindings/go
+        env:
+          CGO_ENABLED: "1"
+        run: |
+          set -euo pipefail
+          go vet -tags ilink_cgo ./...
+          go test -tags ilink_cgo ./...
+
+      - name: C++ bindings (CMake package)
+        run: |
+          set -euo pipefail
+          cmake -S bindings/cpp -B /tmp/ilink-cpp -DILINK_SDK_BUILD_EXAMPLE=ON
+          cmake --build /tmp/ilink-cpp
+          cmake --install /tmp/ilink-cpp --prefix /tmp/ilink-cpp-install
+          LD_LIBRARY_PATH=target/release /tmp/ilink-cpp/ilink-cpp-example
+
+      - name: C++ bindings (direct compile)
         run: |
           set -euo pipefail
           g++ -std=c++17 -I include -I bindings/cpp bindings/cpp/example.cpp \
@@ -129,11 +167,14 @@ jobs:
       - name: Java bindings
         run: |
           set -euo pipefail
+          python3 bindings/scripts/stage_native.py --binding java
           mkdir -p /tmp/jout
           javac -cp /tmp/jna.jar -d /tmp/jout \
               $(find bindings/java/src/main/java -name '*.java') \
               bindings/java/examples/Example.java
-          java -cp "/tmp/jout:/tmp/jna.jar" -Djna.library.path=target/release Example
+          cp -r bindings/java/src/main/resources/* /tmp/jout/
+          # No -Djna.library.path: the loader must find the bundled library.
+          java -cp "/tmp/jout:/tmp/jna.jar" Example
 
       - name: Kotlin bindings
         run: |
@@ -141,10 +182,14 @@ jobs:
           curl -sSL -o /tmp/kotlinc.zip \
               https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip
           unzip -q /tmp/kotlinc.zip -d /tmp
+          python3 bindings/scripts/stage_native.py --binding kotlin
+          mkdir -p /tmp/kout
           /tmp/kotlinc/bin/kotlinc -cp /tmp/jna.jar -d /tmp/kout \
               $(find bindings/kotlin/src/main/kotlin -name '*.kt')
+          cp -r bindings/kotlin/src/main/resources/* /tmp/kout/
+          # No -Djna.library.path: the loader must find the bundled library.
           java -cp "/tmp/kout:/tmp/jna.jar:/tmp/kotlinc/lib/kotlin-stdlib.jar" \
-              -Djna.library.path=target/release io.ilink.sdk.ExampleKt
+              io.ilink.sdk.ExampleKt
 
   libraries:
     name: Libraries (${{ matrix.artifact }})

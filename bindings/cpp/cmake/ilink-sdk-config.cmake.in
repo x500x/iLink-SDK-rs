@@ -1,0 +1,35 @@
+@PACKAGE_INIT@
+
+# ilink-sdk CMake package.
+#
+#   find_package(ilink-sdk REQUIRED)
+#   target_link_libraries(app PRIVATE ilink::ilink)
+#
+# The target carries the include directories (for ilink_sdk.hpp and the C ABI
+# header) and links the native shared library. The C++ wrapper is header-only.
+
+include("${CMAKE_CURRENT_LIST_DIR}/ilink-sdk-targets.cmake")
+
+# Resolve the native library that sits next to this package. Doing it here (as
+# opposed to baking an absolute path into the export) keeps the install tree
+# relocatable. PACKAGE_PREFIX_DIR is provided by configure_package_config_file.
+find_library(ILINK_SDK_LIBRARY
+    NAMES ilink_sdk libilink_sdk
+    PATHS "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@"
+    NO_DEFAULT_PATH)
+if(NOT ILINK_SDK_LIBRARY)
+    find_library(ILINK_SDK_LIBRARY NAMES ilink_sdk libilink_sdk)
+endif()
+
+if(ILINK_SDK_LIBRARY)
+    set_property(TARGET ilink::ilink APPEND PROPERTY
+        INTERFACE_LINK_LIBRARIES "${ILINK_SDK_LIBRARY}")
+else()
+    set(ilink_sdk_FOUND FALSE)
+    set(ilink_sdk_NOT_FOUND_MESSAGE
+        "The iLink SDK shared library was not found next to the package "
+        "(${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@) or on the system "
+        "loader path.")
+endif()
+
+check_required_components(ilink-sdk)

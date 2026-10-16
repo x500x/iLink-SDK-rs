@@ -2,9 +2,34 @@
 
 > English: [README.md](README.md)
 
-共享库 JSON C ABI 之上的 header-only C++ 封装，无第三方依赖。
+共享库 JSON C ABI 之上的 header-only C++ 封装，除 C++17 编译器和原生 `ilink_sdk`
+库外无其它依赖。
 
-## 构建
+## 安装
+
+封装本身是 header-only，唯一构建产物是原生库。最省事的接入方式是用本目录里的 CMake
+包：
+
+```bash
+cargo build --release                    # 在仓库根目录执行
+cmake -S bindings/cpp -B build
+cmake --install build --prefix /your/prefix
+```
+
+这会把头文件、原生库和 CMake 包安装到 `/your/prefix`。随后在任意项目中：
+
+```cmake
+find_package(ilink-sdk REQUIRED)
+target_link_libraries(app PRIVATE ilink::ilink)
+```
+
+同时会安装 `pkg-config` 文件（`ilink-sdk.pc`），因此
+`pkg-config --cflags --libs ilink-sdk` 也可用。安装目录可整体搬移：它会在包旁边
+解析原生库。
+
+## 不用 CMake 直接编译
+
+如果更愿意直接调用编译器，把两个头文件目录都指上并链接原生库：
 
 ```bash
 cargo build --release            # 在仓库根目录执行
@@ -13,7 +38,9 @@ g++ -std=c++17 -I include -I bindings/cpp bindings/cpp/example.cpp \
 ```
 
 Linux/macOS 上链接 `-L target/release -lilink_sdk`（若未安装，再加
-`-Wl,-rpath,target/release`）。
+`-Wl,-rpath,target/release`）。Windows + MinGW 用
+`target/release/ilink_sdk.dll.lib` 作为导入库；MSVC 则链接 `ilink_sdk.dll.lib`，
+并在运行时把 `ilink_sdk.dll` 放在可执行文件旁边。
 
 ## 用法
 

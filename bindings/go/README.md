@@ -2,19 +2,56 @@
 
 > 中文版: [README.zh.md](README.zh.md)
 
-cgo bindings for the Rust `ilink-sdk` library. The wrapper is a thin layer over
-the shared library's JSON C ABI.
+Pure-Go bindings for the Rust `ilink-sdk` library. The wrapper is a thin layer
+over the shared library's JSON C ABI.
 
-## Build
+## Install
 
 ```bash
-cargo build --release            # from the repository root
-cd bindings/go
-go test ./...
+go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
 ```
 
-On Windows the resulting `ilink_sdk.dll` must be on `PATH` (or next to your
-executable) when the program runs.
+That is all you need: the module loads the native library at runtime with
+[purego](https://github.com/ebitengine/purego), so **no C compiler and no
+`cargo build` are required**. When the module does not carry an embedded copy
+for your platform, the matching [release
+asset](https://github.com/x500x/iLink-SDK-rs/releases) is downloaded once into
+the user cache.
+
+The library is located in this order:
+
+1. `$ILINK_SDK_LIB` — a full path, a directory containing the library, or a
+   bare library name for the OS loader;
+2. a copy next to your executable;
+3. the copy embedded in the module for your OS/CPU (present in a staged build);
+4. a previously downloaded copy in the user cache
+   (`%LOCALAPPDATA%\ilink-sdk\<version>` / `~/.cache/ilink-sdk/<version>`);
+5. a one-time download of the matching release asset into that cache — set
+   `ILINK_SDK_NO_DOWNLOAD=1` to skip this step;
+6. the OS loader path (`ilink_sdk.dll`, `libilink_sdk.so`, `libilink_sdk.dylib`).
+
+Once a library is cached the download step is never repeated.
+
+### Building from a source checkout
+
+When you work inside this repository, build the library and stage it for the
+current platform:
+
+```bash
+cargo build --release                    # from the repository root
+python bindings/scripts/stage_native.py --binding go
+cd bindings/go && go test ./...
+```
+
+### Opt-in cgo build
+
+If you would rather link against a library you built yourself, use the
+`ilink_cgo` build tag. That restores the original cgo behaviour (a C toolchain
+is required and the library is read from `target/release/`):
+
+```bash
+go build -tags ilink_cgo ./...
+```
 
 ## Usage
 

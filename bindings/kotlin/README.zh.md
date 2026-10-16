@@ -3,16 +3,33 @@
 > English: [README.md](README.md)
 
 基于 [JNA](https://github.com/java-native-access/jna) 的绑定，封装 Rust
-`ilink-sdk` 库。API 与 [Java 绑定](../java) 一致，是共享库 JSON C ABI 之上无
-额外依赖的封装。
+`ilink-sdk` 库。API 与 [Java 绑定](../java) 一致。发布到仓库的 JAR 内置了各支持
+平台的原生库，运行时会自动解压匹配的那一份，因此无需手动配置库路径。
 
-## 构建
+## 安装
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("io.ilink:ilink-sdk:2.4.10")
+}
+```
+
+启动时加载器会挑选当前 OS/CPU 对应的内置库（JAR 内的
+`io/ilink/sdk/native/<platform>/`），解压到临时目录后把路径交给 JNA。如需覆盖，
+设置 `-Dilink.sdk.lib=<path-or-name>`（或 `-Djna.library.path=<dir>`）。
+
+### 从源码构建
 
 ```bash
 cargo build --release            # 在仓库根目录执行，产出共享库
+python bindings/scripts/stage_native.py --binding kotlin   # 将其内置到 JAR
 cd bindings/kotlin
 ./gradlew run -Dilink.jna.path=../../target/release
 ```
+
+在 `./gradlew build` 之前，对每个平台各跑一次 `stage_native.py`，即可把多个平台打进
+同一个 JAR（CI 会对全部六个发布目标执行）。
 
 ## 用法
 

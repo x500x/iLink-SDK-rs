@@ -2,9 +2,36 @@
 
 > 中文版: [README.zh.md](README.zh.md)
 
-Header-only C++ wrapper around the shared library's JSON C ABI. No dependencies.
+Header-only C++ wrapper around the shared library's JSON C ABI. No dependencies
+beyond a C++17 compiler and the native `ilink_sdk` library.
 
-## Build
+## Install
+
+The wrapper is header-only; the native library is the only build artifact. The
+simplest way to consume it is the CMake package in this directory:
+
+```bash
+cargo build --release                    # from the repository root
+cmake -S bindings/cpp -B build
+cmake --install build --prefix /your/prefix
+```
+
+That installs the headers, the native library and a CMake package under
+`/your/prefix`. Then, from any project:
+
+```cmake
+find_package(ilink-sdk REQUIRED)
+target_link_libraries(app PRIVATE ilink::ilink)
+```
+
+A `pkg-config` file (`ilink-sdk.pc`) is installed alongside it, so
+`pkg-config --cflags --libs ilink-sdk` works too. The install tree is
+relocatable: it resolves the native library next to the package.
+
+## Build without CMake
+
+If you prefer to compile directly, point the compiler at both header
+directories and link the native library:
 
 ```bash
 cargo build --release            # from the repository root
@@ -13,7 +40,9 @@ g++ -std=c++17 -I include -I bindings/cpp bindings/cpp/example.cpp \
 ```
 
 On Linux/macOS link `-L target/release -lilink_sdk` (add
-`-Wl,-rpath,target/release` if you do not install it).
+`-Wl,-rpath,target/release` if you do not install it). On Windows with MinGW use
+`target/release/ilink_sdk.dll.lib` as the import library; with MSVC link
+`ilink_sdk.dll.lib` and keep `ilink_sdk.dll` next to the executable at run time.
 
 ## Usage
 

@@ -2,23 +2,35 @@
 
 > English: [README.md](README.md)
 
-无第三方依赖（`ctypes`）的 Python 绑定，封装 Rust `ilink-sdk` 库。所有调用都走共享库的
-JSON C ABI，因此你只需要一个构建产物：`ilink_sdk.dll` / `libilink_sdk.so` /
-`libilink_sdk.dylib`。
+无第三方依赖（`ctypes`）的 Python 绑定，封装 Rust `ilink-sdk` 库。PyPI 上的平台 wheel
+已内置原生库，因此 `pip install` 无需 Rust 工具链、也无需手动配置库路径。
 
 ## 安装
 
 ```bash
-cargo build --release            # 在仓库根目录执行，产出共享库
-pip install ./bindings/python
+pip install ilink-sdk
 ```
 
-加载器按以下顺序查找库：
+安装的是平台 wheel（`ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`
+就在包内）。加载器按以下顺序查找库，必要时可覆盖：
 
 1. `$ILINK_SDK_LIB`（共享库完整路径），
-2. 已安装包旁边，
+2. 已安装包旁边（wheel 就放在这里），
 3. 源码检出目录的 `target/release/`，
 4. 系统加载路径。
+
+### 从源码构建
+
+自行构建 wheel 需要 Rust 工具链，因为原生库由本仓库的 crate 编译而来：
+
+```bash
+cargo build --release            # 在仓库根目录执行，产出共享库
+pip install ./bindings/python    # 将其复制进 wheel
+```
+
+`setup.py` 会在 `target/release/`（或 `$ILINK_SDK_LIB`）找到库并复制到
+`ilink_sdk/`；产出的 wheel 会打上当前平台标签（`py3-none-<plat>`）。要生成各平台
+wheel，就在对应 OS/arch 上各跑一次（CI 就是这么做的）。
 
 ## 用法
 

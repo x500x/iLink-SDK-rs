@@ -105,12 +105,120 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
-  release:
-    name: Publish release
+  python-wheels:
+    name: Python wheel (${{ matrix.artifact }})
+    needs: libraries
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: linux-x86_64
+          - os: macos-13
+            artifact: macos-x86_64
+          - os: macos-latest
+            artifact: macos-aarch64
+          - os: windows-latest
+            artifact: windows-x86_64
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ilink-sdk-${{ matrix.artifact }}
+          path: native
+
+      - name: Build the wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m pip install --quiet --upgrade build
+          # Point setup.py at the library built by the `libraries` job.
+          lib=$(find native -maxdepth 1 -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) | head -n1)
+          echo "bundling $lib"
+          ILINK_SDK_LIB="$lib" python -m build --wheel bindings/python
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.artifact }}
+          path: bindings/python/dist/*.whl
+          if-no-files-found: error
+
+  jvm-jars:
+    name: JVM JARs (Java + Kotlin)
     needs: libraries
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: native
+
+      # Each artifact directory is named after its platform, which is exactly
+      # the resource layout the JVM loaders expect. Stage them all so one JAR
+      # works on every supported OS/CPU.
+      - name: Stage every platform's library
+        run: |
+          set -euo pipefail
+          for dir in native/ilink-sdk-*; do
+            platform="$(basename "$dir" | sed 's/^ilink-sdk-//')"
+            for binding in java kotlin; do
+              dest="bindings/$binding/src/main/resources/io/ilink/sdk/native/$platform"
+              mkdir -p "$dest"
+              find "$dir" -maxdepth 1 -type f \( -name '*.dll' -o -name '*.so' -o -name '*.dylib' \) \
+                -exec cp {} "$dest/" \;
+            done
+          done
+          find bindings/java/src/main/resources bindings/kotlin/src/main/resources -type f
+
+      - name: Build the Java JAR
+        run: mvn -q -f bindings/java/pom.xml package -DskipTests
+
+      - name: Build the Kotlin JAR
+        run: |
+          set -euo pipefail
+          curl -sSL -o /tmp/kotlinc.zip \
+              https://github.com/JetBrains/kotlin/releases/download/v2.0.21/kotlin-compiler-2.0.21.zip
+          unzip -q /tmp/kotlinc.zip -d /tmp
+          curl -sSL -o /tmp/jna.jar \
+              https://repo1.maven.org/maven2/net/java/dev/jna/jna/5.14.0/jna-5.14.0.jar
+          mkdir -p /tmp/kout
+          /tmp/kotlinc/bin/kotlinc -cp /tmp/jna.jar -d /tmp/kout \
+              $(find bindings/kotlin/src/main/kotlin -name '*.kt')
+          cp -r bindings/kotlin/src/main/resources/* /tmp/kout/
+          mkdir -p bindings/kotlin/build
+          jar cf bindings/kotlin/build/ilink-sdk-kotlin-2.4.10.jar -C /tmp/kout .
+          ls -la bindings/kotlin/build/*.jar
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jvm-jars
+          path: |
+            bindings/java/target/*.jar
+            bindings/kotlin/build/*.jar
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: [libraries, python-wheels, jvm-jars]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
@@ -119,13 +227,29 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p release
-          for dir in artifacts/*/; do
+          release_dir="$PWD/release"
+          for dir in artifacts/ilink-sdk-*/; do
             name="$(basename "$dir")"
-            (cd "$dir" && zip -r "../../release/ilink-sdk-${name}.zip" .)
+            (cd "$dir" && zip -r "$release_dir/${name}.zip" .)
           done
+          # Wheels and JARs are attached as-is.
+          find artifacts -name '*.whl' -exec cp {} release/ \;
+          find artifacts -name '*.jar' -exec cp {} release/ \;
           ls -la release
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: release/*.zip
+          files: release/*
           generate_release_notes: true
+
+      # Go modules that live in a subdirectory need a tag of the form
+      # `bindings/go/vX.Y.Z` for `go get` to resolve them. Create it pointing at
+      # the same commit as the release tag.
+      - name: Tag the Go submodule
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME}"
+          git tag "bindings/go/${version}" "${GITHUB_SHA}"
+          git push origin "bindings/go/${version}"

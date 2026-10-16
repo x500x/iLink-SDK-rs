@@ -3,16 +3,35 @@
 > 中文版: [README.zh.md](README.zh.md)
 
 [JNA](https://github.com/java-native-access/jna)-based bindings for the Rust
-`ilink-sdk` library. The API mirrors the [Java binding](../java); it is a
-dependency-free wrapper over the shared library's JSON C ABI.
+`ilink-sdk` library. The API mirrors the [Java binding](../java). The published
+JAR bundles the native library for every supported platform and extracts the
+right one at runtime, so no manual library setup is required.
 
-## Build
+## Install
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("io.ilink:ilink-sdk:2.4.10")
+}
+```
+
+At startup the loader picks the bundled library for the current OS/CPU
+(`io/ilink/sdk/native/<platform>/` inside the JAR), extracts it to a temporary
+directory and hands the path to JNA. To override, set
+`-Dilink.sdk.lib=<path-or-name>` (or `-Djna.library.path=<dir>`).
+
+### Building from source
 
 ```bash
 cargo build --release            # from the repository root, produces the library
+python bindings/scripts/stage_native.py --binding kotlin   # bundle it into the JAR
 cd bindings/kotlin
 ./gradlew run -Dilink.jna.path=../../target/release
 ```
+
+Run `stage_native.py` once per platform before `./gradlew build` to bundle
+several platforms into one JAR (CI does this for all six release targets).
 
 ## Usage
 

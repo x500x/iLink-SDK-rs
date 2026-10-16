@@ -20,13 +20,22 @@ debug-mode.json
 # Language binding build artifacts
 bindings/python/**/__pycache__/
 bindings/python/*.egg-info/
+bindings/python/build/
+bindings/python/dist/
 bindings/go/**/*.exe
 bindings/cpp/*.exe
+bindings/cpp/build/
 bindings/java/out/
 bindings/java/target/
 bindings/kotlin/build/
 bindings/kotlin/kbuild/
 bindings/kotlin/.gradle/
+# Native libraries staged into the bindings for packaging (see
+# bindings/scripts/stage_native.py). They are build artifacts, regenerated per
+# platform by CI, so they are not committed.
+bindings/java/src/main/resources/io/ilink/sdk/native/*/
+bindings/kotlin/src/main/resources/io/ilink/sdk/native/*/
+bindings/go/ilink/native/*/
 # Stray Kotlin/JVM output from manual compiles
 /io/
 /build/

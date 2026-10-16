@@ -10,7 +10,7 @@
   <packaging>jar</packaging>
 
   <name>iLink SDK (Java)</name>
-  <description>Java bindings for the Rust iLink (Weixin) SDK via its JSON C ABI</description>
+  <description>Java bindings for the Rust iLink (Weixin) SDK, with the native library bundled</description>
   <url>https://github.com/x500x/iLink-SDK-rs</url>
 
   <licenses>
@@ -19,6 +19,19 @@
       <url>https://opensource.org/licenses/MIT</url>
     </license>
   </licenses>
+
+  <developers>
+    <developer>
+      <name>iLink SDK contributors</name>
+      <organizationUrl>https://github.com/x500x/iLink-SDK-rs</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:https://github.com/x500x/iLink-SDK-rs.git</connection>
+    <developerConnection>scm:git:git@github.com:x500x/iLink-SDK-rs.git</developerConnection>
+    <url>https://github.com/x500x/iLink-SDK-rs</url>
+  </scm>
 
   <properties>
     <maven.compiler.release>11</maven.compiler.release>
@@ -35,19 +48,34 @@
   </dependencies>
 
   <build>
+    <resources>
+      <!-- Java sources live in src/main/java; the native library is staged into
+           src/main/resources by bindings/scripts/stage_native.py and bundled
+           under io/ilink/sdk/native/<platform>/ so the JAR is self-contained. -->
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.4.1</version>
+        <configuration>
+          <archive>
+            <manifestEntries>
+              <Implementation-Title>iLink SDK (Java)</Implementation-Title>
+              <Implementation-Version>${project.version}</Implementation-Version>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.2.0</version>
         <configuration>
           <mainClass>Example</mainClass>
-          <systemProperties>
-            <systemProperty>
-              <key>jna.library.path</key>
-              <value>${project.basedir}/../../target/release</value>
-            </systemProperty>
-          </systemProperties>
         </configuration>
       </plugin>
     </plugins>

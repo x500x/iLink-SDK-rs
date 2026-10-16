@@ -23,13 +23,15 @@ interface IlinkNativeLibrary : Library {
  * Everything goes through [call]: pass an operation name and a JSON parameter
  * object, get the operation `result` JSON back. Failures throw [IlinkError].
  *
- * Locate the shared library with `-Djna.library.path=<dir>` (or
- * `-Dilink.sdk.lib=<name>`). On Windows the DLL must also be on `PATH`.
+ * The native library is bundled in the JAR and extracted at runtime (see
+ * [NativeLoader]), so no manual setup is required. Override the lookup with
+ * `-Dilink.sdk.lib=<path-or-name>`, or point JNA at a directory with
+ * `-Djna.library.path=<dir>`.
  */
 object IlinkSdk {
 
     private val lib: IlinkNativeLibrary =
-        Native.load(System.getProperty("ilink.sdk.lib", "ilink_sdk"), IlinkNativeLibrary::class.java)
+        Native.load(NativeLoader.resolve(), IlinkNativeLibrary::class.java)
 
     private fun take(pointer: Pointer?): String {
         if (pointer == null) throw IlinkError("unknown", "the SDK returned a NULL string")

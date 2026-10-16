@@ -3,22 +3,38 @@
 > 中文版: [README.zh.md](README.zh.md)
 
 Dependency-free (`ctypes`) Python bindings for the Rust `ilink-sdk` library.
-Everything goes through the shared library's JSON C ABI, so the only build
-artifact you need is `ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`.
+The platform wheels on PyPI bundle the native library, so `pip install` works
+with no Rust toolchain and no manual library setup.
 
 ## Install
 
 ```bash
-cargo build --release            # from the repository root, produces the library
-pip install ./bindings/python
+pip install ilink-sdk
 ```
 
-The loader looks for the library in this order:
+That installs a platform wheel (`ilink_sdk.dll` / `libilink_sdk.so` /
+`libilink_sdk.dylib` is inside the package). The loader looks for the library in
+this order, so you can override it when needed:
 
 1. `$ILINK_SDK_LIB` (full path to the shared library),
-2. next to the installed package,
+2. next to the installed package (this is where the wheel puts it),
 3. `target/release/` of a source checkout,
 4. the system loader path.
+
+### From source
+
+Building the wheel yourself requires a Rust toolchain, because the native
+library is compiled from the crate in this repository:
+
+```bash
+cargo build --release            # from the repository root, produces the library
+pip install ./bindings/python    # copies it into the wheel
+```
+
+`setup.py` finds the library at `target/release/` (or `$ILINK_SDK_LIB`) and
+copies it into `ilink_sdk/`; the resulting wheel is tagged for the current
+platform (`py3-none-<plat>`). To build one wheel per platform, run this on each
+OS/arch (which is what CI does).
 
 ## Usage
 

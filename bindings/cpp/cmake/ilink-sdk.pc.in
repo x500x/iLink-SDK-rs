@@ -1,0 +1,10 @@
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+
+Name: ilink-sdk
+Description: C++ bindings for the Rust iLink (Weixin) SDK
+Version: @PROJECT_VERSION@
+Cflags: -I${includedir}/ilink-sdk
+Libs: -L${libdir} -lilink_sdk

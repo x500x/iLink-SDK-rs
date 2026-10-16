@@ -11,10 +11,10 @@ import com.sun.jna.Pointer;
  * name and a JSON parameter object, get the operation {@code result} JSON back.
  * Failures throw {@link IlinkError}.
  *
- * <p>The shared library is located through JNA: set {@code -Djna.library.path}
- * to the directory containing {@code ilink_sdk.dll} / {@code libilink_sdk.so},
- * or set {@code -Dilink.sdk.lib} to the exact library name. On Windows the DLL
- * must also be on {@code PATH} (or next to the JVM launcher).
+ * <p>The native library is bundled in the JAR and extracted at runtime (see
+ * {@link NativeLoader}), so no manual setup is required. Override the lookup
+ * with {@code -Dilink.sdk.lib=<path-or-name>}, or point JNA at a directory with
+ * {@code -Djna.library.path=<dir>}.
  */
 public final class IlinkSdk {
 
@@ -29,8 +29,7 @@ public final class IlinkSdk {
         void ilink_string_free(Pointer ptr);
     }
 
-    private static final NativeLibrary LIB = Native.load(
-            System.getProperty("ilink.sdk.lib", "ilink_sdk"), NativeLibrary.class);
+    private static final NativeLibrary LIB = Native.load(NativeLoader.resolve(), NativeLibrary.class);
 
     private static String take(Pointer pointer) {
         if (pointer == null) {

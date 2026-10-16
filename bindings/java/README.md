@@ -3,16 +3,41 @@
 > 中文版: [README.zh.md](README.zh.md)
 
 [JNA](https://github.com/java-native-access/jna)-based bindings for the Rust
-`ilink-sdk` library. No native compilation step: the wrapper calls the shared
-library through JNA.
+`ilink-sdk` library. The published JAR bundles the native library for every
+supported platform and extracts the right one at runtime, so there is no native
+compilation step and no manual library setup.
 
-## Build
+## Install
+
+Add the dependency to your build:
+
+```xml
+<dependency>
+  <groupId>io.ilink</groupId>
+  <artifactId>ilink-sdk</artifactId>
+  <version>2.4.10</version>
+</dependency>
+```
+
+At startup the loader picks the bundled library for the current OS/CPU
+(`io/ilink/sdk/native/<platform>/` inside the JAR), extracts it to a temporary
+directory and hands the path to JNA. To override:
+
+- `-Dilink.sdk.lib=/abs/path/to/libilink_sdk.so` — use that file;
+- `-Dilink.sdk.lib=ilink_sdk` — let JNA resolve the name (honours
+  `-Djna.library.path` and the OS loader path).
+
+### Building from source
 
 ```bash
 cargo build --release            # from the repository root, produces the library
+python bindings/scripts/stage_native.py --binding java   # bundle it into the JAR
 cd bindings/java
 mvn package
 ```
+
+Run `stage_native.py` once per platform before `mvn package` to bundle several
+platforms into one JAR (CI does this for all six release targets).
 
 ## Usage
 

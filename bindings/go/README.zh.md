@@ -2,17 +2,50 @@
 
 > English: [README.md](README.md)
 
-Rust `ilink-sdk` 库的 cgo 绑定，是共享库 JSON C ABI 之上的一层薄封装。
+纯 Go 绑定，封装 Rust `ilink-sdk` 库，是共享库 JSON C ABI 之上的一层薄封装。
 
-## 构建
+## 安装
 
 ```bash
-cargo build --release            # 在仓库根目录执行
-cd bindings/go
-go test ./...
+go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink
 ```
 
-Windows 上运行时，产出的 `ilink_sdk.dll` 必须在 `PATH` 中（或放在可执行文件旁边）。
+就这样，无需其它步骤：模块在运行时用
+[purego](https://github.com/ebitengine/purego) 加载原生库，因此**不需要 C 编译器，也不需要
+`cargo build`**。当模块未携带当前平台的内置副本时，会自动从对应的
+[release 资源](https://github.com/x500x/iLink-SDK-rs/releases) 下载一次并存入用户缓存。
+
+库的查找顺序：
+
+1. `$ILINK_SDK_LIB` —— 完整路径、包含该库的目录，或交给系统加载器的库名；
+2. 可执行文件旁边的副本；
+3. 模块内为当前 OS/CPU 内置的副本（已写入资源的构建中存在）；
+4. 用户缓存中已下载的副本
+   （`%LOCALAPPDATA%\ilink-sdk\<version>` / `~/.cache/ilink-sdk/<version>`）；
+5. 从对应的 release 资源下载一次并存入缓存 —— 设置 `ILINK_SDK_NO_DOWNLOAD=1`
+   可跳过此步；
+6. 系统加载路径（`ilink_sdk.dll`、`libilink_sdk.so`、`libilink_sdk.dylib`）。
+
+一旦库被缓存，就不会再重复下载。
+
+### 在源码检出目录中构建
+
+在本仓库内开发时，构建库并为当前平台做好内置准备：
+
+```bash
+cargo build --release                    # 在仓库根目录执行
+python bindings/scripts/stage_native.py --binding go
+cd bindings/go && go test ./...
+```
+
+### 可选：cgo 构建
+
+如果你更希望链接自己构建的库，可使用 `ilink_cgo` 构建标签。它会恢复原先的 cgo 行为
+（需要 C 工具链，库从 `target/release/` 读取）：
+
+```bash
+go build -tags ilink_cgo ./...
+```
 
 ## 用法
 

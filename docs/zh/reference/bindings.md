@@ -9,26 +9,47 @@
 结果会被解码成宿主语言自然的值类型（Python 用 dataclass，Go/C++ 用 struct，
 Java/Kotlin 用类），因此常用流程无需手动解析结果 JSON。
 
-| 语言 | 目录 | 指南 | 运行时依赖 | 状态 |
+| 语言 | 目录 | 指南 | 安装方式 | 状态 |
 | --- | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../../../include/ilink_sdk.h) + [`examples/c`](../../../examples/c) | [C ABI](ffi.md) | — | 参考实现 |
-| C++ | [`bindings/cpp`](../../../bindings/cpp) | [C++ 指南](../../../bindings/cpp/README.zh.md) | —（header-only） | 已实测 |
-| Rust | crate 本体 | [API 手册](api.md) | — | 原生 |
-| Python | [`bindings/python`](../../../bindings/python) | [Python 指南](../../../bindings/python/README.zh.md) | 无（`ctypes`） | 已实测 |
-| Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | cgo | 已实测 |
-| Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
-| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | JNA | 已实测 |
+| C | [`include/ilink_sdk.h`](../../../include/ilink_sdk.h) + [`examples/c`](../../../examples/c) | [C ABI](ffi.md) | 链接库 | 参考实现 |
+| C++ | [`bindings/cpp`](../../../bindings/cpp) | [C++ 指南](../../../bindings/cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | 已实测 |
+| Rust | crate 本体 | [API 手册](api.md) | `cargo add ilink-sdk` | 原生 |
+| Python | [`bindings/python`](../../../bindings/python) | [Python 指南](../../../bindings/python/README.zh.md) | `pip install ilink-sdk` | 已实测 |
+| Go | [`bindings/go`](../../../bindings/go) | [Go 指南](../../../bindings/go/README.zh.md) | `go get .../bindings/go/ilink` | 已实测 |
+| Java | [`bindings/java`](../../../bindings/java) | [Java 指南](../../../bindings/java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | 已实测 |
+| Kotlin | [`bindings/kotlin`](../../../bindings/kotlin) | [Kotlin 指南](../../../bindings/kotlin/README.zh.md) | `io.ilink:ilink-sdk`（Gradle） | 已实测 |
 
 每份语言指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
 context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。
 
-## 先构建共享库
+## 安装绑定
+
+Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能用。C 和 C++ 则链接
+`cargo build --release` 产出的库。
+
+| 语言 | 安装 | 原生库 |
+| --- | --- | --- |
+| Python | `pip install ilink-sdk` | 打包进平台 wheel |
+| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | 嵌入模块，用 purego 加载 |
+| Java | Maven `io.ilink:ilink-sdk` | 打包进 JAR，运行时解压 |
+| Kotlin | Gradle `io.ilink:ilink-sdk` | 打包进 JAR，运行时解压 |
+| C++ | `cmake --install bindings/cpp --prefix <dir>` | 安装到头文件旁边 |
+
+## 从源码构建原生库
+
+在源码检出目录中开发（或构建 C/C++ 绑定时），先构建共享库：
 
 ```bash
 cargo build --release
 # Windows -> target/release/ilink_sdk.dll
 # Linux   -> target/release/libilink_sdk.so
 # macOS   -> target/release/libilink_sdk.dylib
+```
+
+若要把本地构建的库打包进某个绑定，用共用脚本写入该绑定的资源目录：
+
+```bash
+python bindings/scripts/stage_native.py --binding go   # 或 java / kotlin
 ```
 
 ## 快速开始
@@ -132,12 +153,14 @@ println(sent.messageId)
 
 ## 如何找到共享库
 
+绑定内置了库时这一步是自动的。可用的覆盖方式：
+
 | 语言 | 方式 |
 | --- | --- |
-| C / C++ | 链接它（`-L target/release -lilink_sdk`），或放到可执行文件旁边 |
+| C / C++ | 链接它（`-L target/release -lilink_sdk`），或放到可执行文件旁边；CMake 支持 `ILINK_SDK_LIBRARY` / `ILINK_SDK_LIB_DIR` |
 | Python | `ILINK_SDK_LIB=/path/to/library`、放到包旁边，或 `target/release` |
-| Go | 通过 cgo 编译进去；Windows 上运行时 DLL 需在 `PATH` 中 |
-| Java / Kotlin | `-Djna.library.path=target/release`（或 `-Dilink.sdk.lib=<name>`） |
+| Go | 先内置副本，再 `ILINK_SDK_LIB`、用户缓存、release 下载；`-tags ilink_cgo` 则在构建期链接 |
+| Java / Kotlin | 先内置副本，再 `-Dilink.sdk.lib=<path-or-name>` / `-Djna.library.path=<dir>` |
 
 ## 错误处理
 

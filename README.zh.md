@@ -213,15 +213,23 @@ JSON C ABI 的封装，没有按语言重复实现协议。每个绑定都提供
 触达全部操作，并为常用流程提供**类型化模型** —— 见
 [`bindings/`](bindings/README.zh.md)。
 
-| 语言 | 目录 | 说明 |
-| --- | --- | --- |
-| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | 头文件 + [`examples/c`](examples/c) |
-| C++ | [`bindings/cpp`](bindings/cpp) | header-only，RAII，类型化模型 |
-| Rust | crate 本体 | 原生 |
-| Python | [`bindings/python`](bindings/python) | `ctypes`，无依赖，dataclass |
-| Go | [`bindings/go`](bindings/go) | cgo，类型化 struct |
-| Java | [`bindings/java`](bindings/java) | JNA，类型化模型 |
-| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA，类型化 data class |
+Python、Go、Java、Kotlin 包都内置了原生库，因此装好绑定就能用（不需要 Rust 工具链，
+也不需要手动配置库）：
+
+```bash
+pip install ilink-sdk                    # Python
+go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go（纯 Go，无需 cgo）
+```
+
+| 语言 | 目录 | 安装 | 说明 |
+| --- | --- | --- | --- |
+| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | 链接库 | 头文件 + [`examples/c`](examples/c) |
+| C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only，RAII，类型化模型 |
+| Rust | crate 本体 | `cargo add ilink-sdk` | 原生 |
+| Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`，无依赖，dataclass |
+| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/ilink` | 纯 Go（purego），类型化 struct |
+| Java | [`bindings/java`](bindings/java) | Maven `io.ilink:ilink-sdk` | JNA，类型化模型 |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.ilink:ilink-sdk` | JNA，类型化 data class |
 
 ```python
 # Python

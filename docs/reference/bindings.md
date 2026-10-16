@@ -11,27 +11,51 @@ idiomatic, **typed** helpers. Results are decoded into the natural value type of
 the host language (dataclasses in Python, structs in Go/C++, classes in
 Java/Kotlin), so callers never hand-parse result JSON for the common flows.
 
-| Language | Directory | Guide | Runtime dependency | Status |
+| Language | Directory | Guide | Install | Status |
 | --- | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../../include/ilink_sdk.h) + [`examples/c`](../../examples/c) | [C ABI](ffi.md) | — | reference |
-| C++ | [`bindings/cpp`](../../bindings/cpp) | [C++ guide](../../bindings/cpp/README.md) | — (header-only) | tested |
-| Rust | crate root | [API handbook](api.md) | — | native |
-| Python | [`bindings/python`](../../bindings/python) | [Python guide](../../bindings/python/README.md) | none (`ctypes`) | tested |
-| Go | [`bindings/go`](../../bindings/go) | [Go guide](../../bindings/go/README.md) | cgo | tested |
-| Java | [`bindings/java`](../../bindings/java) | [Java guide](../../bindings/java/README.md) | [JNA](https://github.com/java-native-access/jna) | tested |
-| Kotlin | [`bindings/kotlin`](../../bindings/kotlin) | [Kotlin guide](../../bindings/kotlin/README.md) | JNA | tested |
+| C | [`include/ilink_sdk.h`](../../include/ilink_sdk.h) + [`examples/c`](../../examples/c) | [C ABI](ffi.md) | link the library | reference |
+| C++ | [`bindings/cpp`](../../bindings/cpp) | [C++ guide](../../bindings/cpp/README.md) | `find_package(ilink-sdk)` / pkg-config | tested |
+| Rust | crate root | [API handbook](api.md) | `cargo add ilink-sdk` | native |
+| Python | [`bindings/python`](../../bindings/python) | [Python guide](../../bindings/python/README.md) | `pip install ilink-sdk` | tested |
+| Go | [`bindings/go`](../../bindings/go) | [Go guide](../../bindings/go/README.md) | `go get .../bindings/go/ilink` | tested |
+| Java | [`bindings/java`](../../bindings/java) | [Java guide](../../bindings/java/README.md) | `io.ilink:ilink-sdk` (Maven) | tested |
+| Kotlin | [`bindings/kotlin`](../../bindings/kotlin) | [Kotlin guide](../../bindings/kotlin/README.md) | `io.ilink:ilink-sdk` (Gradle) | tested |
 
 Each per-language guide covers installing/locating the library, a quick start,
 the common workflows (QR login, sending and receiving, media, context tokens,
 sync cursor, session guard, quote cache) and the full list of typed helpers.
 
-## Build the library first
+## Installing a binding
+
+The Python, Go, Java and Kotlin packages bundle the native library, so installing
+the binding is enough. C and C++ link the library that `cargo build --release`
+produces.
+
+| Language | Install | Native library |
+| --- | --- | --- |
+| Python | `pip install ilink-sdk` | bundled in the platform wheel |
+| Go | `go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink` | embedded, loaded with purego |
+| Java | Maven `io.ilink:ilink-sdk` | bundled in the JAR, extracted at runtime |
+| Kotlin | Gradle `io.ilink:ilink-sdk` | bundled in the JAR, extracted at runtime |
+| C++ | `cmake --install bindings/cpp --prefix <dir>` | installed next to the headers |
+
+## Building the native library from source
+
+When you work from a source checkout (or build C/C++ bindings), build the shared
+library first:
 
 ```bash
 cargo build --release
 # Windows -> target/release/ilink_sdk.dll
 # Linux   -> target/release/libilink_sdk.so
 # macOS   -> target/release/libilink_sdk.dylib
+```
+
+To package a binding with a locally built library, stage it into the binding's
+resources with the shared helper:
+
+```bash
+python bindings/scripts/stage_native.py --binding go   # or java / kotlin
 ```
 
 ## Quick start
@@ -136,12 +160,14 @@ println(sent.messageId)
 
 ## Locating the shared library
 
+When a binding bundles the library this is automatic. The overrides are:
+
 | Language | How |
 | --- | --- |
-| C / C++ | link it (`-L target/release -lilink_sdk`), or put it next to the executable |
+| C / C++ | link it (`-L target/release -lilink_sdk`), or put it next to the executable; CMake honours `ILINK_SDK_LIBRARY` / `ILINK_SDK_LIB_DIR` |
 | Python | `ILINK_SDK_LIB=/path/to/library`, next to the package, or `target/release` |
-| Go | compiled in via cgo; the DLL must be on `PATH` at runtime (Windows) |
-| Java / Kotlin | `-Djna.library.path=target/release` (or `-Dilink.sdk.lib=<name>`) |
+| Go | embedded copy, then `ILINK_SDK_LIB`, the user cache, or a release download; `-tags ilink_cgo` links it at build time |
+| Java / Kotlin | bundled copy, then `-Dilink.sdk.lib=<path-or-name>` / `-Djna.library.path=<dir>` |
 
 ## Errors
 

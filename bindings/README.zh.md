@@ -17,38 +17,41 @@ void  ilink_string_free(char *ptr);
 自然的值类型（Python 用 dataclass，Go/C++ 用 struct，Java/Kotlin 用类），因此常用流程
 无需手动解析结果 JSON。
 
-| 语言 | 目录 | 指南 | 运行时依赖 | 状态 |
+| 语言 | 目录 | 指南 | 安装方式 | 状态 |
 | --- | --- | --- | --- | --- |
-| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | [C ABI](../docs/zh/reference/ffi.md) | — | 参考实现 |
-| C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | —（header-only） | 已实测 |
-| Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | — | 原生 |
-| Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | 无（`ctypes`） | 已实测 |
-| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | cgo | 已实测 |
-| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | [JNA](https://github.com/java-native-access/jna) | 已实测 |
-| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | JNA | 已实测 |
+| C | [`include/ilink_sdk.h`](../include/ilink_sdk.h)、[`examples/c`](../examples/c) | [C ABI](../docs/zh/reference/ffi.md) | 链接库 | 参考实现 |
+| C++ | [`bindings/cpp`](cpp) | [C++ 指南](cpp/README.zh.md) | `find_package(ilink-sdk)` / pkg-config | 已实测 |
+| Rust | crate 本体（`use ilink_sdk`） | [Rust 文档](../docs/zh/reference/api.md) | `cargo add ilink-sdk` | 原生 |
+| Python | [`bindings/python`](python) | [Python 指南](python/README.zh.md) | `pip install ilink-sdk` | 已实测 |
+| Go | [`bindings/go`](go) | [Go 指南](go/README.zh.md) | `go get .../bindings/go/ilink` | 已实测 |
+| Java | [`bindings/java`](java) | [Java 指南](java/README.zh.md) | `io.ilink:ilink-sdk`（Maven） | 已实测 |
+| Kotlin | [`bindings/kotlin`](kotlin) | [Kotlin 指南](kotlin/README.zh.md) | `io.ilink:ilink-sdk`（Gradle） | 已实测 |
 
 每份指南都涵盖库的安装/定位、快速开始、常用流程（二维码登录、收发消息、媒体、
 context token、同步游标、会话守卫、引用缓存）以及全部类型化辅助方法。
 
-## 先构建共享库
+## 开箱即用的原生库
 
-在仓库根目录：
+除 C 和 C++ 外，每个绑定都把原生库随包一起分发，因此装好绑定就能用——不需要 Rust
+工具链、不需要 `cargo build`、也不需要手动配置库路径：
+
+| 语言 | 原生库的交付方式 | 覆盖方式 |
+| --- | --- | --- |
+| Python | 打包进平台 wheel，位于包内 | `ILINK_SDK_LIB` |
+| Go | 嵌入模块，用 purego 加载（无需 cgo） | `ILINK_SDK_LIB`、`-tags ilink_cgo` |
+| Java | 打包进 JAR，运行时解压 | `-Dilink.sdk.lib`、`-Djna.library.path` |
+| Kotlin | 打包进 JAR，运行时解压 | `-Dilink.sdk.lib`、`-Djna.library.path` |
+| C++ | 由 CMake 包安装到头文件旁边 | `ILINK_SDK_LIBRARY`、`ILINK_SDK_LIB_DIR` |
+
+在源码检出目录中开发时，构建库并把它写入某个绑定的资源目录（共用一个脚本）：
 
 ```bash
 cargo build --release
-# -> target/release/ilink_sdk.dll      (Windows)
-#    target/release/libilink_sdk.so    (Linux)
-#    target/release/libilink_sdk.dylib (macOS)
+python bindings/scripts/stage_native.py --binding go     # 或 java / kotlin
 ```
 
-然后让绑定找到它：
-
-| 语言 | 如何定位库 |
-| --- | --- |
-| C / C++ | 链接它 / `-I include`，或放到可执行文件旁边 |
-| Python | `ILINK_SDK_LIB=/path/to/library`，或装到包旁边 |
-| Go | 通过 cgo 编译进去；运行时 DLL 需在 `PATH` 中 |
-| Java / Kotlin | `-Djna.library.path=target/release` |
+`stage_native.py` 支持 `--platform` 与 `--library`，用于写入交叉编译的库，CI 正是借此
+组装出支持多平台的单个 JAR。
 
 ## 操作清单
 

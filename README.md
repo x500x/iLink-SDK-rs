@@ -227,15 +227,23 @@ reimplemented per language. Each binding exposes a universal `call(op, params)`
 for every operation **and** typed models for the common flows — see
 [`bindings/`](bindings/README.md).
 
-| Language | Directory | Notes |
-| --- | --- | --- |
-| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | header + [`examples/c`](examples/c) |
-| C++ | [`bindings/cpp`](bindings/cpp) | header-only, RAII, typed models |
-| Rust | crate root | native |
-| Python | [`bindings/python`](bindings/python) | `ctypes`, no dependencies, dataclasses |
-| Go | [`bindings/go`](bindings/go) | cgo, typed structs |
-| Java | [`bindings/java`](bindings/java) | JNA, typed models |
-| Kotlin | [`bindings/kotlin`](bindings/kotlin) | JNA, typed data classes |
+Python, Go, Java and Kotlin packages bundle the native library, so installing the
+binding is all that is needed (no Rust toolchain, no manual library setup):
+
+```bash
+pip install ilink-sdk                    # Python
+go get github.com/x500x/iLink-SDK-rs/bindings/go/ilink   # Go (pure Go, no cgo)
+```
+
+| Language | Directory | Install | Notes |
+| --- | --- | --- | --- |
+| C | [`include/ilink_sdk.h`](include/ilink_sdk.h) | link the library | header + [`examples/c`](examples/c) |
+| C++ | [`bindings/cpp`](bindings/cpp) | `find_package(ilink-sdk)` | header-only, RAII, typed models |
+| Rust | crate root | `cargo add ilink-sdk` | native |
+| Python | [`bindings/python`](bindings/python) | `pip install ilink-sdk` | `ctypes`, no dependencies, dataclasses |
+| Go | [`bindings/go`](bindings/go) | `go get .../bindings/go/ilink` | pure Go (purego), typed structs |
+| Java | [`bindings/java`](bindings/java) | Maven `io.ilink:ilink-sdk` | JNA, typed models |
+| Kotlin | [`bindings/kotlin`](bindings/kotlin) | Gradle `io.ilink:ilink-sdk` | JNA, typed data classes |
 
 ```python
 # Python
