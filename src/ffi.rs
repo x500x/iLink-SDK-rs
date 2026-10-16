@@ -55,7 +55,16 @@ use crate::storage::{accounts, config, state_dir, sync_buf};
 fn runtime() -> &'static tokio::runtime::Runtime {
     static RT: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
     RT.get_or_init(|| {
+        // `new_multi_thread` defaults to one worker per core, which can spawn a
+        // lot of threads for an embedded library. The exposed operations are
+        // I/O-bound, so two to four workers are enough; capping them keeps the
+        // thread count and resident memory modest on many-core hosts.
+        let workers = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(2)
+            .clamp(2, 4);
         tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(workers)
             .enable_all()
             .thread_name("ilink-ffi")
             .build()

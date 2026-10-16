@@ -168,7 +168,9 @@ and `timeout_ms`, exactly like the CLI's global flags.
 
 The library owns a lazily created Tokio runtime and can be called from any
 thread that is **not** already running a Tokio runtime. Calls block until the
-operation completes.
+operation completes. The runtime uses between two and four worker threads
+(capped at four regardless of core count) to keep the thread count and
+resident memory modest for embedded callers.
 
 ## Panics
 
