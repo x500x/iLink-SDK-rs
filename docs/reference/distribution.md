@@ -91,10 +91,26 @@ owner can perform — it is how the registry proves you own the project.
 
 | Registry | One-time step |
 | --- | --- |
-| PyPI | Add a trusted publisher at <https://pypi.org/manage/account/publishing/>: project `ilink-sdk`, owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`, environment *(empty)*. No secret needed. |
-| crates.io | Add a trusted publisher at <https://crates.io/settings/tokens> → *Trusted Publishing*: owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`. No secret needed. |
+| PyPI | Add a **pending** trusted publisher at <https://pypi.org/manage/account/publishing/>: project `ilink-sdk`, owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`, environment *(empty)*. A pending publisher works before the project exists and creates it on first publish. No secret needed. |
+| crates.io | The **first** version must be published with an API token (crates.io does not allow trusted publishing for a crate that does not exist yet). See below. |
+| crates.io | After the first release, add a trusted publisher at <https://crates.io/crates/ilink-sdk/settings>: owner `x500x`, repo `iLink-SDK-rs`, workflow `release.yml`, then delete the token. |
 | Maven Central | Create a Sonatype Central Portal account and verify the `io.github.x500x` namespace (GitHub-verified). |
 | Maven Central | Register the release GPG public key (see below). |
+
+### crates.io's first-publish rule
+
+crates.io only offers trusted publishing for crates that **already exist**
+(their docs: *"Your crate must already be published to crates.io (initial
+publish requires an API token)"*). The workflow handles both cases: if the
+`CARGO_REGISTRY_TOKEN` secret is set it is used, otherwise the job falls back to
+OIDC. So the very first release needs a token:
+
+1. Sign in at <https://crates.io> and create a token at
+   <https://crates.io/settings/tokens> with the `publish-new` and `publish-update`
+   scopes.
+2. Store it as the `CARGO_REGISTRY_TOKEN` secret.
+3. Cut the release. After it succeeds, add the trusted publisher and delete the
+   secret — later releases then use OIDC.
 
 ### Secrets
 
@@ -105,10 +121,10 @@ build-only run instead of failing, so a fork still works.
 | --- | --- | --- |
 | `MAVEN_GPG_PRIVATE_KEY` | signing the Maven artifacts | **configured** |
 | `MAVEN_GPG_PASSPHRASE` | passphrase for that key | **configured** |
+| `CARGO_REGISTRY_TOKEN` | the **first** crates.io publish only | needed for the first release |
 | `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal | needed once you have an account |
 
-`CARGO_REGISTRY_TOKEN` and `PYPI_API_TOKEN` are **not** needed: crates.io and
-PyPI use OIDC trusted publishing.
+`PYPI_API_TOKEN` is **not** needed: PyPI uses OIDC trusted publishing.
 
 ### The release signing key
 

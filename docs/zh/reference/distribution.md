@@ -82,10 +82,23 @@ python bindings/scripts/set_version.py           # 采用 Cargo.toml 中的版�
 
 | 仓库 | 一次性操作 |
 | --- | --- |
-| PyPI | 在 <https://pypi.org/manage/account/publishing/> 添加 trusted publisher：项目 `ilink-sdk`、owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`、environment *（留空）*。无需 secret。 |
-| crates.io | 在 <https://crates.io/settings/tokens> → *Trusted Publishing* 添加：owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`。无需 secret。 |
+| PyPI | 在 <https://pypi.org/manage/account/publishing/> 添加 **pending** trusted publisher：项目 `ilink-sdk`、owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`、environment *（留空）*。pending publisher 在项目还不存在时也能配置，首次发布会自动创建项目。无需 secret。 |
+| crates.io | **第一个版本必须用 API token 发布**（crate 尚不存在时，crates.io 不允许可信发布）。见下。 |
+| crates.io | 首次发布成功后，在 <https://crates.io/crates/ilink-sdk/settings> 添加 trusted publisher：owner `x500x`、repo `iLink-SDK-rs`、workflow `release.yml`，然后删掉 token。 |
 | Maven Central | 注册 Sonatype Central Portal 账号，并验证 `io.github.x500x` 命名空间（GitHub 自动验证）。 |
 | Maven Central | 登记发布用 GPG 公钥（见下）。 |
+
+### crates.io 的首次发布限制
+
+crates.io 只对**已存在**的 crate 提供可信发布（官方原文：*“Your crate must
+already be published to crates.io (initial publish requires an API token)”*）。流程
+同时支持两种方式：若设置了 `CARGO_REGISTRY_TOKEN` secret 就用它，否则回退到 OIDC。
+因此**第一次发布需要一个 token**：
+
+1. 登录 <https://crates.io>，在 <https://crates.io/settings/tokens> 创建 token，
+   勾选 `publish-new` 与 `publish-update` 权限。
+2. 把它存为 `CARGO_REGISTRY_TOKEN` secret。
+3. 发版。成功之后，添加 trusted publisher 并删除该 secret——之后的版本就走 OIDC。
 
 ### Secrets
 
@@ -95,10 +108,10 @@ python bindings/scripts/set_version.py           # 采用 Cargo.toml 中的版�
 | --- | --- | --- |
 | `MAVEN_GPG_PRIVATE_KEY` | 为 Maven 产物签名 | **已配置** |
 | `MAVEN_GPG_PASSPHRASE` | 该密钥的口令 | **已配置** |
+| `CARGO_REGISTRY_TOKEN` | **仅首次**发布 crates.io | 首次发布需要 |
 | `MAVEN_CENTRAL_USERNAME` / `MAVEN_CENTRAL_PASSWORD` | Sonatype Central Portal | 拿到账号后需要 |
 
-**不需要** `CARGO_REGISTRY_TOKEN` 和 `PYPI_API_TOKEN`：crates.io 与 PyPI 使用 OIDC
-可信发布。
+**不需要** `PYPI_API_TOKEN`：PyPI 使用 OIDC 可信发布。
 
 ### 发布签名密钥
 

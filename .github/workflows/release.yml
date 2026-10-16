@@ -339,6 +339,11 @@ jobs:
 
   # crates.io is the only registry that is pure Rust, so it publishes the crate
   # itself (the Rust API, the C ABI and the CLI).
+  #
+  # crates.io requires the *first* version of a crate to be published with an
+  # API token; trusted publishing only works once the crate exists. So this job
+  # uses CARGO_REGISTRY_TOKEN when the secret is set (bootstrap, and any release
+  # where you prefer a token) and otherwise falls back to OIDC.
   crates-io:
     name: Publish to crates.io
     needs: prepare
@@ -346,6 +351,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      # Secrets cannot be read inside `if:`; expose it as an env var instead.
+      BOOTSTRAP_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -353,31 +361,34 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      # Trusted publishing: exchange the GitHub OIDC token for a short-lived
-      # crates.io token. Configure it once at
-      # https://crates.io/settings/tokens -> "Trusted Publishing" with
-      #   owner=x500x  repo=iLink-SDK-rs  workflow=release.yml
-      - name: Authenticate with crates.io
+      # Only meaningful once the crate exists and a trusted publisher is
+      # configured at https://crates.io/crates/ilink-sdk/settings
+      # (owner=x500x, repo=iLink-SDK-rs, workflow=release.yml).
+      - name: Authenticate with crates.io (trusted publishing)
         id: auth
-        if: needs.prepare.outputs.publish == 'true'
+        if: needs.prepare.outputs.publish == 'true' && env.BOOTSTRAP_TOKEN == ''
+        continue-on-error: true
         uses: rust-lang/crates-io-auth-action@v1.0.5
 
       - name: Publish
         # Do not let a crates.io failure block the GitHub release.
         continue-on-error: true
         env:
-          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          OIDC_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
           set -euo pipefail
           if [ "${{ needs.prepare.outputs.publish }}" != "true" ]; then
             echo "::notice::dry-run (publish not requested)"
             cargo publish --dry-run --allow-dirty
-          elif [ -z "${CARGO_REGISTRY_TOKEN:-}" ]; then
-            echo "::notice::no crates.io token; running a dry-run instead"
-            cargo publish --dry-run --allow-dirty
-          else
-            cargo publish --allow-dirty
+            exit 0
           fi
+          token="${BOOTSTRAP_TOKEN:-${OIDC_TOKEN:-}}"
+          if [ -z "$token" ]; then
+            echo "::notice::no crates.io credentials; running a dry-run instead"
+            cargo publish --dry-run --allow-dirty
+            exit 0
+          fi
+          CARGO_REGISTRY_TOKEN="$token" cargo publish --allow-dirty
 
   release:
     name: Publish GitHub release
