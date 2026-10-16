@@ -3,6 +3,8 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 [![CI](https://github.com/x500x/iLink-SDK-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/x500x/iLink-SDK-rs/actions/workflows/ci.yml)
 
+> 中文版: [README.zh.md](README.zh.md)
+
 A Rust SDK for the Tencent **Weixin (iLink)** backend protocol.
 
 This crate is a faithful, idiomatic port of the TypeScript

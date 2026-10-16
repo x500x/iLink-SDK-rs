@@ -1,5 +1,7 @@
 # iLink SDK — Python
 
+> 中文版: [README.zh.md](README.zh.md)
+
 Dependency-free (`ctypes`) Python bindings for the Rust `ilink-sdk` library.
 Everything goes through the shared library's JSON C ABI, so the only build
 artifact you need is `ilink_sdk.dll` / `libilink_sdk.so` / `libilink_sdk.dylib`.

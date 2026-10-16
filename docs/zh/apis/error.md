@@ -1,7 +1,7 @@
 # 错误处理 API
 
 `ilink_sdk` 的所有可能失败的操作都返回 `Result<T>`（即
-`std::result::Result<T, Error>`）。错误处理模块位于 [`../../src/error.rs`](../../src/error.rs)，
+`std::result::Result<T, Error>`）。错误处理模块位于 [`../../src/error.rs`](../../../src/error.rs)，
 它把传输层失败统一分类成 `ErrorKind`，让调用方可以基于错误类别做分支，而不必
 对错误字符串做匹配。
 

@@ -1,5 +1,7 @@
 # iLink SDK — C++
 
+> 中文版: [README.zh.md](README.zh.md)
+
 Header-only C++ wrapper around the shared library's JSON C ABI. No dependencies.
 
 ## Build

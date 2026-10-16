@@ -6,7 +6,7 @@
 本 `docs/` 文件夹与顶层 [`README.md`](../README.md) 互补，提供实用指南与模块参考。
 
 > 英文版（主文档）见 [`docs/zh/../README.md`](../README.md) — English version:
-> [English](../README.md).
+> [English](../README.md). 项目首页中文版见 [README.zh.md](../../README.zh.md)。
 
 | 指南 | 内容 |
 | --- | --- |

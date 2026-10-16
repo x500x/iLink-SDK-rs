@@ -1,5 +1,7 @@
 # iLink SDK — Java
 
+> 中文版: [README.zh.md](README.zh.md)
+
 [JNA](https://github.com/java-native-access/jna)-based bindings for the Rust
 `ilink-sdk` library. No native compilation step: the wrapper calls the shared
 library through JNA.

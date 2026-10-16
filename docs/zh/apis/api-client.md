@@ -1,6 +1,6 @@
 # 底层 API 客户端 API
 
-底层 API 客户端是 SDK 与微信（iLink）后端通信的核心，位于 [`../../src/api/`](../../src/api/) 目录。
+底层 API 客户端是 SDK 与微信（iLink）后端通信的核心，位于 [`../../src/api/`](../../../src/api/) 目录。
 它把每个 SDK 操作映射到一个 CGI 端点。绝大多数应用直接使用高层
 [`WeixinClient`](../apis/client.md)，但底层客户端在以下场景更有价值：
 
@@ -13,9 +13,9 @@
 
 | 子模块 | 文件 | 职责 |
 | --- | --- | --- |
-| `client` | [`../../src/api/client.rs`](../../src/api/client.rs) | HTTP 客户端与请求/超时/头管理 |
-| `types` | [`../../src/api/types.rs`](../../src/api/types.rs) | 线类型（请求/响应结构体） |
-| `session_guard` | [`../../src/api/session_guard.rs`](../../src/api/session_guard.rs) | 令牌过期后暂停账户 |
+| `client` | [`../../src/api/client.rs`](../../../src/api/client.rs) | HTTP 客户端与请求/超时/头管理 |
+| `types` | [`../../src/api/types.rs`](../../../src/api/types.rs) | 线类型（请求/响应结构体） |
+| `session_guard` | [`../../src/api/session_guard.rs`](../../../src/api/session_guard.rs) | 令牌过期后暂停账户 |
 
 ## `WeixinApiClient`
 
@@ -181,7 +181,7 @@ pub struct ReqwestTransport;   // 默认实现，使用 reqwest + rustls
 ```
 
 实现 `HttpTransport` 即可注入 mock。集成测试
-[`../../tests/api_integration.rs`](../../tests/api_integration.rs) 就是用它断言请求头、
+[`../../tests/api_integration.rs`](../../../tests/api_integration.rs) 就是用它断言请求头、
 请求体、超时与取消行为，而不触达真实后端。
 
 示例——一个记录所有请求的 mock（示意）：
@@ -221,7 +221,7 @@ pub fn quote_lossless_ids(raw: &str) -> String;
 
 ## `api::types` 线类型
 
-[`../../src/api/types.rs`](../../src/api/types.rs) 中的结构体直接对应后端 JSON 协议。
+[`../../src/api/types.rs`](../../../src/api/types.rs) 中的结构体直接对应后端 JSON 协议。
 它们都是 `#[derive(Serialize, Deserialize)]` 且 `Default`。
 
 ### 枚举
@@ -286,7 +286,7 @@ pub const BOT_AGENT_MAX_LEN: usize = 256;
 
 ## `session_guard` 子模块
 
-[`../../src/api/session_guard.rs`](../../src/api/session_guard.rs) ：当 `getUpdates`
+[`../../src/api/session_guard.rs`](../../../src/api/session_guard.rs) ：当 `getUpdates`
 返回 `errcode == -14`（令牌过期）时，暂停该账户所有 API 调用一小时。
 
 ```rust

@@ -1,5 +1,7 @@
 # iLink SDK — Kotlin
 
+> 中文版: [README.zh.md](README.zh.md)
+
 [JNA](https://github.com/java-native-access/jna)-based bindings for the Rust
 `ilink-sdk` library. The API mirrors the [Java binding](../java); it is a
 dependency-free wrapper over the shared library's JSON C ABI.

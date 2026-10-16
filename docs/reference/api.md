@@ -7,7 +7,7 @@ is intended to be read alongside the source files it links to.
 > The crate has **no embedded HTTP server and no gateway dependency**. Every
 > entry below is a function, type, or constant you call or construct directly.
 > For narrative guides (login flow, messaging, media), see the
-> [docs/README.md](README.md) index.
+> [docs/README.md](../README.md) index.
 
 ## Crate root
 
@@ -18,16 +18,16 @@ Top-level modules:
 
 | Module | Purpose |
 | --- | --- |
-| [`error`](#errormod) | `Error`, `ErrorKind`, `Result` |
-| [`api`](#apimod) | Low-level HTTP client, wire types, session guard |
-| [`client`](#clientmod) | High-level `WeixinClient` / `WeixinClientBuilder` |
-| [`messaging`](#messagingmod) | QR login, outbound, inbound context, typing, quote cache |
-| [`cdn`](#cdnmod) | AES-128-ECB crypto + CDN upload/download |
-| [`storage`](#storagemod) | Account store, state dir, sync cursor, config |
-| [`media`](#mediamod) | MIME detection |
-| [`util`](#utilmod) | IDs, redaction, time |
-| [`logging`](#loggingmod) | `tracing` subscriber helpers (CLI feature) |
-| [`tls`](#tlsmod) | rustls configuration |
+| [`error`](#error-module) | `Error`, `ErrorKind`, `Result` |
+| [`api`](#api-module) | Low-level HTTP client, wire types, session guard |
+| [`client`](#client-module) | High-level `WeixinClient` / `WeixinClientBuilder` |
+| [`messaging`](#messaging-module) | QR login, outbound, inbound context, typing, quote cache |
+| [`cdn`](#cdn-module) | AES-128-ECB crypto + CDN upload/download |
+| [`storage`](#storage-module) | Account store, state dir, sync cursor, config |
+| [`media`](#media-module) | MIME detection |
+| [`util`](#util-module) | IDs, redaction, time |
+| [`logging`](#logging-module) | `tracing` subscriber helpers (CLI feature) |
+| [`tls`](#tls-module) | rustls configuration |
 | `ffi` | C ABI (`ilink_call`/`ilink_version`/`ilink_string_free`) — see [ffi.md](ffi.md) |
 
 ### `prelude`
@@ -54,7 +54,7 @@ pub mod prelude {
 
 ## `error` module
 
-[`src/error.rs`](../src/error.rs)
+[`src/error.rs`](../../src/error.rs)
 
 The crate-wide fallible type. Every fallible call returns `Result<T>` with the
 crate `Error`.
@@ -116,8 +116,8 @@ the TypeScript `classifyFetchError` string matcher over `ENOTFOUND`,
 
 ## `api` module
 
-[`src/api/mod.rs`](../src/api/mod.rs) · [`src/api/client.rs`](../src/api/client.rs)
-· [`src/api/types.rs`](../src/api/types.rs) · [`src/api/session_guard.rs`](../src/api/session_guard.rs)
+[`src/api/mod.rs`](../../src/api/mod.rs) · [`src/api/client.rs`](../../src/api/client.rs)
+· [`src/api/types.rs`](../../src/api/types.rs) · [`src/api/session_guard.rs`](../../src/api/session_guard.rs)
 
 ### `WeixinApiClient`
 
@@ -247,7 +247,7 @@ untouched.
 
 ### `session_guard` submodule
 
-[`src/api/session_guard.rs`](../src/api/session_guard.rs) — pauses all API
+[`src/api/session_guard.rs`](../../src/api/session_guard.rs) — pauses all API
 calls for an account for one hour after a stale-token error (`errcode -14`).
 
 ```rust
@@ -275,7 +275,7 @@ impl SessionGuard {
 
 ### `types` submodule
 
-[`src/api/types.rs`](../src/api/types.rs) — the wire types. All request/response
+[`src/api/types.rs`](../../src/api/types.rs) — the wire types. All request/response
 structs are `#[derive(Serialize, Deserialize)]` and `Default`. The key shapes:
 
 | Type | Notes |
@@ -320,7 +320,7 @@ Constants: `DEFAULT_BOT_AGENT = "OpenClaw"`, `BOT_AGENT_MAX_LEN = 256`.
 
 ## `client` module
 
-[`src/client/mod.rs`](../src/client/mod.rs)
+[`src/client/mod.rs`](../../src/client/mod.rs)
 
 ### `WeixinConfig`
 
@@ -389,11 +389,11 @@ touching the account store — useful for bespoke persistence.
 
 ## `messaging` module
 
-[`src/messaging/mod.rs`](../src/messaging/mod.rs)
+[`src/messaging/mod.rs`](../../src/messaging/mod.rs)
 
 ### `auth` submodule — QR login
 
-[`src/messaging/auth.rs`](../src/messaging/auth.rs)
+[`src/messaging/auth.rs`](../../src/messaging/auth.rs)
 
 ```rust
 impl QrLogin<'_> {
@@ -448,7 +448,7 @@ code is replaced so the host can re-render it.
 
 ### `outbound` submodule — sending
 
-[`src/messaging/outbound.rs`](../src/messaging/outbound.rs)
+[`src/messaging/outbound.rs`](../../src/messaging/outbound.rs)
 
 ```rust
 #[derive(Debug, Clone, Default)]
@@ -481,7 +481,7 @@ missing `context_token` is logged as a warning but does **not** block the send.
 
 ### `typing` submodule
 
-[`src/messaging/typing.rs`](../src/messaging/typing.rs)
+[`src/messaging/typing.rs`](../../src/messaging/typing.rs)
 
 ```rust
 pub enum Typing { Typing, Cancel }
@@ -505,7 +505,7 @@ impl<'a> TypingHelper<'a> {
 
 ### `context` submodule — inbound context
 
-[`src/messaging/context.rs`](../src/messaging/context.rs)
+[`src/messaging/context.rs`](../../src/messaging/context.rs)
 
 ```rust
 pub struct ContextTokenStore { /* memory + JSON persistence */ }
@@ -536,7 +536,7 @@ and inline `reply_to_*` quote fields. `InboundMedia` is defined in the
 
 ### `quote_cache` submodule — local quote cache
 
-[`src/messaging/quote_cache.rs`](../src/messaging/quote_cache.rs) — SQLite-backed
+[`src/messaging/quote_cache.rs`](../../src/messaging/quote_cache.rs) — SQLite-backed
 store for ID-only inbound quotes. Disabled when `QuoteCachePolicy::enabled` is
 `false`.
 
@@ -603,11 +603,11 @@ media budget. Managed media outside the store's root is refused.
 
 ## `cdn` module
 
-[`src/cdn/mod.rs`](../src/cdn/mod.rs)
+[`src/cdn/mod.rs`](../../src/cdn/mod.rs)
 
 ### `aes_ecb` submodule
 
-[`src/cdn/aes_ecb.rs`](../src/cdn/aes_ecb.rs) — block-by-block AES-128-ECB
+[`src/cdn/aes_ecb.rs`](../../src/cdn/aes_ecb.rs) — block-by-block AES-128-ECB
 (true ECB, not CBC-with-zero-IV).
 
 ```rust
@@ -619,7 +619,7 @@ pub fn decrypt_aes_ecb(ciphertext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>>;
 
 ### `cdn_url` submodule
 
-[`src/cdn/cdn_url.rs`](../src/cdn/cdn_url.rs)
+[`src/cdn/cdn_url.rs`](../../src/cdn/cdn_url.rs)
 
 ```rust
 pub const CDN_BASE_URL: &str = "https://novac2c.cdn.weixin.qq.com/c2c";
@@ -636,7 +636,7 @@ param when `ENABLE_CDN_URL_FALLBACK` is set.
 
 ### `download` submodule
 
-[`src/cdn/download.rs`](../src/cdn/download.rs)
+[`src/cdn/download.rs`](../../src/cdn/download.rs)
 
 ```rust
 pub const MEDIA_MAX_BYTES: usize = 100 * 1024 * 1024;
@@ -677,7 +677,7 @@ carrying a transcript are skipped (the transcript is already the body); raw
 
 ### `upload` submodule
 
-[`src/cdn/upload.rs`](../src/cdn/upload.rs)
+[`src/cdn/upload.rs`](../../src/cdn/upload.rs)
 
 ```rust
 pub const UPLOAD_MAX_RETRIES: usize = 3;
@@ -707,11 +707,11 @@ HTTP 4xx aborts immediately; other failures retry up to `UPLOAD_MAX_RETRIES`.
 
 ## `storage` module
 
-[`src/storage/mod.rs`](../src/storage/mod.rs)
+[`src/storage/mod.rs`](../../src/storage/mod.rs)
 
 ### `accounts` submodule
 
-[`src/storage/accounts.rs`](../src/storage/accounts.rs)
+[`src/storage/accounts.rs`](../../src/storage/accounts.rs)
 
 ```rust
 pub const DEFAULT_BASE_URL: &str = "https://ilinkai.weixin.qq.com";
@@ -742,7 +742,7 @@ when non-empty, and clears `user_id` when explicitly set to `""`.
 
 ### `config` submodule
 
-[`src/storage/config.rs`](../src/storage/config.rs)
+[`src/storage/config.rs`](../../src/storage/config.rs)
 
 ```rust
 pub const CHANNEL_CONFIG_SECTION: &str = "openclaw-weixin";
@@ -775,7 +775,7 @@ pub fn load_bot_agent() -> Option<String>;
 
 ### `state_dir` submodule
 
-[`src/storage/state_dir.rs`](../src/storage/state_dir.rs)
+[`src/storage/state_dir.rs`](../../src/storage/state_dir.rs)
 
 ```rust
 pub fn resolve_state_dir() -> PathBuf;     // OPENCLAW_STATE_DIR > CLAWDBOT_STATE_DIR > XDG / ~
@@ -786,7 +786,7 @@ pub fn ensure_dir(path: &Path) -> io::Result<&Path>;
 
 ### `sync_buf` submodule
 
-[`src/storage/sync_buf.rs`](../src/storage/sync_buf.rs) — the persistent
+[`src/storage/sync_buf.rs`](../../src/storage/sync_buf.rs) — the persistent
 `get_updates_buf` cursor.
 
 ```rust
@@ -808,7 +808,7 @@ single-account path on older installs.
 
 ## `media` module
 
-[`src/media/mod.rs`](../src/media/mod.rs) · [`src/media/mime.rs`](../src/media/mime.rs)
+[`src/media/mod.rs`](../../src/media/mod.rs) · [`src/media/mime.rs`](../../src/media/mime.rs)
 
 ```rust
 pub const OCTET_STREAM: &str = "application/octet-stream";
@@ -832,8 +832,8 @@ pub fn is_audio(path: &str) -> bool;
 
 ## `util` module
 
-[`src/util/mod.rs`](../src/util/mod.rs) · [`src/util/random.rs`](../src/util/random.rs)
-· [`src/util/redact.rs`](../src/util/redact.rs) · [`src/util/time.rs`](../src/util/time.rs)
+[`src/util/mod.rs`](../../src/util/mod.rs) · [`src/util/random.rs`](../../src/util/random.rs)
+· [`src/util/redact.rs`](../../src/util/redact.rs) · [`src/util/time.rs`](../../src/util/time.rs)
 
 ```rust
 // random.rs
@@ -860,7 +860,7 @@ pub fn now_iso8601() -> String;                           // millisecond-precisi
 
 ## `logging` module
 
-[`src/logging.rs`](../src/logging.rs) — re-exports `tracing::{debug, error,
+[`src/logging.rs`](../../src/logging.rs) — re-exports `tracing::{debug, error,
 info, trace, warn}` and installs a `tracing_subscriber` honouring `RUST_LOG`
 when the `cli` feature is enabled.
 
@@ -879,7 +879,7 @@ The SDK is `tracing`-based and works with no global subscriber installed
 
 ## `tls` module
 
-[`src/tls.rs`](../src/tls.rs) — server certificates are validated against the
+[`src/tls.rs`](../../src/tls.rs) — server certificates are validated against the
 OS trust store via `rustls-platform-verifier`.
 
 ```rust

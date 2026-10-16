@@ -1,6 +1,6 @@
 # 二维码登录 API
 
-二维码登录位于 [`../../src/messaging/auth.rs`](../../src/messaging/auth.rs)，是 SDK 拿到
+二维码登录位于 [`../../src/messaging/auth.rs`](../../../src/messaging/auth.rs)，是 SDK 拿到
 `QrSession`（含 bot token）的入口。流程对应 TypeScript 的
 `src/auth/login-qr.ts`：
 

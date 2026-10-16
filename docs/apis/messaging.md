@@ -79,7 +79,7 @@ pub struct SendBytesOpts {
 2. `send_message` to the backend.
 3. Read back `new_msg_id` / `x_wechat_seq` as the `message_id` (zero fallback).
 4. If `typing_ticket` was set, the sender concurrently drives a typing heartbeat
-   until `message_id` lands (see [typing](#typing-typinghelper)).
+   until `message_id` lands (see [typing](#typing-typing-submodule)).
 
 ### Usage: sending text and files
 

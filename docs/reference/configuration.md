@@ -90,7 +90,7 @@ values, which win over the built-in defaults.
 | `maxSingleMediaBytes` | number | 25 MiB (26214400) |
 
 Invalid values fall back to their defaults. See
-[Storage & state](storage.md).
+[Storage & state](../guides/storage.md).
 
 ## Runtime overrides
 

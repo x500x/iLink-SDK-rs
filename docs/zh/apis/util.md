@@ -1,17 +1,17 @@
 # 工具函数 API
 
-工具函数模块 [`../../src/util/`](../../src/util/) 提供 ID 生成、日志脱敏与时间辅助，供
+工具函数模块 [`../../src/util/`](../../../src/util/) 提供 ID 生成、日志脱敏与时间辅助，供
 SDK 内部与调用方共用。
 
 模块构成：
 
 | 子模块 | 文件 | 职责 |
 | --- | --- | --- |
-| `random` | [`../../src/util/random.rs`](../../src/util/random.rs) | 唯一 ID 与随机值 |
-| `redact` | [`../../src/util/redact.rs`](../../src/util/redact.rs) | 诊断输出的脱敏 |
-| `time` | [`../../src/util/time.rs`](../../src/util/time.rs) | 时间戳 |
+| `random` | [`../../src/util/random.rs`](../../../src/util/random.rs) | 唯一 ID 与随机值 |
+| `redact` | [`../../src/util/redact.rs`](../../../src/util/redact.rs) | 诊断输出的脱敏 |
+| `time` | [`../../src/util/time.rs`](../../../src/util/time.rs) | 时间戳 |
 
-`util` 模块的公开再导出见 [`../../src/util/mod.rs`](../../src/util/mod.rs)。
+`util` 模块的公开再导出见 [`../../src/util/mod.rs`](../../../src/util/mod.rs)。
 
 ## `random` 子模块
 

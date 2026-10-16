@@ -1,6 +1,6 @@
 # High-level client API
 
-[`WeixinClient`](../../src/client.rs) is the batteries-included entry point for a
+[`WeixinClient`](../../src/client/mod.rs) is the batteries-included entry point for a
 logged-in account. It wraps account resolution, the low-level
 [`WeixinApiClient`](api-client.md), QR login, message delivery, typing heartbeats,
 and the local quote cache. It is the same surface the `weixin` CLI uses in

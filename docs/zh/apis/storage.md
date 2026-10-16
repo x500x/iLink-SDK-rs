@@ -1,6 +1,6 @@
 # 存储与配置 API
 
-存储与配置模块 [`../../src/storage/`](../../src/storage/) 负责本地持久化：账户凭据、状态
+存储与配置模块 [`../../src/storage/`](../../../src/storage/) 负责本地持久化：账户凭据、状态
 目录、长轮询游标，以及 `openclaw.json` 中的 `channels.openclaw-weixin` 配置段。
 对应 TypeScript 的 `src/auth/accounts.ts`、`src/storage/state-dir.ts`、
 `src/storage/sync-buf.ts` 与配置读取。
@@ -9,10 +9,10 @@
 
 | 子模块 | 文件 | 职责 |
 | --- | --- | --- |
-| `accounts` | [`../../src/storage/accounts.rs`](../../src/storage/accounts.rs) | 每账户凭据存储与索引 |
-| `state_dir` | [`../../src/storage/state_dir.rs`](../../src/storage/state_dir.rs) | 状态目录解析 |
-| `sync_buf` | [`../../src/storage/sync_buf.rs`](../../src/storage/sync_buf.rs) | `get_updates_buf` 游标 |
-| `config` | [`../../src/storage/config.rs`](../../src/storage/config.rs) | 配置段读取 |
+| `accounts` | [`../../src/storage/accounts.rs`](../../../src/storage/accounts.rs) | 每账户凭据存储与索引 |
+| `state_dir` | [`../../src/storage/state_dir.rs`](../../../src/storage/state_dir.rs) | 状态目录解析 |
+| `sync_buf` | [`../../src/storage/sync_buf.rs`](../../../src/storage/sync_buf.rs) | `get_updates_buf` 游标 |
+| `config` | [`../../src/storage/config.rs`](../../../src/storage/config.rs) | 配置段读取 |
 
 ## `accounts` 子模块
 

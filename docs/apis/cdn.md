@@ -8,7 +8,7 @@ AES-128-ECB** — true ECB, not zero-IV CBC.
 > mode, and CBC with a zero IV is **not** equivalent to ECB: CBC XORs each plaintext
 > block with the previous ciphertext block, so repeated plaintext blocks produce
 > different ciphertext. The Weixin backend expects true ECB, so
-> [`encrypt_aes_ecb`](#aessubmodule) processes each 16-byte block independently. A
+> [`encrypt_aes_ecb`](#aes_ecb-submodule) processes each 16-byte block independently. A
 > unit test asserts byte-for-byte compatibility with Node's `aes-128-ecb`.
 
 ## Module composition

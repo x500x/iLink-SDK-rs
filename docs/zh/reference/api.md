@@ -13,16 +13,16 @@
 
 | 模块 | 用途 |
 | --- | --- |
-| [`error`](#errormod) | `Error`、`ErrorKind`、`Result` |
-| [`api`](#apimod) | 底层 HTTP 客户端、线类型、会话守卫 |
-| [`client`](#clientmod) | 高层 `WeixinClient` / `WeixinClientBuilder` |
-| [`messaging`](#messagingmod) | 二维码登录、出站、入站上下文、输入状态、引用缓存 |
-| [`cdn`](#cdnmod) | AES-128-ECB 加密 + CDN 上传/下载 |
-| [`storage`](#storagemod) | 账户存储、状态目录、同步游标、配置 |
-| [`media`](#mediamod) | MIME 探测 |
-| [`util`](#utilmod) | ID 生成、脱敏、时间 |
-| [`logging`](#loggingmod) | `tracing` 订阅器辅助（CLI feature） |
-| [`tls`](#tlsmod) | rustls 配置 |
+| [`error`](#error-模块) | `Error`、`ErrorKind`、`Result` |
+| [`api`](#api-模块) | 底层 HTTP 客户端、线类型、会话守卫 |
+| [`client`](#client-模块) | 高层 `WeixinClient` / `WeixinClientBuilder` |
+| [`messaging`](#messaging-模块) | 二维码登录、出站、入站上下文、输入状态、引用缓存 |
+| [`cdn`](#cdn-模块) | AES-128-ECB 加密 + CDN 上传/下载 |
+| [`storage`](#storage-模块) | 账户存储、状态目录、同步游标、配置 |
+| [`media`](#media-模块) | MIME 探测 |
+| [`util`](#util-模块) | ID 生成、脱敏、时间 |
+| [`logging`](#logging-模块) | `tracing` 订阅器辅助（CLI feature） |
+| [`tls`](#tls-模块) | rustls 配置 |
 
 ### `prelude`
 
@@ -48,7 +48,7 @@ pub mod prelude {
 
 ## `error` 模块
 
-[`src/error.rs`](../src/error.rs)
+[`src/error.rs`](../../../src/error.rs)
 
 crate 统一的失败类型。每个可能失败的调用都返回携带 crate `Error` 的
 `Result<T>`。
@@ -108,8 +108,8 @@ ToStrError}`、`rustls::Error`、`url::ParseError`、`hex::FromHexError`、
 
 ## `api` 模块
 
-[`src/api/mod.rs`](../src/api/mod.rs) · [`src/api/client.rs`](../src/api/client.rs)
-· [`src/api/types.rs`](../src/api/types.rs) · [`src/api/session_guard.rs`](../src/api/session_guard.rs)
+[`src/api/mod.rs`](../../../src/api/mod.rs) · [`src/api/client.rs`](../../../src/api/client.rs)
+· [`src/api/types.rs`](../../../src/api/types.rs) · [`src/api/session_guard.rs`](../../../src/api/session_guard.rs)
 
 ### `WeixinApiClient`
 
@@ -235,7 +235,7 @@ pub fn quote_lossless_ids(raw: &str) -> String;
 
 ### `session_guard` 子模块
 
-[`src/api/session_guard.rs`](../src/api/session_guard.rs) —— 在令牌过期错误
+[`src/api/session_guard.rs`](../../../src/api/session_guard.rs) —— 在令牌过期错误
 （`errcode -14`）后，暂停某账户的所有 API 调用一小时。
 
 ```rust
@@ -263,7 +263,7 @@ impl SessionGuard {
 
 ### `types` 子模块
 
-[`src/api/types.rs`](../src/api/types.rs) —— 线类型。所有请求/响应结构体都
+[`src/api/types.rs`](../../../src/api/types.rs) —— 线类型。所有请求/响应结构体都
 `#[derive(Serialize, Deserialize)]` 且 `Default`。关键形态：
 
 | 类型 | 说明 |
@@ -308,7 +308,7 @@ impl GetConfigResp {
 
 ## `client` 模块
 
-[`src/client/mod.rs`](../src/client/mod.rs)
+[`src/client/mod.rs`](../../../src/client/mod.rs)
 
 ### `WeixinConfig`
 
@@ -375,11 +375,11 @@ impl WeixinClient {
 
 ## `messaging` 模块
 
-[`src/messaging/mod.rs`](../src/messaging/mod.rs)
+[`src/messaging/mod.rs`](../../../src/messaging/mod.rs)
 
 ### `auth` 子模块 —— 二维码登录
 
-[`src/messaging/auth.rs`](../src/messaging/auth.rs)
+[`src/messaging/auth.rs`](../../../src/messaging/auth.rs)
 
 ```rust
 impl QrLogin<'_> {
@@ -433,7 +433,7 @@ pub const MAX_QR_REFRESH_COUNT: usize = 3;
 
 ### `outbound` 子模块 —— 发送
 
-[`src/messaging/outbound.rs`](../src/messaging/outbound.rs)
+[`src/messaging/outbound.rs`](../../../src/messaging/outbound.rs)
 
 ```rust
 #[derive(Debug, Clone, Default)]
@@ -466,7 +466,7 @@ impl<'a> MessageSender<'a> {
 
 ### `typing` 子模块
 
-[`src/messaging/typing.rs`](../src/messaging/typing.rs)
+[`src/messaging/typing.rs`](../../../src/messaging/typing.rs)
 
 ```rust
 pub enum Typing { Typing, Cancel }
@@ -490,7 +490,7 @@ impl<'a> TypingHelper<'a> {
 
 ### `context` 子模块 —— 入站上下文
 
-[`src/messaging/context.rs`](../src/messaging/context.rs)
+[`src/messaging/context.rs`](../../../src/messaging/context.rs)
 
 ```rust
 pub struct ContextTokenStore { /* 内存 + JSON 持久化 */ }
@@ -521,7 +521,7 @@ pub fn remember_context_token(store: &mut ContextTokenStore, ctx: &MsgContext) -
 
 ### `quote_cache` 子模块 —— 本地引用缓存
 
-[`src/messaging/quote_cache.rs`](../src/messaging/quote_cache.rs) —— 基于
+[`src/messaging/quote_cache.rs`](../../../src/messaging/quote_cache.rs) —— 基于
 SQLite 的存储，用于仅有服务器消息 id 的入站引用。当 `QuoteCachePolicy::enabled`
 为 `false` 时禁用。
 
@@ -587,11 +587,11 @@ pub fn quote_media_subdir(account_id: &str) -> String;
 
 ## `cdn` 模块
 
-[`src/cdn/mod.rs`](../src/cdn/mod.rs)
+[`src/cdn/mod.rs`](../../../src/cdn/mod.rs)
 
 ### `aes_ecb` 子模块
 
-[`src/cdn/aes_ecb.rs`](../src/cdn/aes_ecb.rs) —— 逐块 AES-128-ECB（真正的
+[`src/cdn/aes_ecb.rs`](../../../src/cdn/aes_ecb.rs) —— 逐块 AES-128-ECB（真正的
 ECB，而非零 IV 的 CBC）。
 
 ```rust
@@ -603,7 +603,7 @@ pub fn decrypt_aes_ecb(ciphertext: &[u8], key: &[u8; 16]) -> Result<Vec<u8>>;
 
 ### `cdn_url` 子模块
 
-[`src/cdn/cdn_url.rs`](../src/cdn/cdn_url.rs)
+[`src/cdn/cdn_url.rs`](../../../src/cdn/cdn_url.rs)
 
 ```rust
 pub const CDN_BASE_URL: &str = "https://novac2c.cdn.weixin.qq.com/c2c";
@@ -620,7 +620,7 @@ pub fn resolve_upload_url(upload_full_url: Option<&str>, upload_param: Option<&s
 
 ### `download` 子模块
 
-[`src/cdn/download.rs`](../src/cdn/download.rs)
+[`src/cdn/download.rs`](../../../src/cdn/download.rs)
 
 ```rust
 pub const MEDIA_MAX_BYTES: usize = 100 * 1024 * 1024;
@@ -660,7 +660,7 @@ pub fn outbound_kind(path: &Path) -> MediaKind;
 
 ### `upload` 子模块
 
-[`src/cdn/upload.rs`](../src/cdn/upload.rs)
+[`src/cdn/upload.rs`](../../../src/cdn/upload.rs)
 
 ```rust
 pub const UPLOAD_MAX_RETRIES: usize = 3;
@@ -690,11 +690,11 @@ HTTP 4xx 立即中止；其他失败重试至 `UPLOAD_MAX_RETRIES` 次。
 
 ## `storage` 模块
 
-[`src/storage/mod.rs`](../src/storage/mod.rs)
+[`src/storage/mod.rs`](../../../src/storage/mod.rs)
 
 ### `accounts` 子模块
 
-[`src/storage/accounts.rs`](../src/storage/accounts.rs)
+[`src/storage/accounts.rs`](../../../src/storage/accounts.rs)
 
 ```rust
 pub const DEFAULT_BASE_URL: &str = "https://ilinkai.weixin.qq.com";
@@ -725,7 +725,7 @@ pub fn resolve_account(account_id: &str) -> Result<StoredAccount>;
 
 ### `config` 子模块
 
-[`src/storage/config.rs`](../src/storage/config.rs)
+[`src/storage/config.rs`](../../../src/storage/config.rs)
 
 ```rust
 pub const CHANNEL_CONFIG_SECTION: &str = "openclaw-weixin";
@@ -758,7 +758,7 @@ pub fn load_bot_agent() -> Option<String>;
 
 ### `state_dir` 子模块
 
-[`src/storage/state_dir.rs`](../src/storage/state_dir.rs)
+[`src/storage/state_dir.rs`](../../../src/storage/state_dir.rs)
 
 ```rust
 pub fn resolve_state_dir() -> PathBuf;     // OPENCLAW_STATE_DIR > CLAWDBOT_STATE_DIR > XDG / ~
@@ -769,7 +769,7 @@ pub fn ensure_dir(path: &Path) -> io::Result<&Path>;
 
 ### `sync_buf` 子模块
 
-[`src/storage/sync_buf.rs`](../src/storage/sync_buf.rs) —— 持久化的
+[`src/storage/sync_buf.rs`](../../../src/storage/sync_buf.rs) —— 持久化的
 `get_updates_buf` 游标。
 
 ```rust
@@ -791,7 +791,7 @@ pub fn clear_for_account(account_id: &str);
 
 ## `media` 模块
 
-[`src/media/mod.rs`](../src/media/mod.rs) · [`src/media/mime.rs`](../src/media/mime.rs)
+[`src/media/mod.rs`](../../../src/media/mod.rs) · [`src/media/mime.rs`](../../../src/media/mime.rs)
 
 ```rust
 pub const OCTET_STREAM: &str = "application/octet-stream";
@@ -815,8 +815,8 @@ pub fn is_audio(path: &str) -> bool;
 
 ## `util` 模块
 
-[`src/util/mod.rs`](../src/util/mod.rs) · [`src/util/random.rs`](../src/util/random.rs)
-· [`src/util/redact.rs`](../src/util/redact.rs) · [`src/util/time.rs`](../src/util/time.rs)
+[`src/util/mod.rs`](../../../src/util/mod.rs) · [`src/util/random.rs`](../../../src/util/random.rs)
+· [`src/util/redact.rs`](../../../src/util/redact.rs) · [`src/util/time.rs`](../../../src/util/time.rs)
 
 ```rust
 // random.rs
@@ -843,7 +843,7 @@ pub fn now_iso8601() -> String;                           // 毫秒精度的 UTC
 
 ## `logging` 模块
 
-[`src/logging.rs`](../src/logging.rs) —— 再导出 `tracing::{debug, error,
+[`src/logging.rs`](../../../src/logging.rs) —— 再导出 `tracing::{debug, error,
 info, trace, warn}`，并在启用 `cli` feature 时安装遵循 `RUST_LOG` 的
 `tracing_subscriber`。
 
@@ -862,7 +862,7 @@ pub fn init_tracing(level: Level);   // 在 `cli` feature 下可用
 
 ## `tls` 模块
 
-[`src/tls.rs`](../src/tls.rs) —— 通过 `rustls-platform-verifier` 依据操作系统
+[`src/tls.rs`](../../../src/tls.rs) —— 通过 `rustls-platform-verifier` 依据操作系统
 信任库校验服务器证书。
 
 ```rust

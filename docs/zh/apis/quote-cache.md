@@ -2,7 +2,7 @@
 
 新版微信客户端在引用消息时只发送服务器消息 id，因此所需的文本与媒体元数据需要
 本地保存，以便后续引用能还原上下文。引用缓存位于
-[`../../src/messaging/quote_cache.rs`](../../src/messaging/quote_cache.rs)，使用 SQLite
+[`../../src/messaging/quote_cache.rs`](../../../src/messaging/quote_cache.rs)，使用 SQLite
 （`rusqlite`，内置 SQLite）持久化。当策略中 `enabled == false` 时整体禁用。
 
 数据库位置：`<state_dir>/openclaw-weixin/ref-messages.sqlite`；受管媒体目录：

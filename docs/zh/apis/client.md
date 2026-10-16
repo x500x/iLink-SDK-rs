@@ -1,6 +1,6 @@
 # 高层客户端 API
 
-高层客户端 [`../../src/client/mod.rs`](../../src/client/mod.rs) 把底层 API 客户端、账户
+高层客户端 [`../../src/client/mod.rs`](../../../src/client/mod.rs) 把底层 API 客户端、账户
 存储、二维码登录、媒体管线与引用缓存组合成一个易用的句柄。大多数应用只需要
 `WeixinClientBuilder` 和 `WeixinClient`，无需直接接触底层端点。
 

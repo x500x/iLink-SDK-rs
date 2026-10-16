@@ -1,6 +1,6 @@
 # TLS 配置 API
 
-TLS 模块 [`../../src/tls.rs`](../../src/tls.rs) 负责 HTTP 客户端使用的传输层安全配置。服务器
+TLS 模块 [`../../src/tls.rs`](../../../src/tls.rs) 负责 HTTP 客户端使用的传输层安全配置。服务器
 证书通过 `rustls-platform-verifier` 依据**操作系统信任库**校验，因此与浏览器的根证书
 一致，也能正确识别企业 MITM 代理；密码套件由 `reqwest` 内置的 `ring` provider 提供。
 

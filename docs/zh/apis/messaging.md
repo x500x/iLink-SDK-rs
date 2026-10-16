@@ -7,9 +7,9 @@
 
 相关模块：
 
-- [`../../src/messaging/outbound.rs`](../../src/messaging/outbound.rs) —— 发送
-- [`../../src/messaging/typing.rs`](../../src/messaging/typing.rs) —— 输入状态
-- [`../../src/messaging/context.rs`](../../src/messaging/context.rs) —— 入站上下文与 token 存储
+- [`../../src/messaging/outbound.rs`](../../../src/messaging/outbound.rs) —— 发送
+- [`../../src/messaging/typing.rs`](../../../src/messaging/typing.rs) —— 输入状态
+- [`../../src/messaging/context.rs`](../../../src/messaging/context.rs) —— 入站上下文与 token 存储
 
 ## `SendOpts`
 
@@ -132,7 +132,7 @@ let _ = sender.send_file(
 
 SDK 不在内部维护接收循环；调用方需自行驱动 `get_updates` 长轮询（见
 [api-client.md](api-client.md)）。拿到 `WeixinMessage` 后，可用
-[`context`](#contexttokestore--mscontext) 模块构造 `MsgContext` 并解析媒体。
+[`context`](#msgcontext) 模块构造 `MsgContext` 并解析媒体。
 
 ### `MsgContext`
 
@@ -238,7 +238,7 @@ store.set(account_id, &ctx.from, ctx.context_token.as_deref().unwrap_or(""));
 
 ## 输入状态 `Typing`
 
-[`../../src/messaging/typing.rs`](../../src/messaging/typing.rs)
+[`../../src/messaging/typing.rs`](../../../src/messaging/typing.rs)
 
 ```rust
 pub enum Typing { Typing, Cancel }

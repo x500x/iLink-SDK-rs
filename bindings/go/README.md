@@ -1,5 +1,7 @@
 # iLink SDK — Go
 
+> 中文版: [README.zh.md](README.zh.md)
+
 cgo bindings for the Rust `ilink-sdk` library. The wrapper is a thin layer over
 the shared library's JSON C ABI.
 

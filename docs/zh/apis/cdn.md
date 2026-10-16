@@ -1,6 +1,6 @@
 # 媒体传输（CDN）API
 
-CDN 模块 [`../../src/cdn/`](../../src/cdn/) 负责媒体（图片、视频、文件、语音）的加密上传与
+CDN 模块 [`../../src/cdn/`](../../../src/cdn/) 负责媒体（图片、视频、文件、语音）的加密上传与
 下载，密码学核心是 **逐块 AES-128-ECB**（真正的 ECB，而非零 IV 的 CBC）。
 
 > **为什么是 ECB 逐块实现？** `aes` crate 没有独立的 ECB 模式，而 CBC + 零 IV
@@ -12,10 +12,10 @@ CDN 模块 [`../../src/cdn/`](../../src/cdn/) 负责媒体（图片、视频、�
 
 | 子模块 | 文件 | 职责 |
 | --- | --- | --- |
-| `aes_ecb` | [`../../src/cdn/aes_ecb.rs`](../../src/cdn/aes_ecb.rs) | AES-128-ECB 加解密 |
-| `cdn_url` | [`../../src/cdn/cdn_url.rs`](../../src/cdn/cdn_url.rs) | CDN URL 构造 |
-| `download` | [`../../src/cdn/download.rs`](../../src/cdn/download.rs) | 下载与解密 |
-| `upload` | [`../../src/cdn/upload.rs`](../../src/cdn/upload.rs) | 预签名与上传 |
+| `aes_ecb` | [`../../src/cdn/aes_ecb.rs`](../../../src/cdn/aes_ecb.rs) | AES-128-ECB 加解密 |
+| `cdn_url` | [`../../src/cdn/cdn_url.rs`](../../../src/cdn/cdn_url.rs) | CDN URL 构造 |
+| `download` | [`../../src/cdn/download.rs`](../../../src/cdn/download.rs) | 下载与解密 |
+| `upload` | [`../../src/cdn/upload.rs`](../../../src/cdn/upload.rs) | 预签名与上传 |
 
 ## `aes_ecb` 子模块
 

@@ -1,5 +1,7 @@
 # Language bindings
 
+> 中文版: [README.zh.md](README.zh.md)
+
 The Rust crate builds a native library (`ilink_sdk.dll` / `libilink_sdk.so` /
 `libilink_sdk.dylib`) whose entire surface is one JSON-in / JSON-out C function:
 
